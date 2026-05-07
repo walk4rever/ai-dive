@@ -11,7 +11,6 @@ interface ErrorPageProps {
 export default function ErrorPage({ error, reset }: ErrorPageProps) {
   useEffect(() => {
     // Surface to server logs for debugging
-    // eslint-disable-next-line no-console
     console.error('App error boundary caught:', error)
   }, [error])
 

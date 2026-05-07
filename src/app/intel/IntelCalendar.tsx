@@ -167,6 +167,7 @@ export function IntelCalendar({ year, month, days, initialDate }: Props) {
       {/* Infographic */}
       {current?.image_url && (
         <div className="mb-6">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={current.image_url}
             alt={`${current.date} 情报图`}

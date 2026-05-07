@@ -135,7 +135,7 @@ export async function getWikiPage(
   const toc = extractToc(html)
 
   const linkedSlugs = extractInternalLinks(body)
-  const backlinks = await findBacklinks(slug, category)
+  const backlinks = await findBacklinks(slug)
   void linkedSlugs
 
   return {
@@ -165,7 +165,7 @@ async function resolveWikiLinks(markdown: string): Promise<string> {
   })
 }
 
-async function findBacklinks(targetSlug: string, _category: WikiCategory): Promise<WikiPage[]> {
+async function findBacklinks(targetSlug: string): Promise<WikiPage[]> {
   const allPages = await getWikiPages()
   const backlinks: WikiPage[] = []
 

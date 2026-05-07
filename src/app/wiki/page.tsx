@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { getWikiPages, WIKI_CATEGORIES, CATEGORY_LABELS } from '@/lib/wiki'
 import { WikiCard } from '@/components/wiki/WikiCard'
 
@@ -27,7 +28,7 @@ export default async function WikiPage() {
             AI 概念、工具与研究的知识库 · {allPages.length} 篇
           </p>
         </div>
-        <a
+        <Link
           href="/wiki/graph"
           className="flex items-center gap-1.5 text-sm text-[var(--muted)] hover:text-[var(--accent)] transition-colors border border-[var(--border)] rounded-lg px-3 py-1.5 hover:border-[var(--ring)]"
         >
@@ -36,7 +37,7 @@ export default async function WikiPage() {
             <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
           </svg>
           图谱
-        </a>
+        </Link>
       </div>
 
       <div className="space-y-12">

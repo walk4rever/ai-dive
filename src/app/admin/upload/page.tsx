@@ -93,6 +93,7 @@ export default function UploadPage() {
         <div className="mt-8 space-y-4">
           {results.map((r) => (
             <div key={r.url} className="border border-[var(--border)] rounded-lg overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={r.url} alt="" className="w-full max-h-48 object-contain bg-[var(--subtle)] bg-opacity-10" />
               <div className="p-4 space-y-2">
                 <div className="flex items-center gap-2">
