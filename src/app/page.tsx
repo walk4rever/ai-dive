@@ -5,6 +5,7 @@ import { getTypeLabel } from '@/lib/content'
 import Link from 'next/link'
 import { IntelHeroPreview } from '@/components/IntelHeroPreview'
 import type { IntelDay } from '@/app/intel/IntelCalendar'
+import { getTodayYmd } from '@/lib/timezone'
 
 export const revalidate = 60
 
@@ -38,6 +39,10 @@ function parseYearMonth(value?: string): { year: number; month: number } | null 
   const month = Number(m[2])
   if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) return null
   return { year, month }
+}
+
+function parseYearMonthFromYmd(value: string): { year: number; month: number } {
+  return { year: Number(value.slice(0, 4)), month: Number(value.slice(5, 7)) }
 }
 
 
@@ -127,8 +132,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const supabase = await createClient()
   const serviceSupabase = await createServiceClient()
 
-  const now = new Date()
-  const selectedMonth = parseYearMonth(im) ?? { year: now.getFullYear(), month: now.getMonth() + 1 }
+  const today = getTodayYmd()
+  const selectedMonth = parseYearMonth(im) ?? parseYearMonthFromYmd(today)
   const year = selectedMonth.year
   const month = selectedMonth.month
   const monthStart = new Date(year, month - 1, 1).toISOString()

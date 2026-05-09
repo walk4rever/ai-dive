@@ -32,6 +32,10 @@ function parseDate(value?: string): { year: number; month: number } | null {
   return { year, month }
 }
 
+function parseYearMonthFromYmd(value: string): { year: number; month: number } {
+  return { year: Number(value.slice(0, 4)), month: Number(value.slice(5, 7)) }
+}
+
 function parseIntelContent(content: string): Pick<IntelDay, 'keywords' | 'image_url'> {
   try {
     const parsed = JSON.parse(content)
@@ -51,11 +55,11 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
     return <p className="text-sm text-[var(--muted)]">配置未完成。</p>
   }
 
-  const now = new Date()
   const today = getTodayYmd()
+  const todayYearMonth = parseYearMonthFromYmd(today)
   const byDate = parseDate(d)
   const byMonth = parseYearMonth(m)
-  const target = byDate ?? byMonth ?? { year: now.getFullYear(), month: now.getMonth() + 1 }
+  const target = byDate ?? byMonth ?? todayYearMonth
   const year = target.year
   const month = target.month
   const monthStart = new Date(year, month - 1, 1).toISOString()
