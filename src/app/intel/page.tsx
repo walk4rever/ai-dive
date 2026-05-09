@@ -4,7 +4,7 @@ import { IntelCalendar, type IntelDay } from './IntelCalendar'
 import { SignalFeed } from './SignalFeed'
 import { SignalHighlights } from './SignalHighlights'
 import type { Signal } from '@/types'
-import { getTodayYmd } from '@/lib/timezone'
+import { formatYmdInTimeZone, getTodayYmd } from '@/lib/timezone'
 
 export const revalidate = 300
 
@@ -85,7 +85,7 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
 
   const days: IntelDay[] = (data ?? []).map((row) => {
     const date = row.published_at
-      ? row.published_at.slice(0, 10)
+      ? formatYmdInTimeZone(new Date(row.published_at))
       : row.slug.replace('intel-', '')
     return {
       date,

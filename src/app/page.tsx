@@ -5,7 +5,7 @@ import { getTypeLabel } from '@/lib/content'
 import Link from 'next/link'
 import { IntelHeroPreview } from '@/components/IntelHeroPreview'
 import type { IntelDay } from '@/app/intel/IntelCalendar'
-import { getTodayYmd } from '@/lib/timezone'
+import { formatYmdInTimeZone, getTodayYmd } from '@/lib/timezone'
 
 export const revalidate = 60
 
@@ -168,7 +168,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const { featured, recent } = buildSections(allPosts)
 
   const intelDays: IntelDay[] = (intelData ?? []).map((row) => {
-    const date = row.published_at ? row.published_at.slice(0, 10) : row.slug.replace('intel-', '')
+    const date = row.published_at
+      ? formatYmdInTimeZone(new Date(row.published_at))
+      : row.slug.replace('intel-', '')
     try {
       const parsed = JSON.parse(row.content ?? '{}')
       return {
