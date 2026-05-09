@@ -50,6 +50,7 @@ function SignalCard({ signal }: { signal: Signal }) {
       )}
       {ogImage && (
         <div className="mt-3 aspect-[1.91/1] w-64 overflow-hidden bg-[var(--subtle)]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={ogImage}
             alt=""

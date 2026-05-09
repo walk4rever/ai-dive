@@ -7,7 +7,9 @@ export function NavUser() {
   const [loggedIn, setLoggedIn] = useState(false)
 
   useEffect(() => {
-    setLoggedIn(!!localStorage.getItem('user_token'))
+    const token = localStorage.getItem('user_token')
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (token) setLoggedIn(true)
   }, [])
 
   if (loggedIn) {

@@ -7,12 +7,12 @@ import { ListPageHeader } from '@/components/ListPageHeader'
 export const revalidate = 60
 
 export const metadata = {
-  title: '访谈 | AI早知道',
+  title: '播客 | AI早知道',
 }
 
 type ListPost = Pick<Post, 'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type'>
 
-export default async function InterviewPage() {
+export default async function PodcastPage() {
   const { hasPublicEnv } = getSupabaseEnv()
   if (!hasPublicEnv) return <p className="text-sm text-[var(--muted)]">配置未完成。</p>
 
@@ -21,7 +21,7 @@ export default async function InterviewPage() {
     .from('ai_pulse_stories')
     .select('id, slug, title, excerpt, published_at, content_type')
     .eq('status', 'published')
-    .eq('content_type', 'interview')
+    .eq('content_type', 'podcast')
     .order('published_at', { ascending: false }).order('created_at', { ascending: false })
 
   const allPosts = (posts ?? []) as ListPost[]
@@ -29,8 +29,8 @@ export default async function InterviewPage() {
   return (
     <div>
       <ListPageHeader
-        kicker="Interviews"
-        title="访谈"
+        kicker="Podcast"
+        title="播客"
         description="和一线的人对话 —— 听见决策的现场。"
         count={allPosts.length}
       />
@@ -39,7 +39,7 @@ export default async function InterviewPage() {
           <ArticleListItem key={post.id} post={post} />
         ))}
         {allPosts.length === 0 && (
-          <p className="py-8 text-sm text-[var(--muted)]">访谈内容即将发布。</p>
+          <p className="py-8 text-sm text-[var(--muted)]">播客内容即将发布。</p>
         )}
       </div>
     </div>
