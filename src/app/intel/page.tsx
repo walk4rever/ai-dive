@@ -4,6 +4,7 @@ import { IntelCalendar, type IntelDay } from './IntelCalendar'
 import { SignalFeed } from './SignalFeed'
 import { SignalHighlights } from './SignalHighlights'
 import type { Signal } from '@/types'
+import { getTodayYmd } from '@/lib/timezone'
 
 export const revalidate = 300
 
@@ -31,10 +32,6 @@ function parseDate(value?: string): { year: number; month: number } | null {
   return { year, month }
 }
 
-function toIsoDate(d: Date): string {
-  return d.toISOString().slice(0, 10)
-}
-
 function parseIntelContent(content: string): Pick<IntelDay, 'keywords' | 'image_url'> {
   try {
     const parsed = JSON.parse(content)
@@ -55,6 +52,7 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
   }
 
   const now = new Date()
+  const today = getTodayYmd()
   const byDate = parseDate(d)
   const byMonth = parseYearMonth(m)
   const target = byDate ?? byMonth ?? { year: now.getFullYear(), month: now.getMonth() + 1 }
@@ -77,7 +75,7 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
       .from('ai_pulse_signals')
       .select('id, url, source_type, source_name, title, description, date, status, metadata, reason, insight, actionable, influence, created_at')
       .eq('status', 'selected')
-      .eq('date', d ?? toIsoDate(now))
+      .eq('date', d ?? today)
       .order('created_at', { ascending: false }),
   ])
 
@@ -106,7 +104,7 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
       <IntelCalendar key={`${year}-${month}`} year={year} month={month} days={days} initialDate={d} />
       <SignalHighlights signals={signals} />
       <section className="mt-16 border-t border-[var(--border)] pt-10">
-        <p className="kicker mb-6">{d ?? toIsoDate(now)} 信号</p>
+        <p className="kicker mb-6">{d ?? today} 信号</p>
         <SignalFeed signals={signals} />
       </section>
     </div>
