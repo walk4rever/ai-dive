@@ -1,8 +1,8 @@
-# AI Pulse / AI早知道
+# AI-DIVE
 
 帮你读懂 AI，而不只是跟上 AI。
 
-`AI早知道` 面向所有关注 AI 的用户，围绕**创造力、判断与审美**三个维度，筛选真正重要的变化，通过**简讯 / 深度 / 案例 / 访谈**帮助读者理解变化的长期意义。
+`AI-DIVE` 面向所有关注 AI 的用户，围绕**创造力、判断与审美**三个维度，筛选真正重要的变化，通过**简讯 / 深度 / 案例 / 访谈**帮助读者理解变化的长期意义。
 
 Powered by [Air7.fun](https://air7.fun)
 
@@ -90,7 +90,7 @@ npm run import:post -- "/absolute/or/relative/path/to/article.md"
 例如：
 
 ```bash
-npm run import:post -- "/Users/rafael/R129/Vault/AI早知道/Harness系列-篇1-什么是Harness.md"
+npm run import:post -- "/Users/rafael/R129/Vault/AI-DIVE/Harness系列-篇1-什么是Harness.md"
 ```
 
 ### 5. 启动开发服务器
