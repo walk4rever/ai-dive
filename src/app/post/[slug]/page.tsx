@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: post.title,
       description: post.excerpt,
       url: `${siteUrl}/post/${slug}`,
-      siteName: 'AI早知道',
+      siteName: 'AI-DIVE',
       images: [{ url: imageUrl, width: 1200, height: 630, alt: post.title }],
       type: 'article',
     },
@@ -121,7 +121,7 @@ function PremiumPaywall({ excerpt }: { excerpt: string }) {
             订阅以阅读完整内容
           </h3>
           <p className="mt-4 text-[var(--muted)] leading-relaxed max-w-md mx-auto">
-            加入 AI早知道 的读者名单，每周获取更完整的深度分析与长期判断。
+            加入 AI-DIVE 的读者名单，每周获取更完整的深度分析与长期判断。
           </p>
           <div className="mt-8">
             <Link

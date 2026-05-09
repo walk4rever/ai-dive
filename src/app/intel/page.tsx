@@ -8,7 +8,7 @@ import type { Signal } from '@/types'
 export const revalidate = 300
 
 export const metadata = {
-  title: '情报 | AI早知道',
+  title: '情报 | AI-DIVE',
 }
 
 function parseYearMonth(value?: string): { year: number; month: number } | null {

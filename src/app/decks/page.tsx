@@ -2,8 +2,8 @@ import Link from 'next/link'
 import { ListPageHeader } from '@/components/ListPageHeader'
 
 export const metadata = {
-  title: '演讲 Decks | AI早知道',
-  description: '基于 AI早知道系列整理的技术演讲幻灯片。',
+  title: '演讲 Decks | AI-DIVE',
+  description: '基于 AI-DIVE系列整理的技术演讲幻灯片。',
 }
 
 interface Deck {

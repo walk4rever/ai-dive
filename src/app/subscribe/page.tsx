@@ -53,7 +53,7 @@ export default function SubscribePage() {
       <header className="mb-12">
         <p className="kicker mb-5" style={{ color: 'var(--accent)' }}>Subscribe</p>
         <h1 className="font-serif text-4xl md:text-5xl font-medium leading-[1.15] tracking-tight">
-          订阅 AI早知道
+          订阅 AI-DIVE
         </h1>
         <p className="mt-6 text-lg md:text-xl text-[var(--muted)] leading-relaxed max-w-xl">
           每周一次，一封面向 AI 工程师的研究型简报：筛掉噪音，只留下真正重要的变化与判断。完全免费。

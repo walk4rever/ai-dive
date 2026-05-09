@@ -5,7 +5,7 @@ import { ListPageHeader } from '@/components/ListPageHeader'
 export const revalidate = 60
 
 export const metadata = {
-  title: '专题 | AI早知道',
+  title: '专题 | AI-DIVE',
 }
 
 interface TopicItem {

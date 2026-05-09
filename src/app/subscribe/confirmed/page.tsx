@@ -24,7 +24,7 @@ const contentByStatus: Record<
   success: {
     label: 'Confirmed',
     title: '订阅确认成功',
-    description: '你的邮箱已完成确认，后续将收到 AI早知道 的更新邮件。',
+    description: '你的邮箱已完成确认，后续将收到 AI-DIVE 的更新邮件。',
   },
   invalid: {
     label: 'Invalid Link',
@@ -44,7 +44,7 @@ const contentByStatus: Record<
   unsubscribed: {
     label: 'Unsubscribed',
     title: '你已取消订阅',
-    description: '后续将不再收到 AI早知道 的更新邮件。你随时可以重新订阅。',
+    description: '后续将不再收到 AI-DIVE 的更新邮件。你随时可以重新订阅。',
   },
   'unsubscribe-invalid': {
     label: 'Invalid Link',

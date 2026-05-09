@@ -7,7 +7,7 @@ import { ListPageHeader } from '@/components/ListPageHeader'
 export const revalidate = 60
 
 export const metadata = {
-  title: '全部文章 | AI早知道',
+  title: '全部文章 | AI-DIVE',
 }
 
 type ArchivePost = Pick<Post, 'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type'>

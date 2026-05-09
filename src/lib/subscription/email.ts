@@ -34,7 +34,7 @@ export function buildPostEmailHtml({
   return `
     <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto; padding: 24px;">
       <p style="font-size: 12px; color: #777; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 16px;">
-        AI早知道
+        AI-DIVE
       </p>
       <h1 style="font-size: 28px; line-height: 1.3; margin: 0 0 16px; color: #111;">
         ${post.title}
@@ -46,7 +46,7 @@ export function buildPostEmailHtml({
         阅读全文
       </a>
       <p style="font-size: 12px; color: #999; line-height: 1.7; margin: 32px 0 0;">
-        ${recipient.name ? `${recipient.name}，` : ''}你收到这封邮件，是因为你订阅了 AI早知道。
+        ${recipient.name ? `${recipient.name}，` : ''}你收到这封邮件，是因为你订阅了 AI-DIVE。
         如不再希望接收更新，可
         <a href="${unsubscribeUrl}" style="color: #666;">点击退订</a>。
       </p>

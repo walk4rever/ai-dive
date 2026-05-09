@@ -17,7 +17,7 @@ export default async function Image({ params }: Props) {
     .eq('slug', slug)
     .single()
 
-  const title = post?.title ?? 'AI早知道'
+  const title = post?.title ?? 'AI-DIVE'
   const desc = post?.excerpt ?? '面向 AI 工程师的周刊与深度研究'
   const truncatedDesc = desc.length > 80 ? desc.slice(0, 80) + '…' : desc
 
@@ -42,7 +42,7 @@ export default async function Image({ params }: Props) {
           textTransform: 'uppercase',
         }}
       >
-        AI早知道
+        AI-DIVE
       </div>
       <div>
         <div

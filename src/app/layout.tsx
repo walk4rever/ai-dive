@@ -6,7 +6,7 @@ import { NavLinks } from '@/components/NavLinks'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'AI早知道 | 面向 AI 工程师的周刊与深度研究',
+  title: 'AI-DIVE | 面向 AI 工程师的周刊与深度研究',
   description: '不是追所有 AI 新闻，而是解释真正重要的变化。给 AI 工程师的每周精选、深度分析与长期判断。',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
 }
@@ -46,7 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <footer className="mt-24 border-t border-[var(--border)]">
           <div className="px-5 md:px-6 py-10 md:py-14">
             <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs text-[var(--subtle)]">AI早知道 © 2026 · Powered by Air7.fun</p>
+              <p className="text-xs text-[var(--subtle)]">AI-DIVE © 2026 · Powered by Air7.fun</p>
               <nav className="flex items-center gap-6 text-sm">
                 <Link
                   href="/docs"

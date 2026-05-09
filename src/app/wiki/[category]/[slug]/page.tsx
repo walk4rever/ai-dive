@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const page = await getWikiPage(category as WikiCategory, slug)
   if (!page) return {}
   return {
-    title: `${page.frontmatter.title} · Wiki · AI早知道`,
+    title: `${page.frontmatter.title} · Wiki · AI-DIVE`,
     description: page.excerpt,
   }
 }

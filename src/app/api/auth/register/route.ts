@@ -87,15 +87,15 @@ export async function POST(req: NextRequest) {
   const { error: emailError } = await resend.emails.send({
     from: `${process.env.RESEND_FROM_NAME} <${process.env.RESEND_FROM_EMAIL}>`,
     to: email,
-    subject: '验证您的邮箱 — AI早知道',
+    subject: '验证您的邮箱 — AI-DIVE',
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
-        <h2 style="font-size: 20px; font-weight: bold;">欢迎加入 AI早知道</h2>
+        <h2 style="font-size: 20px; font-weight: bold;">欢迎加入 AI-DIVE</h2>
         <p style="color: #555; line-height: 1.6;">点击下方链接验证邮箱，完成注册。链接 24 小时内有效。</p>
         <a href="${verifyUrl}" style="display: inline-block; margin-top: 16px; padding: 12px 24px; background: #000; color: #fff; text-decoration: none; font-size: 14px; font-weight: 500;">
           验证邮箱 →
         </a>
-        <p style="margin-top: 24px; font-size: 12px; color: #999;">如果你没有注册过 AI早知道，请忽略此邮件。</p>
+        <p style="margin-top: 24px; font-size: 12px; color: #999;">如果你没有注册过 AI-DIVE，请忽略此邮件。</p>
       </div>
     `,
   })

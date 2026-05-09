@@ -4,7 +4,7 @@ interface LogoProps {
 }
 
 /**
- * AI早知道 logo mark
+ * AI-DIVE logo mark
  *
  * Container: filled rounded square in currentColor (app-icon style)
  * Mark: geometric abstraction of 早 (early/morning), inverted strokes
@@ -39,7 +39,7 @@ export function Logo({ size = 26, showWordmark = true }: LogoProps) {
           style={{ fontFamily: '"Noto Serif SC", "Source Han Serif SC", serif', fontWeight: 600 }}
           className="text-xl tracking-tight leading-none"
         >
-          AI早知道
+          AI-DIVE
         </span>
       )}
     </div>

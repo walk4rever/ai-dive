@@ -83,10 +83,10 @@ export async function POST(req: NextRequest) {
   const resendResult = await resend.emails.send({
     from: `${process.env.RESEND_FROM_NAME} <${process.env.RESEND_FROM_EMAIL}>`,
     to: email,
-    subject: '请确认您的订阅 — AI早知道',
+    subject: '请确认您的订阅 — AI-DIVE',
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
-        <h2 style="font-size: 20px; font-weight: bold;">欢迎订阅 AI早知道 👋</h2>
+        <h2 style="font-size: 20px; font-weight: bold;">欢迎订阅 AI-DIVE 👋</h2>
         <p style="color: #555; line-height: 1.6;">
           ${name ? `${name}，你好！` : '你好！'}点击下方按钮确认订阅，开始接收每周AI精选资讯。
         </p>
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
           确认订阅 →
         </a>
         <p style="margin-top: 24px; font-size: 12px; color: #999;">
-          如果你没有订阅过 AI早知道，请忽略此邮件。
+          如果你没有订阅过 AI-DIVE，请忽略此邮件。
         </p>
       </div>
     `,

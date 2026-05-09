@@ -4,7 +4,7 @@ import { getWikiPages, WIKI_CATEGORIES, CATEGORY_LABELS } from '@/lib/wiki'
 import { WikiCard } from '@/components/wiki/WikiCard'
 
 export const metadata: Metadata = {
-  title: 'Wiki · AI早知道',
+  title: 'Wiki · AI-DIVE',
   description: 'AI 概念、工具与研究的知识库',
 }
 

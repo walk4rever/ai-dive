@@ -4,7 +4,7 @@ import { getWikiGraphData, CATEGORY_LABELS } from '@/lib/wiki'
 import { WikiGraph } from '@/components/wiki/WikiGraph'
 
 export const metadata: Metadata = {
-  title: '知识图谱 · Wiki · AI早知道',
+  title: '知识图谱 · Wiki · AI-DIVE',
 }
 
 export const revalidate = 3600
