@@ -2,7 +2,7 @@ import type { PostContentType } from '@/types'
 import { createServiceClient } from '@/lib/supabase/server'
 import { hashToken } from '@/lib/auth/token'
 
-const ALL_TYPES: PostContentType[] = ['brief', 'analysis', 'case', 'interview', 'intel']
+const ALL_TYPES: PostContentType[] = ['brief', 'analysis', 'case', 'interview']
 
 export interface AuthorConfig {
   authorSlug: string

@@ -18,7 +18,7 @@ async function verifyOwnership(
   userId: string
 ) {
   const { data: post } = await supabase
-    .from('ai_pulse_posts')
+    .from('ai_pulse_stories')
     .select('slug, agent_id, user_id, title, excerpt, featured, status, published_at, is_premium, content_type, author_slug')
     .eq('slug', slug)
     .eq('user_id', userId)
@@ -62,7 +62,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 422 })
   }
 
-  const { error } = await supabase.from('ai_pulse_posts').update(update).eq('slug', slug)
+  const { error } = await supabase.from('ai_pulse_stories').update(update).eq('slug', slug)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   revalidatePath('/')
@@ -81,7 +81,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
   const post = await verifyOwnership(supabase, slug, user.id)
   if (!post) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  const { error } = await supabase.from('ai_pulse_posts').delete().eq('slug', slug)
+  const { error } = await supabase.from('ai_pulse_stories').delete().eq('slug', slug)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   revalidatePath('/')

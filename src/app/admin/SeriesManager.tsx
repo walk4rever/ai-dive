@@ -23,7 +23,6 @@ interface AdminPost {
 
 interface SeriesPost {
   post_id: string
-  order_index: number
   joined_at: string
   post: AdminPost
 }
@@ -49,7 +48,6 @@ export function SeriesManager() {
   const [newSeriesName, setNewSeriesName] = useState('')
   const [newSeriesDescription, setNewSeriesDescription] = useState('')
   const [selectedPostId, setSelectedPostId] = useState('')
-  const [customOrder, setCustomOrder] = useState('')
 
   const selectedSeries = useMemo(
     () => seriesList.find((item) => item.id === selectedSeriesId) ?? null,
@@ -201,19 +199,13 @@ export function SeriesManager() {
     if (!selectedSeries || !selectedPostId) return
     setSaving(true)
 
-    const order = customOrder.trim() ? Number(customOrder) : null
-    const body: Record<string, unknown> = { post_id: selectedPostId }
-    if (order && Number.isInteger(order) && order > 0) {
-      body.order_index = order
-    }
-
     const res = await fetch(`/api/admin/series/${selectedSeries.id}/posts`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${getToken()}`,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ post_id: selectedPostId }),
     })
 
     const data = await res.json().catch(() => null)
@@ -225,35 +217,7 @@ export function SeriesManager() {
 
     await fetchSeriesPosts(selectedSeries.id)
     setSelectedPostId('')
-    setCustomOrder('')
     setSaving(false)
-  }
-
-  async function updateOrder(postId: string, nextOrder: string) {
-    if (!selectedSeries) return
-
-    const order = Number(nextOrder)
-    if (!Number.isInteger(order) || order <= 0) {
-      alert('排序必须是正整数')
-      return
-    }
-
-    const res = await fetch(`/api/admin/series/${selectedSeries.id}/posts/${postId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${getToken()}`,
-      },
-      body: JSON.stringify({ order_index: order }),
-    })
-
-    const data = await res.json().catch(() => null)
-    if (!res.ok) {
-      alert(data?.error ?? '更新排序失败')
-      return
-    }
-
-    await fetchSeriesPosts(selectedSeries.id)
   }
 
   async function removeFromSeries(postId: string) {
@@ -385,7 +349,7 @@ export function SeriesManager() {
 
               <div className="pb-4 border-b border-[var(--subtle)] border-opacity-30">
                 <p className="kicker mb-3">加入文章</p>
-                <div className="grid grid-cols-1 lg:grid-cols-[1fr_130px_auto] gap-3">
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3">
                   <select
                     value={selectedPostId}
                     onChange={(e) => setSelectedPostId(e.target.value)}
@@ -398,12 +362,6 @@ export function SeriesManager() {
                       </option>
                     ))}
                   </select>
-                  <input
-                    value={customOrder}
-                    onChange={(e) => setCustomOrder(e.target.value)}
-                    placeholder="顺序(可选)"
-                    className="w-full border border-[var(--subtle)] border-opacity-35 bg-[var(--background)] px-3 py-2.5 text-sm outline-none focus:border-[var(--foreground)] transition-colors"
-                  />
                   <button
                     onClick={addPostToSeries}
                     disabled={saving || !selectedPostId}
@@ -412,21 +370,13 @@ export function SeriesManager() {
                     加入专题
                   </button>
                 </div>
-                <p className="text-xs text-[var(--muted)] mt-2">不填顺序时自动追加到末尾。</p>
               </div>
 
               <div>
                 <p className="kicker mb-3">专题文章</p>
                 <div className="divide-y divide-[var(--subtle)] divide-opacity-30">
                   {seriesPosts.map((item) => (
-                    <div key={item.post_id} className="py-3 grid grid-cols-[66px_1fr_auto] gap-3 items-center">
-                      <input
-                        type="number"
-                        min={1}
-                        defaultValue={item.order_index}
-                        onBlur={(e) => { void updateOrder(item.post_id, e.target.value) }}
-                        className="w-16 border border-[var(--subtle)] border-opacity-35 bg-[var(--background)] px-2 py-1.5 text-sm outline-none focus:border-[var(--foreground)] transition-colors"
-                      />
+                    <div key={item.post_id} className="py-3 grid grid-cols-[1fr_auto] gap-3 items-center">
                       <div className="min-w-0">
                         <p className="text-sm leading-snug truncate">{item.post.title}</p>
                         <p className="text-xs text-[var(--muted)] mt-1">

@@ -223,6 +223,45 @@ Vault Markdown
 
 ---
 
+## 4.5 Signal Pipeline
+
+Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原始信号，评分筛选后路由给专项 agent 生产 Story。
+
+### 流向
+
+```text
+外部聚合器（aihot / HN / GitHub / arXiv）
+→ ai_pulse_signals（raw）
+→ 策展 agent 评分与筛选
+→ ai_pulse_signals（selected）
+→ 专项 agent（GitHub agent / arXiv agent / ...）
+→ ai_pulse_stories
+→ ai_pulse_distributions
+```
+
+当前主要摄取源是 `aihot.virxact.com`，通过 `POST /api/admin/signals/ingest` 按日期范围拉取已选信号并 upsert 到 `ai_pulse_signals`。
+
+### 三维评分
+
+策展 agent 对每条信号打三个维度的分（0-10）：
+
+| 维度 | 字段 | 判断依据 |
+|------|------|---------|
+| 洞见 | `insight` | 原创性 / 重大发布 / 真知灼见 |
+| 实践 | `actionable` | 经验分享 / 案例 / 有可运行代码 |
+| 影响力 | `influence` | AI 热点 / 覆盖面 / 紧迫程度 |
+
+高分信号路由给对应专项 agent 生产 Story；低分信号归档或丢弃。
+
+### /intel 页信号展示
+
+`/intel` 页消费 `ai_pulse_signals`，以日历为导航，展示：
+
+- **SignalHighlights**：每个维度得分最高的信号各一张卡片（共三张）
+- **SignalFeed**：当日完整信号列表，随日历点击切换（URL 参数 `?d=YYYY-MM-DD`）
+
+---
+
 ## 5. 信息架构
 
 首页先按内容类型组织，而不是先按作者或系列组织。
@@ -287,27 +326,22 @@ Vault Markdown
 
 ## 6. 数据模型方向
 
-现阶段的数据模型遵循“轻量预留”原则：
+现阶段的数据模型遵循”轻量预留”原则：
 
 - 先在文章层表达内容类型、系列、作者、来源等语义
 - 不急于建立复杂 CMS
-- 在业务明确后，再逐步抽离 `series`、`authors` 等实体
+- 在业务明确后，再逐步抽离 `topics`、`authors` 等实体
 
-当前优先支持的内容语义包括：
+当前核心表：
 
-- 文章属于哪种内容类型
-- 是否为首页主打
-- 是否属于某个系列
-- 作者是谁
-- 来源属于编辑部、精选作者还是转载
+- `ai_pulse_stories`：内容文章（原 `ai_pulse_posts`）
+- `ai_pulse_topics`：话题 / 系列（原 `ai_pulse_series`，junction 表已废弃，stories 通过 `topic_ids uuid[]` 关联）
+- `ai_pulse_signals`：从外部聚合器（aihot、HN、GitHub、arXiv）摄取的原始信号，含三维评分（洞见 / 实践 / 影响力 0-10）
+- `ai_pulse_distributions`：渠道发布记录（website / email / wechat / lark / xiaohongshu）
+- `ai_pulse_subscribers`：邮件订阅用户
+- `ai_pulse_email_sends`：邮件发送日志（`story_id` 关联 stories，原为 `post_id`）
 
-当前 `ai_pulse_posts` 需要优先表达的字段包括：
-
-- `content_type`
-- `featured`
-- `series_slug`
-- `author_slug`
-- `source_type`
+数据流向：**Signal → Story → Distribution**。
 
 长期上，系列和作者应成为独立资产，但第一阶段不需要过度工程化。
 
@@ -323,6 +357,9 @@ Vault Markdown
 - 双重确认订阅
 - 独立的订阅确认结果页
 - Next.js + Supabase + Resend 的单仓库实现
+- Signal 摄取 API（`POST /api/admin/signals/ingest`），支持按日期范围从 aihot 拉取、抓取 OG 图、upsert 到 `ai_pulse_signals`
+- `ai_pulse_signals` 三维评分 schema（insight / actionable / influence 0-10）
+- `/intel` 页 SignalHighlights（三维 top 信号卡片）与 SignalFeed（日历驱动信号列表）
 
 ### 7.2 当前明确未实现
 
@@ -333,6 +370,7 @@ Vault Markdown
 - 真正的付费访问控制
 - 作者页 / 系列页
 - 精选创作者工作流
+- 评分 agent / 策展 agent（三维评分当前为 schema 预留，尚无自动评分逻辑）
 
 ### 7.3 当前技术约束
 

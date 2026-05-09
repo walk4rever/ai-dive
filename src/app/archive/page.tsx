@@ -10,7 +10,7 @@ export const metadata = {
   title: '全部文章 | AI早知道',
 }
 
-type ArchivePost = Pick<Post, 'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type' | 'series_slug'>
+type ArchivePost = Pick<Post, 'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type'>
 
 export default async function ArchivePage() {
   const { hasPublicEnv } = getSupabaseEnv()
@@ -21,8 +21,8 @@ export default async function ArchivePage() {
 
   const supabase = await createClient()
   const { data: posts } = await supabase
-    .from('ai_pulse_posts')
-    .select('id, slug, title, excerpt, published_at, content_type, series_slug')
+    .from('ai_pulse_stories')
+    .select('id, slug, title, excerpt, published_at, content_type')
     .eq('status', 'published')
     .order('published_at', { ascending: false }).order('created_at', { ascending: false })
 

@@ -11,12 +11,14 @@ Powered by [Air7.fun](https://air7.fun)
 - 极简首页：单一文章列表（简讯 / 深度 / 案例 / 访谈混排）
 - 文章详情页：适合中文长文阅读的 editorial 排版
 - `/wiki`：Quartz 静态知识库子站，挂在 `ai.air7.fun/wiki/`
+- `/intel`：信号日历页，含每日 overview + 关键词，以及 SignalHighlights（洞见 / 实践 / 影响力三维 top 信号）和 SignalFeed（当日完整信号列表）
 - 邮件订阅页
 - 双重确认订阅流程
 - 草稿 / 已发布内容工作流
 - 系列管理（管理员）：创建系列、把文章加入多个系列、设置系列内顺序
 - Vault Markdown → Supabase 内容导入脚本
 - 付费内容占位式 paywall
+- Signal 摄取 API：从 aihot 拉取信号、抓取 OG 图，upsert 到 `ai_pulse_signals`
 
 产品与架构设计详见 `PRODUCT.md`，阶段化事项详见 `TODO.md`。
 
@@ -70,9 +72,10 @@ cp .env.example .env.local
 
 当前 schema 会创建以下表：
 
-- `ai_pulse_posts`
-- `ai_pulse_series`
-- `ai_pulse_series_posts`
+- `ai_pulse_stories`（原 `ai_pulse_posts`）
+- `ai_pulse_topics`（原 `ai_pulse_series`）
+- `ai_pulse_signals`
+- `ai_pulse_distributions`
 - `ai_pulse_subscribers`
 - `ai_pulse_email_sends`
 
@@ -113,10 +116,12 @@ npm run import:post -- "/path/to/article.md"
 
 - `/`：首页
 - `/post/[slug]`：文章详情
+- `/intel`：信号日历 + 信号流页
 - `/subscribe`：订阅页
 - `/subscribe/confirmed`：确认结果页
 - `/api/subscribe`：订阅接口
 - `/api/confirm`：确认接口
+- `/api/admin/signals/ingest`：信号摄取接口（POST）
 
 ## 当前确认流程
 

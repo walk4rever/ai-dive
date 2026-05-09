@@ -13,7 +13,8 @@ export interface Post {
   status: PostStatus
   content_type: PostContentType
   featured: boolean
-  series_slug: string | null
+  topic_ids: string[]
+  signal_ids: string[]
   author_slug: string | null
   published_at: string | null
   created_at: string
@@ -32,4 +33,44 @@ export interface Subscriber {
   subscribed_at: string
   confirmation_nonce_hash?: string | null
   confirmation_expires_at?: string | null
+}
+
+export interface Signal {
+  id: string
+  url: string
+  source_type: string
+  source_name: string | null
+  title: string
+  description: string
+  date: string
+  status: 'raw' | 'selected' | 'archived'
+  metadata: {
+    og_image?: string | null
+    category?: string | null
+    aihot_id?: string | null
+    [key: string]: unknown
+  } | null
+  reason: string | null
+  insight: number | null
+  actionable: number | null
+  influence: number | null
+  created_at: string
+}
+
+export interface Topic {
+  id: string
+  name: string
+  description: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Distribution {
+  id: string
+  story_id: string
+  channel: 'website' | 'email' | 'wechat' | 'lark' | 'xiaohongshu'
+  status: 'pending' | 'published' | 'failed'
+  channel_post_id: string | null
+  published_at: string | null
+  created_at: string
 }

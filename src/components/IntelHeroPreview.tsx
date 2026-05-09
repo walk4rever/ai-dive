@@ -121,7 +121,6 @@ export function IntelHeroPreview({ year, month, days }: Props) {
           <div className="flex items-baseline gap-2 flex-wrap mb-2">
             <span className="kicker" style={{ color: 'var(--accent)' }}>今日情报</span>
             <span className="text-xs text-[var(--muted)]">{current.date}</span>
-            <span className="text-xs text-[var(--muted)]">· {current.signals.length} 条信号</span>
           </div>
           {current.keywords.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-3">

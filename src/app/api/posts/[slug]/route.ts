@@ -39,7 +39,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
   // Verify the post exists and belongs to this agent
   const { data: post } = await supabase
-    .from('ai_pulse_posts')
+    .from('ai_pulse_stories')
     .select('id, agent_id, slug')
     .eq('slug', slug)
     .single()
@@ -107,7 +107,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   }
 
   const { error } = await supabase
-    .from('ai_pulse_posts')
+    .from('ai_pulse_stories')
     .update(updates)
     .eq('slug', slug)
 

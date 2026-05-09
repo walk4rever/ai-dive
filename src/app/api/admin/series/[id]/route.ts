@@ -33,7 +33,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
   const supabase = await createServiceClient()
   const { data, error } = await supabase
-    .from('ai_pulse_series')
+    .from('ai_pulse_topics')
     .update(update)
     .eq('id', id)
     .select('id, name, description, created_at, updated_at')
@@ -55,7 +55,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
 
   const { id } = await params
   const supabase = await createServiceClient()
-  const { error } = await supabase.from('ai_pulse_series').delete().eq('id', id)
+  const { error } = await supabase.from('ai_pulse_topics').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   return NextResponse.json({ ok: true })

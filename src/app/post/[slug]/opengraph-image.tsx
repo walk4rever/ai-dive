@@ -12,7 +12,7 @@ export default async function Image({ params }: Props) {
   const { slug } = await params
   const supabase = await createClient()
   const { data: post } = await supabase
-    .from('ai_pulse_posts')
+    .from('ai_pulse_stories')
     .select('title, excerpt')
     .eq('slug', slug)
     .single()

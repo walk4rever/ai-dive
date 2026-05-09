@@ -1,5 +1,5 @@
--- AI Pulse posts table
-CREATE TABLE IF NOT EXISTS ai_pulse_posts (
+-- AI Pulse stories table (renamed from ai_pulse_posts)
+CREATE TABLE IF NOT EXISTS ai_pulse_stories (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   slug TEXT UNIQUE NOT NULL,
   title TEXT NOT NULL,
@@ -7,17 +7,20 @@ CREATE TABLE IF NOT EXISTS ai_pulse_posts (
   excerpt TEXT NOT NULL DEFAULT '',
   is_premium BOOLEAN NOT NULL DEFAULT false,
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
-  content_type TEXT NOT NULL DEFAULT 'brief' CHECK (content_type IN ('brief', 'analysis', 'case', 'interview')),
+  content_type TEXT NOT NULL DEFAULT 'brief' CHECK (content_type IN ('brief', 'analysis', 'case', 'interview', 'intel')),
   featured BOOLEAN NOT NULL DEFAULT false,
-  series_slug TEXT,
+  topic_ids UUID[] NOT NULL DEFAULT '{}',
+  signal_ids UUID[] NOT NULL DEFAULT '{}',
   author_slug TEXT,
+  user_id UUID,
+  agent_id UUID,
   published_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- AI Pulse series table
-CREATE TABLE IF NOT EXISTS ai_pulse_series (
+-- AI Pulse topics table (renamed from ai_pulse_series)
+CREATE TABLE IF NOT EXISTS ai_pulse_topics (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT UNIQUE NOT NULL,
   description TEXT NOT NULL DEFAULT '',
@@ -25,15 +28,33 @@ CREATE TABLE IF NOT EXISTS ai_pulse_series (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- AI Pulse series-post relation table
-CREATE TABLE IF NOT EXISTS ai_pulse_series_posts (
+-- AI Pulse signals table (raw intelligence from sources)
+CREATE TABLE IF NOT EXISTS ai_pulse_signals (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  series_id UUID NOT NULL REFERENCES ai_pulse_series(id) ON DELETE CASCADE,
-  post_id UUID NOT NULL REFERENCES ai_pulse_posts(id) ON DELETE CASCADE,
-  order_index INTEGER NOT NULL CHECK (order_index > 0),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  CONSTRAINT ai_pulse_series_posts_unique_series_post UNIQUE (series_id, post_id),
-  CONSTRAINT ai_pulse_series_posts_unique_series_order UNIQUE (series_id, order_index)
+  url TEXT UNIQUE NOT NULL,
+  source_type TEXT NOT NULL DEFAULT 'unknown',
+  source_name TEXT,
+  title TEXT NOT NULL DEFAULT '',
+  description TEXT NOT NULL DEFAULT '',
+  date DATE NOT NULL,
+  status TEXT NOT NULL DEFAULT 'raw' CHECK (status IN ('raw', 'selected', 'archived')),
+  metadata JSONB,
+  reason TEXT,
+  insight SMALLINT CHECK (insight BETWEEN 0 AND 10),
+  actionable SMALLINT CHECK (actionable BETWEEN 0 AND 10),
+  influence SMALLINT CHECK (influence BETWEEN 0 AND 10),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- AI Pulse distributions table (channel publishing records)
+CREATE TABLE IF NOT EXISTS ai_pulse_distributions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  story_id UUID NOT NULL REFERENCES ai_pulse_stories(id) ON DELETE CASCADE,
+  channel TEXT NOT NULL CHECK (channel IN ('website', 'email', 'wechat', 'lark', 'xiaohongshu')),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'published', 'failed')),
+  channel_post_id TEXT,
+  published_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- AI Pulse subscribers table
@@ -54,11 +75,47 @@ CREATE TABLE IF NOT EXISTS ai_pulse_subscribers (
 -- AI Pulse email send log
 CREATE TABLE IF NOT EXISTS ai_pulse_email_sends (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  post_id UUID REFERENCES ai_pulse_posts(id) ON DELETE CASCADE,
+  story_id UUID REFERENCES ai_pulse_stories(id) ON DELETE CASCADE,
   subscriber_id UUID REFERENCES ai_pulse_subscribers(id) ON DELETE CASCADE,
   sent_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   opened_at TIMESTAMPTZ,
   clicked_at TIMESTAMPTZ
+);
+
+-- Users, agents, sessions
+CREATE TABLE IF NOT EXISTS ai_pulse_users (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  email text UNIQUE NOT NULL,
+  password_hash text NOT NULL,
+  username text UNIQUE,
+  email_verified_at timestamptz,
+  verification_nonce_hash text,
+  verification_expires_at timestamptz,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS ai_pulse_agents (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES ai_pulse_users(id) ON DELETE CASCADE,
+  name text NOT NULL,
+  key_hash text UNIQUE NOT NULL,
+  status text NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'revoked')),
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS ai_pulse_user_sessions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES ai_pulse_users(id) ON DELETE CASCADE,
+  token_hash text UNIQUE NOT NULL,
+  expires_at timestamptz NOT NULL,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS ai_pulse_wechat_tokens (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- Auto-update updated_at
@@ -70,43 +127,50 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER ai_pulse_posts_updated_at
-  BEFORE UPDATE ON ai_pulse_posts
+CREATE TRIGGER ai_pulse_stories_updated_at
+  BEFORE UPDATE ON ai_pulse_stories
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
-CREATE TRIGGER ai_pulse_series_updated_at
-  BEFORE UPDATE ON ai_pulse_series
+CREATE TRIGGER ai_pulse_topics_updated_at
+  BEFORE UPDATE ON ai_pulse_topics
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
--- RLS: AI Pulse posts are publicly readable when published
-ALTER TABLE ai_pulse_posts ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Public read published ai_pulse_posts" ON ai_pulse_posts
+-- RLS
+ALTER TABLE ai_pulse_stories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_pulse_topics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_pulse_signals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_pulse_distributions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_pulse_subscribers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_pulse_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_pulse_agents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_pulse_user_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_pulse_wechat_tokens ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public read published ai_pulse_stories" ON ai_pulse_stories
   FOR SELECT USING (status = 'published');
 
--- RLS: service-role managed tables
-ALTER TABLE ai_pulse_subscribers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ai_pulse_series ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ai_pulse_series_posts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read ai_pulse_signals" ON ai_pulse_signals
+  FOR SELECT USING (true);
 
 -- Indexes
-CREATE INDEX IF NOT EXISTS idx_ai_pulse_posts_status_published_at ON ai_pulse_posts (status, published_at DESC);
-CREATE INDEX IF NOT EXISTS idx_ai_pulse_posts_content_type_published_at ON ai_pulse_posts (content_type, published_at DESC);
-CREATE INDEX IF NOT EXISTS idx_ai_pulse_posts_featured_published_at ON ai_pulse_posts (featured, published_at DESC) WHERE status = 'published';
-CREATE INDEX IF NOT EXISTS idx_ai_pulse_posts_series_slug_published_at ON ai_pulse_posts (series_slug, published_at DESC) WHERE series_slug IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_ai_pulse_series_created_at ON ai_pulse_series (created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_ai_pulse_series_posts_series_order ON ai_pulse_series_posts (series_id, order_index ASC);
-CREATE INDEX IF NOT EXISTS idx_ai_pulse_series_posts_post_id ON ai_pulse_series_posts (post_id);
+CREATE INDEX IF NOT EXISTS idx_ai_pulse_stories_status_published_at ON ai_pulse_stories (status, published_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_pulse_stories_content_type_published_at ON ai_pulse_stories (content_type, published_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_pulse_stories_featured_published_at ON ai_pulse_stories (featured, published_at DESC) WHERE status = 'published';
+CREATE INDEX IF NOT EXISTS idx_ai_pulse_topics_created_at ON ai_pulse_topics (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_pulse_signals_date ON ai_pulse_signals (date DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_pulse_signals_status ON ai_pulse_signals (status);
+CREATE INDEX IF NOT EXISTS idx_ai_pulse_distributions_story_id ON ai_pulse_distributions (story_id);
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_subscribers_email ON ai_pulse_subscribers (email);
-CREATE INDEX IF NOT EXISTS idx_ai_pulse_subscribers_confirmed ON ai_pulse_subscribers (confirmed_at) WHERE confirmed_at IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_subscribers_status ON ai_pulse_subscribers (status);
 
--- Grants for Supabase API roles
+-- Grants
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, service_role;
-GRANT SELECT ON ai_pulse_posts TO anon, authenticated;
+GRANT SELECT ON ai_pulse_stories TO anon, authenticated;
+GRANT SELECT ON ai_pulse_signals TO anon, authenticated;
 GRANT ALL ON ai_pulse_subscribers TO service_role;
-GRANT ALL ON ai_pulse_series TO service_role;
-GRANT ALL ON ai_pulse_series_posts TO service_role;
+GRANT ALL ON ai_pulse_topics TO service_role;
+GRANT ALL ON ai_pulse_distributions TO service_role;
 GRANT ALL ON ai_pulse_email_sends TO service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO postgres, service_role;
 GRANT ALL ON ALL ROUTINES IN SCHEMA public TO postgres, service_role;

@@ -3,19 +3,10 @@
 import { useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
-export interface Signal {
-  n: string
-  source: 'HN' | 'GitHub' | 'arXiv'
-  title: string
-  desc: string
-  url: string
-}
-
 export interface IntelDay {
   date: string
   overview: string
   keywords: string[]
-  signals: Signal[]
   image_url?: string | null
 }
 
@@ -27,12 +18,6 @@ interface Props {
 }
 
 const DOW = ['一', '二', '三', '四', '五', '六', '日']
-
-const SOURCE_STYLE: Record<string, string> = {
-  HN:     'text-[#ff6600] bg-[rgba(255,102,0,0.08)]',
-  GitHub: 'text-[#333]    bg-[rgba(51,51,51,0.08)]',
-  arXiv:  'text-[#b31b1b] bg-[rgba(179,27,27,0.08)]',
-}
 
 function daysInMonth(year: number, month: number) {
   return new Date(year, month, 0).getDate()
@@ -72,6 +57,13 @@ export function IntelCalendar({ year, month, days, initialDate }: Props) {
     const params = new URLSearchParams(searchParams.toString())
     params.set('m', `${y}-${pad(m)}`)
     params.delete('d')
+    router.push(`${pathname}?${params.toString()}`)
+  }
+
+  function goToDate(dateStr: string) {
+    setSelected(dateStr)
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('d', dateStr)
     router.push(`${pathname}?${params.toString()}`)
   }
 
@@ -120,7 +112,7 @@ export function IntelCalendar({ year, month, days, initialDate }: Props) {
               return (
                 <button
                   key={day}
-                  onClick={() => has && setSelected(dateStr)}
+                  onClick={() => has && goToDate(dateStr)}
                   className={[
                     'flex flex-col items-center justify-center gap-0.5 rounded-md h-7 text-[0.72rem] transition-colors',
                     isSelected
@@ -145,7 +137,6 @@ export function IntelCalendar({ year, month, days, initialDate }: Props) {
           <div className="flex-1 min-w-0 pt-1">
             <div className="flex items-baseline gap-2 flex-wrap mb-2">
               <span className="font-serif text-2xl font-medium tracking-tight">{current.date}</span>
-              <span className="text-xs text-[var(--muted)]">· {current.signals.length} 条信号</span>
             </div>
             <div className="flex flex-wrap gap-1.5 mb-3">
               {current.keywords.map((k) => (
@@ -176,32 +167,6 @@ export function IntelCalendar({ year, month, days, initialDate }: Props) {
         </div>
       )}
 
-      {/* Signal cards */}
-      {current && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {current.signals.map((s) => (
-            <a
-              key={s.n}
-              href={s.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group border border-[var(--border-subtle)] rounded-xl p-4 bg-white hover:shadow-md hover:border-[var(--border)] transition-all flex flex-col gap-2"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-[0.62rem] font-semibold tracking-wide text-[var(--muted)]">{s.n}</span>
-                <span className={`text-[0.6rem] font-bold tracking-wider px-1.5 py-0.5 rounded ${SOURCE_STYLE[s.source] ?? 'text-[var(--muted)] bg-[var(--border-subtle)]'}`}>
-                  {s.source}
-                </span>
-              </div>
-              <div className="text-sm font-medium leading-snug text-[var(--foreground)]">{s.title}</div>
-              <div className="text-xs text-[var(--muted)] leading-relaxed flex-1">{s.desc}</div>
-              <div className="text-xs text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity">
-                阅读原文 →
-              </div>
-            </a>
-          ))}
-        </div>
-      )}
     </div>
   )
 }

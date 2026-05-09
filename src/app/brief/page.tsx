@@ -10,7 +10,7 @@ export const metadata = {
   title: '简讯 | AI早知道',
 }
 
-type ListPost = Pick<Post, 'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type' | 'series_slug'>
+type ListPost = Pick<Post, 'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type'>
 
 export default async function BriefPage() {
   const { hasPublicEnv } = getSupabaseEnv()
@@ -18,8 +18,8 @@ export default async function BriefPage() {
 
   const supabase = await createClient()
   const { data: posts } = await supabase
-    .from('ai_pulse_posts')
-    .select('id, slug, title, excerpt, published_at, content_type, series_slug')
+    .from('ai_pulse_stories')
+    .select('id, slug, title, excerpt, published_at, content_type')
     .eq('status', 'published')
     .eq('content_type', 'brief')
     .order('published_at', { ascending: false }).order('created_at', { ascending: false })

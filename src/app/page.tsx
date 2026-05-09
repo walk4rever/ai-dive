@@ -14,7 +14,7 @@ interface HomePageProps {
 
 type HomePost = Pick<
   Post,
-  'id' | 'slug' | 'title' | 'excerpt' | 'is_premium' | 'published_at' | 'content_type' | 'featured' | 'series_slug'
+  'id' | 'slug' | 'title' | 'excerpt' | 'is_premium' | 'published_at' | 'content_type' | 'featured'
 >
 
 interface SeriesItem {
@@ -134,21 +134,23 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const monthStart = new Date(year, month - 1, 1).toISOString()
   const monthEnd = new Date(year, month, 1).toISOString()
 
-  const [{ data: posts }, { data: seriesData }, { data: seriesRelations }, { data: intelData }] = await Promise.all([
+  const [{ data: posts }, { data: topicsData }, { data: storiesWithTopics }, { data: intelData }] = await Promise.all([
     supabase
-      .from('ai_pulse_posts')
-      .select('id, slug, title, excerpt, is_premium, published_at, content_type, featured, series_slug')
+      .from('ai_pulse_stories')
+      .select('id, slug, title, excerpt, is_premium, published_at, content_type, featured')
       .eq('status', 'published')
       .order('published_at', { ascending: false }).order('created_at', { ascending: false }),
     serviceSupabase
-      .from('ai_pulse_series')
+      .from('ai_pulse_topics')
       .select('id, name, description')
       .order('created_at', { ascending: false }),
     serviceSupabase
-      .from('ai_pulse_series_posts')
-      .select('series_id'),
+      .from('ai_pulse_stories')
+      .select('topic_ids')
+      .eq('status', 'published')
+      .not('topic_ids', 'eq', '{}'),
     supabase
-      .from('ai_pulse_posts')
+      .from('ai_pulse_stories')
       .select('slug, excerpt, content, published_at')
       .eq('status', 'published')
       .eq('content_type', 'intel')
@@ -177,10 +179,12 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   })
 
   const countMap = new Map<string, number>()
-  for (const row of (seriesRelations ?? [])) {
-    countMap.set(row.series_id, (countMap.get(row.series_id) ?? 0) + 1)
+  for (const row of (storiesWithTopics ?? [])) {
+    for (const topicId of (row.topic_ids ?? [])) {
+      countMap.set(topicId, (countMap.get(topicId) ?? 0) + 1)
+    }
   }
-  const seriesList: SeriesItem[] = (seriesData ?? []).map((s) => ({
+  const seriesList: SeriesItem[] = (topicsData ?? []).map((s) => ({
     ...s,
     postCount: countMap.get(s.id) ?? 0,
   }))

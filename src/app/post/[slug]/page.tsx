@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const supabase = await createClient()
   const { data: post } = await supabase
-    .from('ai_pulse_posts')
+    .from('ai_pulse_stories')
     .select('title, excerpt')
     .eq('slug', slug)
     .eq('status', 'published')
@@ -60,7 +60,7 @@ export default async function PostPage({ params }: Props) {
   const supabase = await createClient()
 
   const { data: post } = await supabase
-    .from('ai_pulse_posts')
+    .from('ai_pulse_stories')
     .select('*')
     .eq('slug', slug)
     .eq('status', 'published')

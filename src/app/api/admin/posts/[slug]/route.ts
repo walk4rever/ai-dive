@@ -15,7 +15,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
   const { slug } = await params
   const supabase = await createServiceClient()
   const { data: post, error } = await supabase
-    .from('ai_pulse_posts')
+    .from('ai_pulse_stories')
     .select('slug, title, excerpt, featured, status, published_at, is_premium, content_type, author_slug')
     .eq('slug', slug)
     .single()
@@ -32,7 +32,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
 
   const { slug } = await params
   const supabase = await createServiceClient()
-  const { error } = await supabase.from('ai_pulse_posts').delete().eq('slug', slug)
+  const { error } = await supabase.from('ai_pulse_stories').delete().eq('slug', slug)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
@@ -64,7 +64,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   }
 
   const supabase = await createServiceClient()
-  const { error } = await supabase.from('ai_pulse_posts').update(update).eq('slug', slug)
+  const { error } = await supabase.from('ai_pulse_stories').update(update).eq('slug', slug)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 

@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { getSupabaseEnv } from '@/lib/supabase/env'
 import { IntelCalendar, type IntelDay } from './IntelCalendar'
+import { SignalFeed } from './SignalFeed'
+import { SignalHighlights } from './SignalHighlights'
+import type { Signal } from '@/types'
 
 export const revalidate = 300
 
@@ -28,16 +31,19 @@ function parseDate(value?: string): { year: number; month: number } | null {
   return { year, month }
 }
 
-function parseIntelContent(content: string): Pick<IntelDay, 'keywords' | 'signals' | 'image_url'> {
+function toIsoDate(d: Date): string {
+  return d.toISOString().slice(0, 10)
+}
+
+function parseIntelContent(content: string): Pick<IntelDay, 'keywords' | 'image_url'> {
   try {
     const parsed = JSON.parse(content)
     return {
       keywords: Array.isArray(parsed.keywords) ? parsed.keywords : [],
-      signals: Array.isArray(parsed.signals) ? parsed.signals : [],
       image_url: parsed.image_url ?? null,
     }
   } catch {
-    return { keywords: [], signals: [], image_url: null }
+    return { keywords: [], image_url: null }
   }
 }
 
@@ -58,14 +64,22 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
   const monthEnd = new Date(year, month, 1).toISOString()
 
   const supabase = await createClient()
-  const { data } = await supabase
-    .from('ai_pulse_posts')
-    .select('slug, excerpt, content, published_at')
-    .eq('status', 'published')
-    .eq('content_type', 'intel')
-    .gte('published_at', monthStart)
-    .lt('published_at', monthEnd)
-    .order('published_at', { ascending: false })
+  const [{ data }, { data: signalData }] = await Promise.all([
+    supabase
+      .from('ai_pulse_stories')
+      .select('slug, excerpt, content, published_at')
+      .eq('status', 'published')
+      .eq('content_type', 'intel')
+      .gte('published_at', monthStart)
+      .lt('published_at', monthEnd)
+      .order('published_at', { ascending: false }),
+    supabase
+      .from('ai_pulse_signals')
+      .select('id, url, source_type, source_name, title, description, date, status, metadata, reason, insight, actionable, influence, created_at')
+      .eq('status', 'selected')
+      .eq('date', d ?? toIsoDate(now))
+      .order('created_at', { ascending: false }),
+  ])
 
   const days: IntelDay[] = (data ?? []).map((row) => {
     const date = row.published_at
@@ -78,6 +92,8 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
     }
   })
 
+  const signals = (signalData ?? []) as Signal[]
+
   return (
     <div>
       <div className="mb-8">
@@ -88,6 +104,11 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
         </p>
       </div>
       <IntelCalendar key={`${year}-${month}`} year={year} month={month} days={days} initialDate={d} />
+      <SignalHighlights signals={signals} />
+      <section className="mt-16 border-t border-[var(--border)] pt-10">
+        <p className="kicker mb-6">{d ?? toIsoDate(now)} 信号</p>
+        <SignalFeed signals={signals} />
+      </section>
     </div>
   )
 }

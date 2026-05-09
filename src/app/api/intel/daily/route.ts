@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
   })
 
   const supabase = await createServiceClient()
-  const { error } = await supabase.from('ai_pulse_posts').upsert(
+  const { error } = await supabase.from('ai_pulse_stories').upsert(
     {
       slug,
       title: `${date} AI 情报`,

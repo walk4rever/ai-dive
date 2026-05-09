@@ -6,33 +6,13 @@ interface RouteParams {
   params: Promise<{ id: string }>
 }
 
-interface RelatedPost {
+interface StoryRow {
   id: string
   slug: string
   title: string
   content_type: string
   status: string
   published_at: string | null
-}
-
-interface RelationRow {
-  post_id: string
-  order_index: number
-  created_at: string
-  ai_pulse_posts: RelatedPost | RelatedPost[] | null
-}
-
-async function nextOrderIndex(seriesId: string): Promise<number> {
-  const supabase = await createServiceClient()
-  const { data, error } = await supabase
-    .from('ai_pulse_series_posts')
-    .select('order_index')
-    .eq('series_id', seriesId)
-    .order('order_index', { ascending: false })
-    .limit(1)
-
-  if (error) throw new Error(error.message)
-  return (data?.[0]?.order_index ?? 0) + 1
 }
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
@@ -43,29 +23,20 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
   const { id } = await params
   const supabase = await createServiceClient()
 
-  const { data: relations, error } = await supabase
-    .from('ai_pulse_series_posts')
-    .select('series_id, post_id, order_index, created_at, ai_pulse_posts!inner(id, slug, title, content_type, status, published_at)')
-    .eq('series_id', id)
-    .order('order_index', { ascending: true })
+  const { data, error } = await supabase
+    .from('ai_pulse_stories')
+    .select('id, slug, title, content_type, status, published_at')
+    .contains('topic_ids', [id])
+    .order('published_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  const rows = (relations ?? []) as unknown as RelationRow[]
-  const posts = rows
-    .map((item) => {
-      const post = Array.isArray(item.ai_pulse_posts)
-        ? item.ai_pulse_posts[0]
-        : item.ai_pulse_posts
-      if (!post) return null
-      return {
-        post_id: item.post_id,
-        order_index: item.order_index,
-        joined_at: item.created_at,
-        post,
-      }
-    })
-    .filter((item): item is NonNullable<typeof item> => item !== null)
+  const posts = ((data ?? []) as StoryRow[]).map((story) => ({
+    post_id: story.id,
+    order_index: 0,
+    joined_at: story.published_at ?? '',
+    post: story,
+  }))
 
   return NextResponse.json({ posts })
 }
@@ -75,34 +46,36 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { id } = await params
+  const { id: topicId } = await params
   const body = await req.json().catch(() => null)
   if (!body) return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
 
-  const postId = typeof body.post_id === 'string' ? body.post_id.trim() : ''
-  if (!postId) return NextResponse.json({ error: 'Field "post_id" is required' }, { status: 422 })
-
-  const requestedOrder = Number(body.order_index)
-  const hasCustomOrder = Number.isInteger(requestedOrder) && requestedOrder > 0
-  const orderIndex = hasCustomOrder ? requestedOrder : await nextOrderIndex(id)
+  const storyId = typeof body.post_id === 'string' ? body.post_id.trim() : ''
+  if (!storyId) return NextResponse.json({ error: 'Field "post_id" is required' }, { status: 422 })
 
   const supabase = await createServiceClient()
-  const { data, error } = await supabase
-    .from('ai_pulse_series_posts')
-    .insert({
-      series_id: id,
-      post_id: postId,
-      order_index: orderIndex,
-    })
-    .select('id, series_id, post_id, order_index, created_at')
+
+  const { data: story, error: fetchError } = await supabase
+    .from('ai_pulse_stories')
+    .select('id, topic_ids')
+    .eq('id', storyId)
     .single()
 
-  if (error) {
-    if (error.code === '23505') {
-      return NextResponse.json({ error: 'Post already exists in this series or order is duplicated' }, { status: 409 })
-    }
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  if (fetchError || !story) {
+    return NextResponse.json({ error: 'Story not found' }, { status: 404 })
   }
 
-  return NextResponse.json({ relation: data }, { status: 201 })
+  const currentIds: string[] = story.topic_ids ?? []
+  if (currentIds.includes(topicId)) {
+    return NextResponse.json({ error: 'Story already in this topic' }, { status: 409 })
+  }
+
+  const { error } = await supabase
+    .from('ai_pulse_stories')
+    .update({ topic_ids: [...currentIds, topicId] })
+    .eq('id', storyId)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return NextResponse.json({ ok: true }, { status: 201 })
 }

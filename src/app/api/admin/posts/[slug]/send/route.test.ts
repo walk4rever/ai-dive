@@ -65,7 +65,7 @@ describe('POST /api/admin/posts/[slug]/send', () => {
     sendEmail.mockResolvedValue({ data: { id: 'email_1' }, error: null })
 
     from.mockImplementation((table: string) => {
-      if (table === 'ai_pulse_posts') return { select: postSelect }
+      if (table === 'ai_pulse_stories') return { select: postSelect }
       if (table === 'ai_pulse_subscribers') return { select: subscriberSelect }
       if (table === 'ai_pulse_email_sends') return { select: sendLogSelect, insert }
       throw new Error(`Unexpected table: ${table}`)
@@ -105,7 +105,7 @@ describe('POST /api/admin/posts/[slug]/send', () => {
     expect(res.status).toBe(200)
     expect(sendEmail).toHaveBeenCalledTimes(1)
     expect(insert).toHaveBeenCalledWith({
-      post_id: 'post-1',
+      story_id: 'post-1',
       subscriber_id: 'subscriber-1',
     })
     expect(body).toEqual({

@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   const supabase = await createServiceClient()
 
   const { data: posts, error } = await supabase
-    .from('ai_pulse_posts')
+    .from('ai_pulse_stories')
     .select('id, slug, title, content_type, status, featured, published_at, agent_id, author_slug')
     .eq('user_id', user.id)
     .order('published_at', { ascending: false, nullsFirst: false })

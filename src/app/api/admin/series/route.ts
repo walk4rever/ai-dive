@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 
   const supabase = await createServiceClient()
   const { data, error } = await supabase
-    .from('ai_pulse_series')
+    .from('ai_pulse_topics')
     .select('id, name, description, created_at, updated_at')
     .order('created_at', { ascending: false })
 
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
   const supabase = await createServiceClient()
   const { data, error } = await supabase
-    .from('ai_pulse_series')
+    .from('ai_pulse_topics')
     .insert({ name, description })
     .select('id, name, description, created_at, updated_at')
     .single()

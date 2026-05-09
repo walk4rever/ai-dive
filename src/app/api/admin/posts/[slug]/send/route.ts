@@ -25,7 +25,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
   const supabase = await createServiceClient()
 
   const { data: post, error: postError } = await supabase
-    .from('ai_pulse_posts')
+    .from('ai_pulse_stories')
     .select('id, slug, title, excerpt, status')
     .eq('slug', slug)
     .single()
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
   const { data: previousSends, error: sendLogError } = await supabase
     .from('ai_pulse_email_sends')
     .select('subscriber_id')
-    .eq('post_id', post.id)
+    .eq('story_id', post.id)
 
   if (sendLogError) {
     return NextResponse.json({ error: 'Failed to load send log' }, { status: 500 })
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const { error } = await supabase
       .from('ai_pulse_email_sends')
       .insert({
-        post_id: post.id,
+        story_id: post.id,
         subscriber_id: subscriber.id,
       })
 

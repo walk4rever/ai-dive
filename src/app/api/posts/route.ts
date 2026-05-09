@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
 
   const supabase = await createServiceClient()
   let query = supabase
-    .from('ai_pulse_posts')
+    .from('ai_pulse_stories')
     .select('id, slug, title, excerpt, content_type, author_slug, agent_id, published_at, featured, is_premium, content')
     .eq('status', 'published')
     .order('published_at', { ascending: false })
@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
   const resolvedAuthorSlug = authorMode === 'user' ? author.username! : author.authorSlug
 
   const supabase = await createServiceClient()
-  const { error } = await supabase.from('ai_pulse_posts').upsert(
+  const { error } = await supabase.from('ai_pulse_stories').upsert(
     {
       slug,
       title: title.trim(),
