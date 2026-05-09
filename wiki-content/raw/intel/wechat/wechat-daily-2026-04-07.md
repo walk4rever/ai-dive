@@ -1,10 +1,10 @@
 ---
-title: AI早知道：Google发布首个AI智能体攻击框架Hermes-Agent实现自主成长
+title: AI-DIVE：Google发布首个AI智能体攻击框架Hermes-Agent实现自主成长
 author: AI Daily Intelligence
 description: Google发布首个AI智能体攻击框架，NousResearch实现智能体自主成长，arXiv首发产业调研预测2026年40%企业部署AI智能体
 ---
 
-# AI早知道：Google发布首个AI智能体攻击框架Hermes-Agent实现自主成长
+# AI-DIVE：Google发布首个AI智能体攻击框架Hermes-Agent实现自主成长
 
 > 2026年4月7日 · AI产业今日核心要闻
 

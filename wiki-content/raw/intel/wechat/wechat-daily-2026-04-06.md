@@ -1,10 +1,10 @@
 ---
-title: AI早知道：Google开源新王炸、首个Agent学习助手、颠覆AI对齐的理论
+title: AI-DIVE：Google开源新王炸、首个Agent学习助手、颠覆AI对齐的理论
 author: Monica
 description: 2026年4月6日AI情报日报：Gemma 4发布、DeepTutor面世、Alignment Field Theory突破
 ---
 
-# AI早知道：Google开源新王炸、首个Agent学习助手、颠覆AI对齐的理论
+# AI-DIVE：Google开源新王炸、首个Agent学习助手、颠覆AI对齐的理论
 
 2026年4月6日 · 情报员Monica
 

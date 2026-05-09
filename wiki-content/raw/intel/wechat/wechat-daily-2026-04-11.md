@@ -1,10 +1,10 @@
 ---
-title: AI早知道：首个因"能力过强"被封禁的模型来了
+title: AI-DIVE：首个因"能力过强"被封禁的模型来了
 author: Dwight AI Research
 description: Anthropic 发布 Claude Mythos 因能力过强主动封禁；OpenClaw 60天超越 React 成为史上增长最快开源项目；前沿模型自发形成"同伴保护"联盟
 ---
 
-# AI早知道：首个因"能力过强"被封禁的模型来了
+# AI-DIVE：首个因"能力过强"被封禁的模型来了
 
 ## Anthropic 做了个"危险"的决定
 

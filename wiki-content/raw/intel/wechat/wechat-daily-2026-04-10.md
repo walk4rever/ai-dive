@@ -1,10 +1,10 @@
 ---
-title: AI早知道：国产大模型首次获得国际认可；OpenClaw创史上最快增长记录
+title: AI-DIVE：国产大模型首次获得国际认可；OpenClaw创史上最快增长记录
 author: Dwight
 description: 今日AI情报：Qwen3.6-Plus成首个被OpenClaw官方适配的国产模型；OpenClaw 4个月斩获25万Star；ClawSafety论文揭示Agent安全致命缺口。
 ---
 
-# AI早知道：国产大模型首次获得国际认可；OpenClaw创史上最快增长记录
+# AI-DIVE：国产大模型首次获得国际认可；OpenClaw创史上最快增长记录
 
 2026年4月10日，AI领域迎来多个里程碑事件。国产大模型Qwen3.6-Plus首次被国际顶级开源Agent框架OpenClaw官方适配；OpenClaw以史上最快速度突破25万GitHub Stars；arXiv最新论文ClawSafety则揭示了Agent安全的关键风险。以下是详细解读。
 

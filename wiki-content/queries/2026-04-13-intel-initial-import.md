@@ -4,7 +4,7 @@ created: 2026-04-13
 updated: 2026-04-13
 type: query
 tags: [research, report, automation, wiki]
-sources: [raw/intel/DAILY-INTEL.md, raw/intel/reports/news/2026-04-13-qwen3-6-plus.md, raw/intel/reports/projects/2026-04-13-superpowers-framework.md, raw/intel/reports/papers/2026-04-13-prompt-injection-defense.md, raw/intel/reports/papers/2026-04-13-prompt-injection-defense-deep.md, raw/intel/reports/news/2026-04-11-anthropic-mythos-glasswing.md, raw/intel/wechat/AI早知道-周刊-HN-20260330-0405.md, raw/intel/wechat/AI早知道-周刊-HN-20260406-0412.md, raw/intel/wechat/AI早知道-周刊-20260413-0419.md]
+sources: [raw/intel/DAILY-INTEL.md, raw/intel/reports/news/2026-04-13-qwen3-6-plus.md, raw/intel/reports/projects/2026-04-13-superpowers-framework.md, raw/intel/reports/papers/2026-04-13-prompt-injection-defense.md, raw/intel/reports/papers/2026-04-13-prompt-injection-defense-deep.md, raw/intel/reports/news/2026-04-11-anthropic-mythos-glasswing.md, raw/intel/wechat/AI-DIVE-周刊-HN-20260330-0405.md, raw/intel/wechat/AI-DIVE-周刊-HN-20260406-0412.md, raw/intel/wechat/AI-DIVE-周刊-20260413-0419.md]
 ---
 
 # Intel Initial Import 2026-04-13
@@ -23,8 +23,8 @@ sources: [raw/intel/DAILY-INTEL.md, raw/intel/reports/news/2026-04-13-qwen3-6-pl
 
 ### 3) 周刊与新闻归档
 - 两期 HN 周刊已归档到 `wiki/raw/intel/wechat/`，包括：
-  - `AI早知道周刊 · 20260330-0405`
-  - `AI早知道周刊 · 20260406-0412`
+  - `AI-DIVE周刊 · 20260330-0405`
+  - `AI-DIVE周刊 · 20260406-0412`
 - 这两期共同显示出同一个信号：开发者关注点正在从“模型能力”转向“工具可信度、平台边界、供应链安全与长期维护”。
 
 ## 已执行的归档动作

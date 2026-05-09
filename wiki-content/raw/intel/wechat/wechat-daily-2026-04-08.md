@@ -1,10 +1,10 @@
 ---
-title: AI早知道：微软自研模型挑衅OpenAI，Kimi K2.5开源炸场，AI智能体真相曝光
+title: AI-DIVE：微软自研模型挑衅OpenAI，Kimi K2.5开源炸场，AI智能体真相曝光
 author: Dwight
 description: 微软发布MAI模型家族直接挑战OpenAI，Kimi K2.5开源多模态智能体，Agentic-MME揭示AI智能体真实能力只有56.3%
 ---
 
-# AI早知道：2026年4月8日
+# AI-DIVE：2026年4月8日
 
 今天的AI圈相当热闹。微软终于摊牌了，不再甘于做"AI分销商"；月之暗面用开源模型打了一场漂亮仗；而一篇重磅论文，则给我们泼了一盆冷水——原来AI智能体远没有想象中那么强。
 

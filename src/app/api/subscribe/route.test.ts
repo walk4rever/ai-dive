@@ -29,7 +29,7 @@ describe('POST /api/subscribe', () => {
     vi.stubEnv('NEXT_PUBLIC_SITE_URL', 'https://aipulse.test')
     vi.stubEnv('EMAIL_CONFIRMATION_SECRET', 'confirmation-secret')
     vi.stubEnv('RESEND_API_KEY', 'resend-key')
-    vi.stubEnv('RESEND_FROM_NAME', 'AI Pulse')
+    vi.stubEnv('RESEND_FROM_NAME', 'AI-DIVE')
     vi.stubEnv('RESEND_FROM_EMAIL', 'hi@aipulse.test')
 
     eq.mockReturnValue({ single })

@@ -1,10 +1,10 @@
 ---
-title: AI早知道：首个AI智能体"自学"框架来了！Google开源划时代产品
+title: AI-DIVE：首个AI智能体"自学"框架来了！Google开源划时代产品
 author: AI情报处
 description: 今日AI圈三大热点：Memento-Skills让智能体自我进化、LiteRT-LM开启边缘AI新时代、Peer-Preservation重新定义多智能体协作原则。
 ---
 
-# AI早知道：首个AI智能体"自学"框架来了！Google开源划时代产品
+# AI-DIVE：首个AI智能体"自学"框架来了！Google开源划时代产品
 
 2026年4月12日 AI圈传来三条重磅消息。从智能体的自我进化，到边缘设备的LLM部署，再到多智能体协作的新原则——AI正在以肉眼可见的速度进化。
 

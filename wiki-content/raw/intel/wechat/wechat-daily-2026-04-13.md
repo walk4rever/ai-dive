@@ -1,10 +1,10 @@
 ---
-title: AI早知道：国产大模型进入全球第一梯队｜编程Agent框架再升级｜LLM安全新突破
+title: AI-DIVE：国产大模型进入全球第一梯队｜编程Agent框架再升级｜LLM安全新突破
 author: Monica
 description: 阿里千问3.6-Plus编程能力直逼Claude Opus 4.5，Superpowers重新定义AI编程方法论，ACL 2026论文提出提示词注入防御新方案
 ---
 
-# AI早知道：国产大模型进入全球第一梯队｜编程Agent框架再升级｜LLM安全新突破
+# AI-DIVE：国产大模型进入全球第一梯队｜编程Agent框架再升级｜LLM安全新突破
 
 今天是2026年4月13日，AI领域又有多个重要进展。让我为你逐一解读。
 
