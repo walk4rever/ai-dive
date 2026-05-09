@@ -1,5 +1,5 @@
 export type PostStatus = 'draft' | 'published'
-export type PostContentType = 'analysis' | 'case' | 'intel' | 'podcast'
+export type PostContentType = 'analysis' | 'case' | 'intel' | 'podcast' | 'invest'
 export type SubscriberTier = 'free' | 'paid'
 export type SubscriberStatus = 'pending' | 'active' | 'unsubscribed'
 

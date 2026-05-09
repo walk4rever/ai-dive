@@ -5,7 +5,7 @@ import { markdownToHtml } from '@/lib/markdown'
 import { resolveAuthor } from '@/lib/api-auth'
 import type { PostContentType } from '@/types'
 
-const VALID_TYPES = new Set<PostContentType>(['analysis', 'case', 'intel', 'podcast'])
+const VALID_TYPES = new Set<PostContentType>(['analysis', 'case', 'intel', 'podcast', 'invest'])
 const VALID_STATUS = new Set(['draft', 'published'])
 
 interface PostPayload {
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
 
   if (!VALID_TYPES.has(type)) {
     return NextResponse.json(
-      { error: 'Field "type" must be one of: analysis, case, intel, podcast' },
+      { error: 'Field "type" must be one of: analysis, case, intel, podcast, invest' },
       { status: 422 }
     )
   }
@@ -150,6 +150,7 @@ export async function POST(req: NextRequest) {
   revalidatePath('/')
   revalidatePath('/analysis')
   revalidatePath('/cases')
+  revalidatePath('/invest')
   revalidatePath('/archive')
   revalidatePath(`/post/${slug}`)
 
