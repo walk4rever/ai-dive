@@ -66,7 +66,7 @@ function validateSignal(s: SignalInput, index?: number): string | null {
   return null
 }
 
-function toRow(s: SignalInput) {
+function toRow(s: SignalInput, agentId: string) {
   return {
     url: s.url.trim(),
     source_type: s.source_type,
@@ -76,13 +76,14 @@ function toRow(s: SignalInput) {
     date: s.date,
     status: VALID_STATUS.has(s.status ?? '') ? s.status! : 'raw',
     metadata: s.metadata ?? null,
+    agent_id: agentId,
   }
 }
 
 export async function POST(req: NextRequest) {
   const token = extractBearer(req)
   const author = await resolveAuthor(token)
-  if (!author) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!author?.agentId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   let body: unknown
   try {
@@ -103,20 +104,81 @@ export async function POST(req: NextRequest) {
     if (err) return NextResponse.json({ error: err }, { status: 422 })
   }
 
-  const rows = inputs.map(toRow)
+  const rows = inputs.map(s => toRow(s, author.agentId!))
   const supabase = await createServiceClient()
-  const { error } = await supabase
+
+  // Check ownership of existing signals before upserting
+  const { data: existing, error: fetchError } = await supabase
     .from('ai_pulse_signals')
-    .upsert(rows, { onConflict: 'url', ignoreDuplicates: false })
+    .select('url, agent_id')
+    .in('url', rows.map(r => r.url))
+
+  if (fetchError) {
+    console.error('[api/signals] fetch existing failed', { message: fetchError.message })
+    return NextResponse.json({ error: 'Database error' }, { status: 500 })
+  }
+
+  const ownerByUrl = new Map(existing?.map(r => [r.url, r.agent_id]) ?? [])
+  const allowed = rows.filter(r => {
+    const owner = ownerByUrl.get(r.url)
+    return owner === undefined || owner === author.agentId
+  })
+  const skipped = rows.length - allowed.length
+
+  if (allowed.length > 0) {
+    const { error } = await supabase
+      .from('ai_pulse_signals')
+      .upsert(allowed, { onConflict: 'url', ignoreDuplicates: false })
+
+    if (error) {
+      console.error('[api/signals] upsert failed', { count: allowed.length, message: error.message })
+      return NextResponse.json({ error: 'Database error' }, { status: 500 })
+    }
+  }
+
+  revalidatePath('/intel')
+
+  return NextResponse.json({ ok: true, count: allowed.length, skipped }, { status: 200 })
+}
+
+export async function DELETE(req: NextRequest) {
+  const token = extractBearer(req)
+  const author = await resolveAuthor(token)
+  if (!author?.agentId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  let body: unknown
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
+  const urls = (body as { urls?: unknown })?.urls
+  if (!Array.isArray(urls) || urls.length === 0)
+    return NextResponse.json({ error: '"urls" must be a non-empty array' }, { status: 422 })
+  if (urls.length > 100)
+    return NextResponse.json({ error: 'Batch limit is 100 URLs per request' }, { status: 422 })
+  for (const url of urls) {
+    if (typeof url !== 'string' || !url.startsWith('https://'))
+      return NextResponse.json({ error: `Invalid URL: ${url}` }, { status: 422 })
+  }
+
+  const supabase = await createServiceClient()
+  const { data, error } = await supabase
+    .from('ai_pulse_signals')
+    .delete()
+    .in('url', urls)
+    .eq('agent_id', author.agentId)
+    .select('url')
 
   if (error) {
-    console.error('[api/signals] upsert failed', { count: rows.length, message: error.message })
+    console.error('[api/signals] delete failed', { message: error.message })
     return NextResponse.json({ error: 'Database error' }, { status: 500 })
   }
 
   revalidatePath('/intel')
 
-  return NextResponse.json({ ok: true, count: rows.length }, { status: 200 })
+  return NextResponse.json({ ok: true, deleted: data?.length ?? 0 })
 }
 
 function extractBearer(req: NextRequest): string | null {
