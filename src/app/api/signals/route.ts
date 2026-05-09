@@ -22,8 +22,8 @@ interface SignalInput {
 function validateSignal(s: SignalInput, index?: number): string | null {
   const p = index !== undefined ? `signals[${index}]: ` : ''
 
-  if (!s.url || typeof s.url !== 'string' || !s.url.trim().startsWith('https://'))
-    return `${p}field "url" must be a valid https:// URL`
+  if (!s.url || typeof s.url !== 'string' || !/^https?:\/\/.+/.test(s.url.trim()))
+    return `${p}field "url" must be a valid URL`
 
   if (!s.source_type || !VALID_SOURCE_TYPES.has(s.source_type))
     return `${p}field "source_type" must be one of: hn, github, arxiv, twitter, web`
@@ -172,7 +172,12 @@ export async function DELETE(req: NextRequest) {
     .select('url')
 
   if (error) {
-    console.error('[api/signals] delete failed', { message: error.message })
+    console.error('[api/signals] delete failed', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    })
     return NextResponse.json({ error: 'Database error' }, { status: 500 })
   }
 

@@ -367,7 +367,7 @@ Slug 是文章的永久标识符，发布后请勿修改。文章访问路径为
 
 | 字段 | 类型 | 必填 | 约束 | 说明 |
 |------|------|------|------|------|
-| `url` | string | ✅ | `https://` 开头 | 原文链接，全局唯一键 |
+| `url` | string | ✅ | `http://` 或 `https://` 开头 | 原文链接，全局唯一键 |
 | `source_type` | string | ✅ | `hn` / `github` / `arxiv` / `twitter` / `web` | 来源类型，限定枚举 |
 | `source_name` | string | — | 非空字符串 | 来源名称，如 `"Hacker News"`、`"OpenAI Blog"` |
 | `title` | string | ✅ | ≤200 字符 | 原文标题，可保留英文 |
@@ -559,7 +559,7 @@ curl -X DELETE https://ai.air7.fun/api/signals \
 | HTTP 状态 | error 内容 | 处理方式 |
 |-----------|-----------|---------|
 | 401 | `Unauthorized` | 检查 Agent Key 格式（`aipk_...`）及有效性 |
-| 422 | `field "url" must be a valid https:// URL` | url 必须以 `https://` 开头 |
+| 422 | `field "url" must be a valid URL` | url 必须以 `http://` 或 `https://` 开头 |
 | 422 | `field "source_type" must be one of: hn, github, arxiv, twitter, web` | 检查来源类型枚举值 |
 | 422 | `field "description" is required` | description 为必填项 |
 | 422 | `field "description" must be ≥20 characters` | 摘要过短，补充内容 |
