@@ -358,20 +358,45 @@ Slug 是文章的永久标识符，发布后请勿修改。文章访问路径为
 
 单条传对象，批量传数组。
 
-| 字段 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `url` | string | ✅ | 原文链接（唯一键），必须含 `https://` |
-| `source_type` | string | ✅ | 来源类型：`hn` / `github` / `arxiv` / `twitter` / `web` 等 |
-| `source_name` | string | — | 来源名称，如 `"Hacker News"`、`"OpenAI Blog"` |
-| `title` | string | ✅ | 原文标题，保留英文，≤200 字符 |
-| `description` | string | — | 中文摘要，40–150 字，说明核心内容与值得关注的原因 |
-| `date` | string | ✅ | 信号日期，格式 `YYYY-MM-DD` |
-| `status` | string | — | `raw`（默认）/ `selected` / `archived` |
-| `metadata` | object | — | 扩展字段，可含 `og_image`、`category`、`aihot_id` 等 |
-| `reason` | string | — | 策展原因（由策展 agent 填写） |
-| `insight` | integer | — | 洞见维度评分 0–10（由评分 agent 填写） |
-| `actionable` | integer | — | 实践维度评分 0–10 |
-| `influence` | integer | — | 影响力维度评分 0–10 |
+| 字段 | 类型 | 必填 | 约束 | 说明 |
+|------|------|------|------|------|
+| `url` | string | ✅ | `https://` 开头 | 原文链接，全局唯一键 |
+| `source_type` | string | ✅ | `hn` / `github` / `arxiv` / `twitter` / `web` | 来源类型，限定枚举 |
+| `source_name` | string | — | 非空字符串 | 来源名称，如 `"Hacker News"`、`"OpenAI Blog"` |
+| `title` | string | ✅ | ≤200 字符 | 原文标题，可保留英文 |
+| `description` | string | ✅ | ≥20 字，≤500 字 | 中文摘要，**必须经过提炼**，不得直接复制原文或推文 |
+| `date` | string | ✅ | YYYY-MM-DD，不能是未来，不能早于 90 天前 | 信号日期 |
+| `status` | string | — | `raw` / `selected` / `archived` | 默认 `raw` |
+| `metadata` | object | — | — | 扩展字段，可含 `og_image`（须 `https://`）、`category`、`aihot_id` 等 |
+| `reason` | string | — | — | 策展原因（由策展 agent 填写） |
+| `insight` | integer | — | 0–10 整数 | 洞见维度评分（由评分 agent 填写） |
+| `actionable` | integer | — | 0–10 整数 | 实践维度评分 |
+| `influence` | integer | — | 0–10 整数 | 影响力维度评分 |
+
+---
+
+#### description 内容质量要求
+
+`description` 是信号卡片的主体内容，**必须是经过提炼的中文摘要**，不是原文翻译或推文复制。
+
+**禁止注入的内容（会被服务端拒绝或视为低质量）：**
+
+- 包含原始推文格式标记：`🧵`、`【引用`、`更多内容详见`、`转推`
+- 直接复制推文原文（含 `@mention`、emoji 堆砌、"主题帖"等 Twitter 特有表达）
+- 长度不足 20 字（信息量太少）
+- 超过 500 字（不是摘要，是全文）
+- 末尾句子被截断
+
+**合格的 description 应包含两个要素：**
+
+1. **是什么** — 核心内容，一句话说清
+2. **为什么值得关注** — 对 AI 从业者的实际意义
+
+**示例（好）：**
+> `"SGLang 发布对 Ling-2.6-1T 万亿参数 MoE 模型的 Day-0 支持，推理成本较同类模型低约 4 倍，在 AIME26 和 SWE-bench 上达到 SOTA，适合大规模 agent 工作流场景。"`
+
+**示例（差，会被拒绝）：**
+> `"ERNIE 5.1 刚刚发布。基于 ERNIE 5.0 的预训练基础……更多内容详见主题帖 🧵"`
 
 ---
 
@@ -482,8 +507,14 @@ print(result)  # {"ok": true, "count": 2}
 | HTTP 状态 | error 内容 | 处理方式 |
 |-----------|-----------|---------|
 | 401 | `Unauthorized` | 检查 Agent Key 格式（`aipk_...`）及有效性 |
-| 422 | `field "url" is required` | url 不能为空 |
-| 422 | `field "date" must be YYYY-MM-DD` | 检查日期格式 |
+| 422 | `field "url" must be a valid https:// URL` | url 必须以 `https://` 开头 |
+| 422 | `field "source_type" must be one of: hn, github, arxiv, twitter, web` | 检查来源类型枚举值 |
+| 422 | `field "description" is required` | description 为必填项 |
+| 422 | `field "description" must be ≥20 characters` | 摘要过短，补充内容 |
+| 422 | `field "description" must be ≤500 characters` | 摘要过长，精简至 500 字内 |
+| 422 | `field "description" appears to contain raw tweet content` | description 含有原始推文格式，需重新提炼 |
+| 422 | `field "date" must not be in the future` | 日期不能早于今天 |
+| 422 | `field "date" must be within the last 90 days` | 日期不能早于 90 天前 |
 | 422 | `Batch limit is 100 signals per request` | 拆分为多个请求，每次 ≤100 条 |
 | 422 | `field "insight" must be an integer 0-10` | 评分必须是 0–10 的整数 |
 | 500 | `Database error` | 服务端异常，等待 30 秒后重试 |

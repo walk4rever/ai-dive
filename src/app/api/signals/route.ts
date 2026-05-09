@@ -4,13 +4,17 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { resolveAuthor } from '@/lib/api-auth'
 
 const VALID_STATUS = new Set(['raw', 'selected', 'archived'])
+const VALID_SOURCE_TYPES = new Set(['hn', 'github', 'arxiv', 'twitter', 'web'])
+
+// Raw tweet content patterns that indicate unprocessed injection
+const RAW_TWEET_PATTERNS = [/🧵/, /【引用/, /更多内容详见/, /转推/, /Retweet/i]
 
 interface SignalInput {
   url: string
   source_type: string
   source_name?: string | null
   title: string
-  description?: string | null
+  description: string
   date: string
   status?: string
   metadata?: Record<string, unknown> | null
@@ -21,28 +25,74 @@ interface SignalInput {
 }
 
 function validateSignal(s: SignalInput, index?: number): string | null {
-  const prefix = index !== undefined ? `signals[${index}]: ` : ''
-  if (!s.url || typeof s.url !== 'string') return `${prefix}field "url" is required`
-  if (!s.source_type || typeof s.source_type !== 'string') return `${prefix}field "source_type" is required`
-  if (!s.title || typeof s.title !== 'string') return `${prefix}field "title" is required`
-  if (!s.date || !/^\d{4}-\d{2}-\d{2}$/.test(s.date)) return `${prefix}field "date" must be YYYY-MM-DD`
-  if (s.status && !VALID_STATUS.has(s.status)) return `${prefix}field "status" must be raw | selected | archived`
+  const p = index !== undefined ? `signals[${index}]: ` : ''
+
+  // url
+  if (!s.url || typeof s.url !== 'string' || !s.url.trim().startsWith('https://'))
+    return `${p}field "url" must be a valid https:// URL`
+
+  // source_type
+  if (!s.source_type || !VALID_SOURCE_TYPES.has(s.source_type))
+    return `${p}field "source_type" must be one of: hn, github, arxiv, twitter, web`
+
+  // title
+  if (!s.title || typeof s.title !== 'string' || !s.title.trim())
+    return `${p}field "title" is required`
+  if (s.title.trim().length > 200)
+    return `${p}field "title" must be ≤200 characters`
+
+  // description — required, synthesized summary
+  if (!s.description || typeof s.description !== 'string' || !s.description.trim())
+    return `${p}field "description" is required`
+  const desc = s.description.trim()
+  if (desc.length < 20)
+    return `${p}field "description" must be ≥20 characters`
+  if (desc.length > 500)
+    return `${p}field "description" must be ≤500 characters`
+  for (const pattern of RAW_TWEET_PATTERNS) {
+    if (pattern.test(desc))
+      return `${p}field "description" appears to contain raw tweet content — please provide a synthesized summary`
+  }
+
+  // source_name
+  if (s.source_name !== undefined && s.source_name !== null && s.source_name.trim() === '')
+    return `${p}field "source_name" must not be an empty string`
+
+  // date
+  if (!s.date || !/^\d{4}-\d{2}-\d{2}$/.test(s.date))
+    return `${p}field "date" must be YYYY-MM-DD`
+  const d = new Date(s.date)
+  const now = new Date()
+  const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
+  if (d > now) return `${p}field "date" must not be in the future`
+  if (d < ninetyDaysAgo) return `${p}field "date" must be within the last 90 days`
+
+  // status
+  if (s.status && !VALID_STATUS.has(s.status))
+    return `${p}field "status" must be raw | selected | archived`
+
+  // scoring
   for (const dim of ['insight', 'actionable', 'influence'] as const) {
     const v = s[dim]
-    if (v !== undefined && v !== null && (typeof v !== 'number' || v < 0 || v > 10 || !Number.isInteger(v))) {
-      return `${prefix}field "${dim}" must be an integer 0-10`
-    }
+    if (v !== undefined && v !== null && (typeof v !== 'number' || v < 0 || v > 10 || !Number.isInteger(v)))
+      return `${p}field "${dim}" must be an integer 0-10`
   }
+
+  // og_image
+  const ogImage = s.metadata?.og_image
+  if (ogImage !== undefined && ogImage !== null && (typeof ogImage !== 'string' || !ogImage.startsWith('https://')))
+    return `${p}metadata.og_image must be a valid https:// URL`
+
   return null
 }
 
 function toRow(s: SignalInput) {
   return {
     url: s.url.trim(),
-    source_type: s.source_type.trim(),
-    source_name: s.source_name ?? null,
+    source_type: s.source_type,
+    source_name: s.source_name?.trim() ?? null,
     title: s.title.trim(),
-    description: s.description ?? null,
+    description: s.description.trim(),
     date: s.date,
     status: VALID_STATUS.has(s.status ?? '') ? s.status! : 'raw',
     metadata: s.metadata ?? null,
@@ -67,12 +117,10 @@ export async function POST(req: NextRequest) {
 
   const inputs: SignalInput[] = Array.isArray(body) ? body : [body as SignalInput]
 
-  if (inputs.length === 0) {
+  if (inputs.length === 0)
     return NextResponse.json({ error: 'No signals provided' }, { status: 422 })
-  }
-  if (inputs.length > 100) {
+  if (inputs.length > 100)
     return NextResponse.json({ error: 'Batch limit is 100 signals per request' }, { status: 422 })
-  }
 
   for (let i = 0; i < inputs.length; i++) {
     const err = validateSignal(inputs[i], inputs.length > 1 ? i : undefined)
