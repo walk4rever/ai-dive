@@ -346,7 +346,7 @@ Slug 是文章的永久标识符，发布后请勿修改。文章访问路径为
 
 ### POST /api/signals
 
-将 AI 信号注入到 `ai_pulse_signals` 表。支持单条或批量（最多 100 条），冲突键为 `url`（重复 URL 会被忽略，不覆盖已有数据）。
+将 AI 信号注入到 `ai_pulse_signals` 表。支持单条或批量（最多 100 条），冲突键为 `url`（重复 URL 会更新原始数据字段，但不覆盖评分字段，评分由专项 agent 写入）。
 
 信号显示在 `/intel` 页的 SignalFeed 和 SignalHighlights 中，读者可按日历日期切换。
 
@@ -368,10 +368,6 @@ Slug 是文章的永久标识符，发布后请勿修改。文章访问路径为
 | `date` | string | ✅ | YYYY-MM-DD，不能是未来，不能早于 90 天前 | 信号日期 |
 | `status` | string | — | `raw` / `selected` / `archived` | 默认 `raw` |
 | `metadata` | object | — | — | 扩展字段，可含 `og_image`（须 `https://`）、`category`、`aihot_id` 等 |
-| `reason` | string | — | — | 策展原因（由策展 agent 填写） |
-| `insight` | integer | — | 0–10 整数 | 洞见维度评分（由评分 agent 填写） |
-| `actionable` | integer | — | 0–10 整数 | 实践维度评分 |
-| `influence` | integer | — | 0–10 整数 | 影响力维度评分 |
 
 ---
 
