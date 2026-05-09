@@ -5,6 +5,7 @@ import { resolveAuthor } from '@/lib/api-auth'
 
 const VALID_STATUS = new Set(['raw', 'selected', 'archived'])
 const VALID_SOURCE_TYPES = new Set(['hn', 'github', 'arxiv', 'twitter', 'web'])
+const SIGNAL_DATE_TIME_ZONE = process.env.SIGNAL_DATE_TIME_ZONE ?? 'Asia/Shanghai'
 
 const RAW_TWEET_PATTERNS = [/🧵/, /【引用/, /更多内容详见/, /转推/, /Retweet/i]
 
@@ -17,6 +18,39 @@ interface SignalInput {
   date: string
   status?: string
   metadata?: Record<string, unknown> | null
+}
+
+function parseYmd(value: string): { y: number; m: number; d: number } | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!m) return null
+  const y = Number(m[1])
+  const mo = Number(m[2])
+  const d = Number(m[3])
+  const t = new Date(Date.UTC(y, mo - 1, d))
+  if (
+    t.getUTCFullYear() !== y ||
+    t.getUTCMonth() + 1 !== mo ||
+    t.getUTCDate() !== d
+  )
+    return null
+  return { y, m: mo, d }
+}
+
+function formatYmdInTimeZone(date: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date)
+}
+
+function addDays(ymd: string, days: number): string {
+  const parsed = parseYmd(ymd)
+  if (!parsed) return ymd
+  const utc = new Date(Date.UTC(parsed.y, parsed.m - 1, parsed.d))
+  utc.setUTCDate(utc.getUTCDate() + days)
+  return utc.toISOString().slice(0, 10)
 }
 
 function validateSignal(s: SignalInput, index?: number): string | null {
@@ -48,13 +82,12 @@ function validateSignal(s: SignalInput, index?: number): string | null {
   if (s.source_name !== undefined && s.source_name !== null && s.source_name.trim() === '')
     return `${p}field "source_name" must not be an empty string`
 
-  if (!s.date || !/^\d{4}-\d{2}-\d{2}$/.test(s.date))
+  if (!s.date || !parseYmd(s.date))
     return `${p}field "date" must be YYYY-MM-DD`
-  const d = new Date(s.date)
-  const now = new Date()
-  const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
-  if (d > now) return `${p}field "date" must not be in the future`
-  if (d < ninetyDaysAgo) return `${p}field "date" must be within the last 90 days`
+  const today = formatYmdInTimeZone(new Date(), SIGNAL_DATE_TIME_ZONE)
+  const ninetyDaysAgo = addDays(today, -90)
+  if (s.date > today) return `${p}field "date" must not be in the future`
+  if (s.date < ninetyDaysAgo) return `${p}field "date" must be within the last 90 days`
 
   if (s.status && !VALID_STATUS.has(s.status))
     return `${p}field "status" must be raw | selected | archived`
