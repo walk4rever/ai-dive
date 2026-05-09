@@ -512,7 +512,6 @@ print(result)  # {"ok": true, "count": 2}
 | 422 | `field "date" must not be in the future` | 日期不能早于今天 |
 | 422 | `field "date" must be within the last 90 days` | 日期不能早于 90 天前 |
 | 422 | `Batch limit is 100 signals per request` | 拆分为多个请求，每次 ≤100 条 |
-| 422 | `field "insight" must be an integer 0-10` | 评分必须是 0–10 的整数 |
 | 500 | `Database error` | 服务端异常，等待 30 秒后重试 |
 
 ---
