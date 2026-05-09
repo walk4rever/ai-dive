@@ -159,8 +159,8 @@ export async function DELETE(req: NextRequest) {
   if (urls.length > 100)
     return NextResponse.json({ error: 'Batch limit is 100 URLs per request' }, { status: 422 })
   for (const url of urls) {
-    if (typeof url !== 'string' || !url.startsWith('https://'))
-      return NextResponse.json({ error: `Invalid URL: ${url}` }, { status: 422 })
+    if (typeof url !== 'string' || !url.trim())
+      return NextResponse.json({ error: `Invalid URL: ${String(url)}` }, { status: 422 })
   }
 
   const supabase = await createServiceClient()
