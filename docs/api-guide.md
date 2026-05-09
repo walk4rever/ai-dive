@@ -346,7 +346,7 @@ Slug 是文章的永久标识符，发布后请勿修改。文章访问路径为
 
 ### POST /api/signals
 
-将 AI 信号注入到 `ai_pulse_signals` 表。支持单条或批量（最多 100 条），冲突键为 `url`（重复提交会更新）。
+将 AI 信号注入到 `ai_pulse_signals` 表。支持单条或批量（最多 100 条），冲突键为 `url`（重复 URL 会被忽略，不覆盖已有数据）。
 
 信号显示在 `/intel` 页的 SignalFeed 和 SignalHighlights 中，读者可按日历日期切换。
 

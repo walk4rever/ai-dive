@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
   const supabase = await createServiceClient()
   const { error } = await supabase
     .from('ai_pulse_signals')
-    .upsert(rows, { onConflict: 'url' })
+    .upsert(rows, { onConflict: 'url', ignoreDuplicates: true })
 
   if (error) {
     console.error('[api/signals] upsert failed', { count: rows.length, message: error.message })
