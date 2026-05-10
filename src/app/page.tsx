@@ -1,16 +1,16 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getSupabaseEnv } from '@/lib/supabase/env'
-import { Post } from '@/types'
+import { Post, Signal } from '@/types'
 import { getTypeLabel } from '@/lib/content'
 import Link from 'next/link'
-import { IntelHeroPreview } from '@/components/IntelHeroPreview'
-import type { IntelDay } from '@/app/intel/IntelCalendar'
-import { formatYmdInTimeZone, getTodayYmd } from '@/lib/timezone'
+import { IntelCalendar, type IntelDay } from '@/app/intel/IntelCalendar'
+import { SignalHighlights } from '@/app/intel/SignalHighlights'
+import { getTodayYmd } from '@/lib/timezone'
 
 export const revalidate = 60
 
 interface HomePageProps {
-  searchParams: Promise<{ confirmed?: string; im?: string }>
+  searchParams: Promise<{ confirmed?: string; im?: string; m?: string; d?: string }>
 }
 
 type HomePost = Pick<
@@ -34,6 +34,16 @@ function formatDate(value: string | null | undefined) {
 function parseYearMonth(value?: string): { year: number; month: number } | null {
   if (!value) return null
   const m = /^(\d{4})-(\d{2})$/.exec(value)
+  if (!m) return null
+  const year = Number(m[1])
+  const month = Number(m[2])
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) return null
+  return { year, month }
+}
+
+function parseDate(value?: string): { year: number; month: number } | null {
+  if (!value) return null
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
   if (!m) return null
   const year = Number(m[1])
   const month = Number(m[2])
@@ -117,7 +127,7 @@ function SeriesCard({ item }: { item: SeriesItem }) {
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
-  const { confirmed, im } = await searchParams
+  const { confirmed, im, m, d } = await searchParams
   const { hasPublicEnv } = getSupabaseEnv()
 
   if (!hasPublicEnv) {
@@ -133,13 +143,16 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const serviceSupabase = await createServiceClient()
 
   const today = getTodayYmd()
-  const selectedMonth = parseYearMonth(im) ?? parseYearMonthFromYmd(today)
+  const todayYearMonth = parseYearMonthFromYmd(today)
+  const byDate = parseDate(d)
+  const selectedMonth = byDate ?? parseYearMonth(m) ?? parseYearMonth(im) ?? todayYearMonth
   const year = selectedMonth.year
   const month = selectedMonth.month
   const monthStart = new Date(year, month - 1, 1).toISOString()
   const monthEnd = new Date(year, month, 1).toISOString()
+  const targetDate = d ?? today
 
-  const [{ data: posts }, { data: topicsData }, { data: storiesWithTopics }, { data: intelData }] = await Promise.all([
+  const [{ data: posts }, { data: topicsData }, { data: storiesWithTopics }, { data: signalData }, { data: monthSignals }] = await Promise.all([
     supabase
       .from('ai_pulse_stories')
       .select('id, slug, title, excerpt, is_premium, published_at, content_type, featured')
@@ -155,35 +168,57 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       .eq('status', 'published')
       .not('topic_ids', 'eq', '{}'),
     supabase
-      .from('ai_pulse_stories')
-      .select('slug, excerpt, content, published_at')
-      .eq('status', 'published')
-      .eq('content_type', 'intel')
-      .gte('published_at', monthStart)
-      .lt('published_at', monthEnd)
-      .order('published_at', { ascending: false }),
+      .from('ai_pulse_signals')
+      .select('id, url, source_type, source_name, title, description, date, status, metadata, reason, insight, actionable, influence, created_at')
+      .eq('status', 'selected')
+      .eq('date', targetDate)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('ai_pulse_signals')
+      .select('date, title, source_name, url, created_at')
+      .eq('status', 'selected')
+      .gte('date', monthStart.slice(0, 10))
+      .lt('date', monthEnd.slice(0, 10))
+      .order('created_at', { ascending: false }),
   ])
 
   const allPosts = (posts ?? []) as HomePost[]
   const { featured, recent } = buildSections(allPosts)
 
-  const intelDays: IntelDay[] = (intelData ?? []).map((row) => {
-    const date = row.published_at
-      ? formatYmdInTimeZone(new Date(row.published_at))
-      : row.slug.replace('intel-', '')
-    try {
-      const parsed = JSON.parse(row.content ?? '{}')
-      return {
+  const dayMap = new Map<string, IntelDay>()
+  for (const row of monthSignals ?? []) {
+    const date = row.date
+    if (!date) continue
+
+    const existing = dayMap.get(date)
+    if (!existing) {
+      dayMap.set(date, {
         date,
-        overview: row.excerpt ?? '',
-        keywords: Array.isArray(parsed.keywords) ? parsed.keywords : [],
-        signals: Array.isArray(parsed.signals) ? parsed.signals : [],
-        image_url: parsed.image_url ?? null,
-      }
-    } catch {
-      return { date, overview: row.excerpt ?? '', keywords: [], signals: [], image_url: null }
+        overview: '',
+        keywords: [],
+        image_url: null,
+        signal_previews: [{
+          title: row.title ?? 'Untitled',
+          source_name: row.source_name ?? null,
+          url: row.url ?? null,
+        }],
+      })
+      continue
     }
-  })
+
+    const previews = existing.signal_previews ?? []
+    if (previews.length < 3) {
+      previews.push({
+        title: row.title ?? 'Untitled',
+        source_name: row.source_name ?? null,
+        url: row.url ?? null,
+      })
+      existing.signal_previews = previews
+    }
+  }
+
+  const intelDays = Array.from(dayMap.values()).sort((a, b) => b.date.localeCompare(a.date))
+  const signals = (signalData ?? []) as Signal[]
 
   const countMap = new Map<string, number>()
   for (const row of (storiesWithTopics ?? [])) {
@@ -211,7 +246,19 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <p className="mt-8 text-lg md:text-xl text-[var(--muted)] leading-relaxed">
           围绕 AI 的脉动，精选真正值得跟进的变化与判断 —— 情报、深度、访谈、专题。
         </p>
-        <IntelHeroPreview key={`${year}-${month}`} year={year} month={month} days={intelDays} />
+        <section className="mt-10 flex flex-col sm:flex-row sm:items-center items-start gap-6">
+          <IntelCalendar key={`${year}-${month}`} year={year} month={month} days={intelDays} initialDate={d} />
+          <div className="flex-1 min-w-0">
+            <p className="kicker mb-3">{targetDate} 精选</p>
+            <SignalHighlights signals={signals} />
+            <Link
+              href={`/intel?d=${targetDate}`}
+              className="inline-flex items-center mt-4 text-sm text-[var(--accent)] hover:underline"
+            >
+              查看当日情报 →
+            </Link>
+          </div>
+        </section>
       </section>
 
       {/* Featured */}
