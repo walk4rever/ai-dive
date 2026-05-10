@@ -4,7 +4,7 @@ import { IntelCalendar, type IntelDay } from './IntelCalendar'
 import { SignalFeed } from './SignalFeed'
 import { SignalHighlights } from './SignalHighlights'
 import type { Signal } from '@/types'
-import { formatYmdInTimeZone, getTodayYmd } from '@/lib/timezone'
+import { getTodayYmd } from '@/lib/timezone'
 
 export const revalidate = 300
 
@@ -36,18 +36,6 @@ function parseYearMonthFromYmd(value: string): { year: number; month: number } {
   return { year: Number(value.slice(0, 4)), month: Number(value.slice(5, 7)) }
 }
 
-function parseIntelContent(content: string): Pick<IntelDay, 'keywords' | 'image_url'> {
-  try {
-    const parsed = JSON.parse(content)
-    return {
-      keywords: Array.isArray(parsed.keywords) ? parsed.keywords : [],
-      image_url: parsed.image_url ?? null,
-    }
-  } catch {
-    return { keywords: [], image_url: null }
-  }
-}
-
 export default async function IntelPage({ searchParams }: { searchParams: Promise<{ d?: string; m?: string }> }) {
   const { d, m } = await searchParams
   const { hasPublicEnv } = getSupabaseEnv()
@@ -67,15 +55,7 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
   const monthEnd = new Date(year, month, 1).toISOString()
 
   const supabase = await createClient()
-  const [{ data }, { data: signalData }, { data: monthSignalDates }] = await Promise.all([
-    supabase
-      .from('ai_pulse_stories')
-      .select('slug, excerpt, content, published_at')
-      .eq('status', 'published')
-      .eq('content_type', 'intel')
-      .gte('published_at', monthStart)
-      .lt('published_at', monthEnd)
-      .order('published_at', { ascending: false }),
+  const [{ data: signalData }, { data: monthSignals }] = await Promise.all([
     supabase
       .from('ai_pulse_signals')
       .select('id, url, source_type, source_name, title, description, date, status, metadata, reason, insight, actionable, influence, created_at')
@@ -84,32 +64,43 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
       .order('created_at', { ascending: false }),
     supabase
       .from('ai_pulse_signals')
-      .select('date')
+      .select('date, title, source_name, url, created_at')
       .eq('status', 'selected')
       .gte('date', monthStart.slice(0, 10))
-      .lt('date', monthEnd.slice(0, 10)),
+      .lt('date', monthEnd.slice(0, 10))
+      .order('created_at', { ascending: false }),
   ])
 
   const dayMap = new Map<string, IntelDay>()
-  for (const row of data ?? []) {
-    const date = row.published_at
-      ? formatYmdInTimeZone(new Date(row.published_at))
-      : row.slug.replace('intel-', '')
-    dayMap.set(date, {
-      date,
-      overview: row.excerpt,
-      ...parseIntelContent(row.content),
-    })
-  }
-  for (const row of monthSignalDates ?? []) {
+  for (const row of monthSignals ?? []) {
     const date = row.date
-    if (!date || dayMap.has(date)) continue
-    dayMap.set(date, {
-      date,
-      overview: '当日已收录信号，摘要待补充。',
-      keywords: [],
-      image_url: null,
-    })
+    if (!date) continue
+
+    const existing = dayMap.get(date)
+    if (!existing) {
+      dayMap.set(date, {
+        date,
+        overview: '',
+        keywords: [],
+        image_url: null,
+        signal_previews: [{
+          title: row.title ?? 'Untitled',
+          source_name: row.source_name ?? null,
+          url: row.url ?? null,
+        }],
+      })
+      continue
+    }
+
+    const previews = existing.signal_previews ?? []
+    if (previews.length < 3) {
+      previews.push({
+        title: row.title ?? 'Untitled',
+        source_name: row.source_name ?? null,
+        url: row.url ?? null,
+      })
+      existing.signal_previews = previews
+    }
   }
 
   const days = Array.from(dayMap.values()).sort((a, b) => b.date.localeCompare(a.date))
@@ -125,8 +116,13 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
           每日 AI 信号精选 —— 追踪真正值得关注的变化，来自 HN、GitHub 与 arXiv。
         </p>
       </div>
-      <IntelCalendar key={`${year}-${month}`} year={year} month={month} days={days} initialDate={d} />
-      <SignalHighlights signals={signals} />
+      <section className="mb-10 flex flex-col sm:flex-row sm:items-center items-start gap-6">
+        <IntelCalendar key={`${year}-${month}`} year={year} month={month} days={days} initialDate={d} />
+        <div className="flex-1 min-w-0">
+          <p className="kicker mb-3">{targetDate} 精选</p>
+          <SignalHighlights signals={signals} />
+        </div>
+      </section>
       <section className="mt-16 border-t border-[var(--border)] pt-10">
         <p className="kicker mb-6">{targetDate} 信号</p>
         <SignalFeed signals={signals} />
