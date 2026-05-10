@@ -60,13 +60,14 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
   const byDate = parseDate(d)
   const byMonth = parseYearMonth(m)
   const target = byDate ?? byMonth ?? todayYearMonth
+  const targetDate = d ?? today
   const year = target.year
   const month = target.month
   const monthStart = new Date(year, month - 1, 1).toISOString()
   const monthEnd = new Date(year, month, 1).toISOString()
 
   const supabase = await createClient()
-  const [{ data }, { data: signalData }] = await Promise.all([
+  const [{ data }, { data: signalData }, { data: monthSignalDates }] = await Promise.all([
     supabase
       .from('ai_pulse_stories')
       .select('slug, excerpt, content, published_at')
@@ -79,20 +80,39 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
       .from('ai_pulse_signals')
       .select('id, url, source_type, source_name, title, description, date, status, metadata, reason, insight, actionable, influence, created_at')
       .eq('status', 'selected')
-      .eq('date', d ?? today)
+      .eq('date', targetDate)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('ai_pulse_signals')
+      .select('date')
+      .eq('status', 'selected')
+      .gte('date', monthStart.slice(0, 10))
+      .lt('date', monthEnd.slice(0, 10)),
   ])
 
-  const days: IntelDay[] = (data ?? []).map((row) => {
+  const dayMap = new Map<string, IntelDay>()
+  for (const row of data ?? []) {
     const date = row.published_at
       ? formatYmdInTimeZone(new Date(row.published_at))
       : row.slug.replace('intel-', '')
-    return {
+    dayMap.set(date, {
       date,
       overview: row.excerpt,
       ...parseIntelContent(row.content),
-    }
-  })
+    })
+  }
+  for (const row of monthSignalDates ?? []) {
+    const date = row.date
+    if (!date || dayMap.has(date)) continue
+    dayMap.set(date, {
+      date,
+      overview: '当日已收录信号，摘要待补充。',
+      keywords: [],
+      image_url: null,
+    })
+  }
+
+  const days = Array.from(dayMap.values()).sort((a, b) => b.date.localeCompare(a.date))
 
   const signals = (signalData ?? []) as Signal[]
 
@@ -108,7 +128,7 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
       <IntelCalendar key={`${year}-${month}`} year={year} month={month} days={days} initialDate={d} />
       <SignalHighlights signals={signals} />
       <section className="mt-16 border-t border-[var(--border)] pt-10">
-        <p className="kicker mb-6">{d ?? today} 信号</p>
+        <p className="kicker mb-6">{targetDate} 信号</p>
         <SignalFeed signals={signals} />
       </section>
     </div>
