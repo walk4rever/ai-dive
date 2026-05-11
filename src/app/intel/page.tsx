@@ -58,22 +58,22 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
   const [{ data: signalData }, { data: monthSignals }] = await Promise.all([
     supabase
       .from('ai_pulse_signals')
-      .select('id, url, source_type, source_name, title, description, date, status, metadata, reason, insight, actionable, influence, created_at')
+      .select('id, url, source_type, source_name, title, description, signal_date, status, metadata, reason, insight, actionable, influence, created_at, updated_at')
       .eq('status', 'selected')
-      .eq('date', targetDate)
+      .eq('signal_date', targetDate)
       .order('created_at', { ascending: false }),
     supabase
       .from('ai_pulse_signals')
-      .select('date, title, source_name, url, created_at')
+      .select('signal_date, title, source_name, url, created_at')
       .eq('status', 'selected')
-      .gte('date', monthStart.slice(0, 10))
-      .lt('date', monthEnd.slice(0, 10))
+      .gte('signal_date', monthStart.slice(0, 10))
+      .lt('signal_date', monthEnd.slice(0, 10))
       .order('created_at', { ascending: false }),
   ])
 
   const dayMap = new Map<string, IntelDay>()
   for (const row of monthSignals ?? []) {
-    const date = row.date
+    const date = row.signal_date
     if (!date) continue
 
     const existing = dayMap.get(date)

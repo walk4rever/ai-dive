@@ -18,7 +18,7 @@ Powered by [Air7.fun](https://air7.fun)
 - 系列管理（管理员）：创建系列、把文章加入多个系列、设置系列内顺序
 - Vault Markdown → Supabase 内容导入脚本
 - 付费内容占位式 paywall
-- Signal 注入 API：`POST /api/signals`，支持单条或批量 upsert 到 `ai_pulse_signals`
+- Signal 注入 API：`POST /api/signals`，支持单条或批量 upsert 到 `ai_pulse_signals`（可选 `signal_date`；不传默认 UTC+8 当天）
 
 产品与架构设计详见 `PRODUCT.md`，阶段化事项详见 `TODO.md`。
 
@@ -74,7 +74,7 @@ cp .env.example .env.local
 
 - `ai_pulse_stories`（原 `ai_pulse_posts`）
 - `ai_pulse_topics`（原 `ai_pulse_series`）
-- `ai_pulse_signals`
+- `ai_pulse_signals`（`signal_date`=业务归属日，`created_at`=入库时间，`updated_at`=更新时间）
 - `ai_pulse_distributions`
 - `ai_pulse_subscribers`
 - `ai_pulse_email_sends`

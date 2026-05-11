@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 import { resolveAuthor } from '@/lib/api-auth'
-import { addDaysYmd, getTodayYmd, parseYmd } from '@/lib/timezone'
+import { getTodayYmd, parseYmd } from '@/lib/timezone'
 
 const VALID_STATUS = new Set(['raw', 'selected', 'archived'])
 const VALID_SOURCE_TYPES = new Set(['hn', 'github', 'arxiv', 'twitter', 'web'])
@@ -15,7 +15,7 @@ interface SignalInput {
   source_name?: string | null
   title: string
   description: string
-  date: string
+  signal_date?: string
   status?: string
   metadata?: Record<string, unknown> | null
 }
@@ -49,12 +49,11 @@ function validateSignal(s: SignalInput, index?: number): string | null {
   if (s.source_name !== undefined && s.source_name !== null && s.source_name.trim() === '')
     return `${p}field "source_name" must not be an empty string`
 
-  if (!s.date || !parseYmd(s.date))
-    return `${p}field "date" must be YYYY-MM-DD`
-  const today = getTodayYmd()
-  const ninetyDaysAgo = addDaysYmd(today, -90)
-  if (s.date > today) return `${p}field "date" must not be in the future`
-  if (s.date < ninetyDaysAgo) return `${p}field "date" must be within the last 90 days`
+  if (s.signal_date !== undefined) {
+    if (!parseYmd(s.signal_date)) return `${p}field "signal_date" must be YYYY-MM-DD`
+    const today = getTodayYmd()
+    if (s.signal_date > today) return `${p}field "signal_date" must not be in the future`
+  }
 
   if (s.status && !VALID_STATUS.has(s.status))
     return `${p}field "status" must be raw | selected | archived`
@@ -73,7 +72,7 @@ function toRow(s: SignalInput, agentId: string) {
     source_name: s.source_name?.trim() ?? null,
     title: s.title.trim(),
     description: s.description.trim(),
-    date: s.date,
+    signal_date: s.signal_date ?? getTodayYmd(),
     status: VALID_STATUS.has(s.status ?? '') ? s.status! : 'raw',
     metadata: s.metadata ?? null,
     agent_id: agentId,

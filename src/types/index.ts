@@ -42,7 +42,7 @@ export interface Signal {
   source_name: string | null
   title: string
   description: string
-  date: string
+  signal_date: string
   status: 'raw' | 'selected' | 'archived'
   metadata: {
     og_image?: string | null
@@ -55,6 +55,7 @@ export interface Signal {
   actionable: number | null
   influence: number | null
   created_at: string
+  updated_at: string
 }
 
 export interface Topic {

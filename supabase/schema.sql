@@ -36,14 +36,15 @@ CREATE TABLE IF NOT EXISTS ai_pulse_signals (
   source_name TEXT,
   title TEXT NOT NULL DEFAULT '',
   description TEXT NOT NULL DEFAULT '',
-  date DATE NOT NULL,
+  signal_date DATE NOT NULL DEFAULT (timezone('Asia/Shanghai', now()))::date,
   status TEXT NOT NULL DEFAULT 'raw' CHECK (status IN ('raw', 'selected', 'archived')),
   metadata JSONB,
   reason TEXT,
   insight SMALLINT CHECK (insight BETWEEN 0 AND 10),
   actionable SMALLINT CHECK (actionable BETWEEN 0 AND 10),
   influence SMALLINT CHECK (influence BETWEEN 0 AND 10),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- AI Pulse distributions table (channel publishing records)
@@ -135,6 +136,10 @@ CREATE TRIGGER ai_pulse_topics_updated_at
   BEFORE UPDATE ON ai_pulse_topics
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
+CREATE TRIGGER ai_pulse_signals_updated_at
+  BEFORE UPDATE ON ai_pulse_signals
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
 -- RLS
 ALTER TABLE ai_pulse_stories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_pulse_topics ENABLE ROW LEVEL SECURITY;
@@ -157,8 +162,9 @@ CREATE INDEX IF NOT EXISTS idx_ai_pulse_stories_status_published_at ON ai_pulse_
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_stories_content_type_published_at ON ai_pulse_stories (content_type, published_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_stories_featured_published_at ON ai_pulse_stories (featured, published_at DESC) WHERE status = 'published';
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_topics_created_at ON ai_pulse_topics (created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_ai_pulse_signals_date ON ai_pulse_signals (date DESC);
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_signals_status ON ai_pulse_signals (status);
+CREATE INDEX IF NOT EXISTS idx_ai_pulse_signals_created_at ON ai_pulse_signals (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_pulse_signals_signal_date ON ai_pulse_signals (signal_date DESC);
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_distributions_story_id ON ai_pulse_distributions (story_id);
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_subscribers_email ON ai_pulse_subscribers (email);
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_subscribers_status ON ai_pulse_subscribers (status);
