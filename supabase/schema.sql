@@ -43,6 +43,10 @@ CREATE TABLE IF NOT EXISTS ai_pulse_signals (
   insight SMALLINT CHECK (insight BETWEEN 0 AND 10),
   actionable SMALLINT CHECK (actionable BETWEEN 0 AND 10),
   influence SMALLINT CHECK (influence BETWEEN 0 AND 10),
+  score_meta JSONB,
+  score_version TEXT,
+  score_status TEXT NOT NULL DEFAULT 'pending' CHECK (score_status IN ('pending', 'scored', 'reviewed')),
+  scored_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -163,6 +167,7 @@ CREATE INDEX IF NOT EXISTS idx_ai_pulse_stories_content_type_published_at ON ai_
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_stories_featured_published_at ON ai_pulse_stories (featured, published_at DESC) WHERE status = 'published';
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_topics_created_at ON ai_pulse_topics (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_signals_status ON ai_pulse_signals (status);
+CREATE INDEX IF NOT EXISTS idx_ai_pulse_signals_score_status ON ai_pulse_signals (score_status);
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_signals_created_at ON ai_pulse_signals (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_signals_signal_date ON ai_pulse_signals (signal_date DESC);
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_distributions_story_id ON ai_pulse_distributions (story_id);

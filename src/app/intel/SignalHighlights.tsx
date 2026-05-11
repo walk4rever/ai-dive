@@ -2,18 +2,25 @@
 
 import type { Signal } from '@/types'
 
-const INSIGHT_PRIORITY    = ['paper', 'ai-models', 'industry', 'ai-products', 'tip']
-const ACTIONABLE_PRIORITY = ['tip', 'ai-products', 'paper', 'ai-models', 'industry']
-const INFLUENCE_PRIORITY  = ['industry', 'ai-products', 'ai-models', 'paper', 'tip']
-
 const DIMENSIONS = [
-  { key: 'insight',    label: '洞见', priority: INSIGHT_PRIORITY },
-  { key: 'actionable', label: '实践', priority: ACTIONABLE_PRIORITY },
-  { key: 'influence',  label: '影响力', priority: INFLUENCE_PRIORITY },
+  { key: 'insight', label: '洞见' },
+  { key: 'actionable', label: '实践' },
+  { key: 'influence', label: '影响力' },
 ] as const
 
-function pick(signals: Signal[], priority: readonly string[]): Signal | null {
-  for (const cat of priority) {
+const FALLBACK_PRIORITY = {
+  insight: ['paper', 'ai-models', 'industry', 'ai-products', 'tip'],
+  actionable: ['tip', 'ai-products', 'paper', 'ai-models', 'industry'],
+  influence: ['industry', 'ai-products', 'ai-models', 'paper', 'tip'],
+} as const
+
+function pickByDimension(signals: Signal[], key: 'insight' | 'actionable' | 'influence'): Signal | null {
+  const sorted = [...signals]
+    .filter((s) => typeof s[key] === 'number')
+    .sort((a, b) => (b[key] ?? -1) - (a[key] ?? -1))
+  if (sorted[0]) return sorted[0]
+
+  for (const cat of FALLBACK_PRIORITY[key]) {
     const found = signals.find((s) => (s.metadata?.category as string | null) === cat)
     if (found) return found
   }
@@ -51,8 +58,8 @@ interface Props {
 export function SignalHighlights({ signals }: Props) {
   if (signals.length === 0) return null
 
-  const cards = DIMENSIONS.map(({ key, label, priority }) => {
-    const signal = pick(signals, priority)
+  const cards = DIMENSIONS.map(({ key, label }) => {
+    const signal = pickByDimension(signals, key)
     return signal ? { key, label, signal } : null
   }).filter(Boolean) as { key: string; label: string; signal: Signal }[]
 

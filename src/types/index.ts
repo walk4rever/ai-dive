@@ -54,6 +54,16 @@ export interface Signal {
   insight: number | null
   actionable: number | null
   influence: number | null
+  score_meta: {
+    score_version?: string
+    insight_breakdown?: Record<string, number>
+    actionable_breakdown?: Record<string, number>
+    influence_breakdown?: Record<string, number>
+    scored_by?: string
+  } | null
+  score_version: string | null
+  score_status: 'pending' | 'scored' | 'reviewed'
+  scored_at: string | null
   created_at: string
   updated_at: string
 }
