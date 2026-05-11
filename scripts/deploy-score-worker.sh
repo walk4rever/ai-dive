@@ -11,7 +11,7 @@ if [[ ! -f ".env.local" ]]; then
 fi
 
 echo "[1/5] Prepare remote directory: $REMOTE_HOST:$REMOTE_DIR"
-ssh "$REMOTE_HOST" "mkdir -p '$REMOTE_DIR/logs'"
+ssh "$REMOTE_HOST" "mkdir -p '$REMOTE_DIR/logs' '$REMOTE_DIR/scripts'"
 
 echo "[2/5] Rsync worker files"
 rsync -az \
@@ -19,14 +19,19 @@ rsync -az \
   package-lock.json \
   ecosystem.score.config.cjs \
   .env.local \
-  scripts/score-signals-v1.mjs \
   "$REMOTE_HOST:$REMOTE_DIR/"
+
+rsync -az \
+  scripts/score-signals-v1.mjs \
+  scripts/run-score-signals-hourly.sh \
+  scripts/run-score-signals-nightly.sh \
+  "$REMOTE_HOST:$REMOTE_DIR/scripts/"
 
 echo "[3/5] Install dependencies on remote"
 ssh "$REMOTE_HOST" "cd '$REMOTE_DIR' && npm ci --omit=dev"
 
 echo "[4/5] Ensure runtime env file"
-ssh "$REMOTE_HOST" "cp '$REMOTE_DIR/.env.local' '$REMOTE_ENV_FILE'"
+ssh "$REMOTE_HOST" "if [ '$REMOTE_DIR/.env.local' != '$REMOTE_ENV_FILE' ]; then cp '$REMOTE_DIR/.env.local' '$REMOTE_ENV_FILE'; fi"
 
 echo "[5/5] Start or reload pm2 cron apps"
 ssh "$REMOTE_HOST" "cd '$REMOTE_DIR' && pm2 start ecosystem.score.config.cjs --update-env && pm2 save"

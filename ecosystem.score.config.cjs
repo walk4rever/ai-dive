@@ -3,8 +3,7 @@ module.exports = {
     {
       name: 'score-signals-v1-hourly',
       cwd: '/root/ai-dive',
-      script: 'npm',
-      args: 'run score:signals:v1 -- --limit 500',
+      script: '/root/ai-dive/scripts/run-score-signals-hourly.sh',
       cron_restart: '10 * * * *',
       autorestart: false,
       time: true,
@@ -17,8 +16,7 @@ module.exports = {
     {
       name: 'score-signals-v1-nightly-force',
       cwd: '/root/ai-dive',
-      script: 'npm',
-      args: 'run score:signals:v1 -- --force --limit 2000',
+      script: '/root/ai-dive/scripts/run-score-signals-nightly.sh',
       cron_restart: '30 3 * * *',
       autorestart: false,
       time: true,
