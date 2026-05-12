@@ -68,6 +68,43 @@ function toRow(s: SignalInput, agentId: string) {
   }
 }
 
+export async function GET(req: NextRequest) {
+  const token = extractBearer(req)
+  const author = await resolveAuthor(token)
+  if (!author?.agentId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { searchParams } = req.nextUrl
+  const limit = Math.min(Number(searchParams.get('limit') ?? '60'), 100)
+  const since = searchParams.get('since') // YYYY-MM-DD
+  const insightMin = searchParams.get('insight_min') !== null ? Number(searchParams.get('insight_min')) : null
+  const influenceMin = searchParams.get('influence_min') !== null ? Number(searchParams.get('influence_min')) : null
+
+  if (since && !parseYmd(since)) {
+    return NextResponse.json({ error: 'Field "since" must be YYYY-MM-DD' }, { status: 422 })
+  }
+
+  const supabase = await createServiceClient()
+  let query = supabase
+    .from('ai_pulse_signals')
+    .select('id, url, source_type, source_name, title, description, signal_date, metadata, reason, insight, actionable, influence, score_status')
+    .eq('status', 'enabled')
+    .order('signal_date', { ascending: false })
+    .order('insight', { ascending: false, nullsFirst: false })
+    .limit(limit)
+
+  if (since) query = query.gte('signal_date', since)
+  if (insightMin !== null) query = query.gte('insight', insightMin)
+  else if (influenceMin !== null) query = query.gte('influence', influenceMin)
+
+  const { data, error } = await query
+  if (error) {
+    console.error('[api/signals] GET failed', { message: error.message })
+    return NextResponse.json({ error: 'Database error' }, { status: 500 })
+  }
+
+  return NextResponse.json({ signals: data, count: data?.length ?? 0 })
+}
+
 export async function POST(req: NextRequest) {
   const token = extractBearer(req)
   const author = await resolveAuthor(token)
