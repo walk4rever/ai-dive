@@ -9,8 +9,7 @@ Canonical source: `docs/api-guide.md` (`POST /api/signals`, `DELETE /api/signals
 3. `title`, `description` required.
 4. `signal_date` optional (`YYYY-MM-DD`, not future).  
 If omitted, server defaults to current day in `Asia/Shanghai` (UTC+8).
-5. `status` optional: `raw|selected|archived`.
-6. `metadata.og_image` must be `https://` when provided.
+5. `metadata.og_image` must be `https://` when provided.
 
 ## Ownership Model
 

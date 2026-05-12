@@ -161,7 +161,7 @@ async function main() {
   let query = supabase
     .from('ai_pulse_signals')
     .select('id,title,description,url,source_type,source_name,signal_date,metadata,insight,actionable,influence,status')
-    .eq('status', 'selected')
+    .eq('status', 'enabled')
     .order('created_at', { ascending: false })
     .limit(args.limit)
 

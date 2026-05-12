@@ -12,4 +12,4 @@ Canonical source: `docs/api-guide.md` (`内容规范` section).
 1. Chinese summary, concise and synthesized.
 2. Include:
 what happened + why it matters.
-3. Avoid raw tweet/thread artifacts.
+3. Description: 20–500 characters, synthesized summary (not a direct copy of source text).

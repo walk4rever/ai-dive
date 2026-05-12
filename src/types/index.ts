@@ -43,7 +43,7 @@ export interface Signal {
   title: string
   description: string
   signal_date: string
-  status: 'raw' | 'selected' | 'archived'
+  status: 'enabled' | 'archived'
   metadata: {
     og_image?: string | null
     category?: string | null

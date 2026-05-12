@@ -4,10 +4,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { resolveAuthor } from '@/lib/api-auth'
 import { getTodayYmd, parseYmd } from '@/lib/timezone'
 
-const VALID_STATUS = new Set(['raw', 'selected', 'archived'])
 const VALID_SOURCE_TYPES = new Set(['hn', 'github', 'arxiv', 'twitter', 'web'])
-
-const RAW_TWEET_PATTERNS = [/🧵/, /【引用/, /更多内容详见/, /转推/, /Retweet/i]
 
 interface SignalInput {
   url: string
@@ -16,7 +13,6 @@ interface SignalInput {
   title: string
   description: string
   signal_date?: string
-  status?: string
   metadata?: Record<string, unknown> | null
 }
 
@@ -41,10 +37,6 @@ function validateSignal(s: SignalInput, index?: number): string | null {
     return `${p}field "description" must be ≥20 characters`
   if (desc.length > 500)
     return `${p}field "description" must be ≤500 characters`
-  for (const pattern of RAW_TWEET_PATTERNS) {
-    if (pattern.test(desc))
-      return `${p}field "description" appears to contain raw tweet content — please provide a synthesized summary`
-  }
 
   if (s.source_name !== undefined && s.source_name !== null && s.source_name.trim() === '')
     return `${p}field "source_name" must not be an empty string`
@@ -54,9 +46,6 @@ function validateSignal(s: SignalInput, index?: number): string | null {
     const today = getTodayYmd()
     if (s.signal_date > today) return `${p}field "signal_date" must not be in the future`
   }
-
-  if (s.status && !VALID_STATUS.has(s.status))
-    return `${p}field "status" must be raw | selected | archived`
 
   const ogImage = s.metadata?.og_image
   if (ogImage !== undefined && ogImage !== null && (typeof ogImage !== 'string' || !ogImage.startsWith('https://')))
@@ -73,7 +62,7 @@ function toRow(s: SignalInput, agentId: string) {
     title: s.title.trim(),
     description: s.description.trim(),
     signal_date: s.signal_date ?? getTodayYmd(),
-    status: VALID_STATUS.has(s.status ?? '') ? s.status! : 'raw',
+    status: 'enabled',
     metadata: s.metadata ?? null,
     agent_id: agentId,
   }

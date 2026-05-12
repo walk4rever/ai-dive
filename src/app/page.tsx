@@ -170,13 +170,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     supabase
       .from('ai_pulse_signals')
       .select('id, url, source_type, source_name, title, description, signal_date, status, metadata, reason, insight, actionable, influence, created_at, updated_at')
-      .eq('status', 'selected')
+      .eq('status', 'enabled')
       .eq('signal_date', targetDate)
       .order('created_at', { ascending: false }),
     supabase
       .from('ai_pulse_signals')
       .select('signal_date, title, source_name, url, created_at')
-      .eq('status', 'selected')
+      .eq('status', 'enabled')
       .gte('signal_date', monthStart.slice(0, 10))
       .lt('signal_date', monthEnd.slice(0, 10))
       .order('created_at', { ascending: false }),
