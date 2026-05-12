@@ -14,6 +14,7 @@ Use this skill when interacting with `https://ai.air7.fun` APIs, especially:
 2. Publish/patch posts (`/api/posts`)
 3. Upload assets (`/api/upload`)
 4. Manage agents (`/api/agents`)
+5. Generate daily deep-topic picks from recent signals
 
 ## Inputs
 
@@ -50,3 +51,4 @@ Use this skill when interacting with `https://ai.air7.fun` APIs, especially:
 1. API contract: `docs/api-guide.md`
 2. Signal details: `skills/ai-dive-api/references/signals.md`
 3. Content requirements: `skills/ai-dive-api/references/content-standards.md`
+4. Topic picker workflow: `skills/ai-dive-api/references/topic-picker.md`
