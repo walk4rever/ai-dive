@@ -5,7 +5,7 @@ import type { Signal } from '@/types'
 const DIMENSIONS = [
   { key: 'insight', label: '洞见' },
   { key: 'actionable', label: '实践' },
-  { key: 'influence', label: '影响力' },
+  { key: 'influence', label: '影响' },
 ] as const
 
 const FALLBACK_PRIORITY = {
