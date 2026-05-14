@@ -14,17 +14,18 @@ const FALLBACK_PRIORITY = {
   influence: ['industry', 'ai-products', 'ai-models', 'paper', 'tip'],
 } as const
 
-function pickByDimension(signals: Signal[], key: 'insight' | 'actionable' | 'influence'): Signal | null {
-  const sorted = [...signals]
+function pickByDimension(signals: Signal[], key: 'insight' | 'actionable' | 'influence', exclude: Set<string>): Signal | null {
+  const pool = signals.filter((s) => !exclude.has(s.id))
+  const sorted = [...pool]
     .filter((s) => typeof s[key] === 'number')
     .sort((a, b) => (b[key] ?? -1) - (a[key] ?? -1))
   if (sorted[0]) return sorted[0]
 
   for (const cat of FALLBACK_PRIORITY[key]) {
-    const found = signals.find((s) => (s.metadata?.category as string | null) === cat)
+    const found = pool.find((s) => (s.metadata?.category as string | null) === cat)
     if (found) return found
   }
-  return signals[0] ?? null
+  return pool[0] ?? null
 }
 
 function HighlightCard({ label, signal }: { label: string; signal: Signal }) {
@@ -58,8 +59,10 @@ interface Props {
 export function SignalHighlights({ signals }: Props) {
   if (signals.length === 0) return null
 
+  const exclude = new Set<string>()
   const cards = DIMENSIONS.map(({ key, label }) => {
-    const signal = pickByDimension(signals, key)
+    const signal = pickByDimension(signals, key, exclude)
+    if (signal) exclude.add(signal.id)
     return signal ? { key, label, signal } : null
   }).filter(Boolean) as { key: string; label: string; signal: Signal }[]
 
