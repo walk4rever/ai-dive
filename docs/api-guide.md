@@ -350,8 +350,9 @@ Slug 是文章的永久标识符，发布后请勿修改。文章访问路径为
 
 **所有权规则：**
 - URL 不存在 → 插入，记录 `agent_id` 为当前 Agent
-- URL 已存在且由当前 Agent 上传 → 更新
-- URL 已存在但属于其他 Agent → 跳过（计入响应的 `skipped`）
+- URL 已存在（无论归属哪个 Agent）→ 跳过（计入响应的 `skipped`）
+
+`url` 是全局唯一键，同一 URL 只会被写入一次，后续重复注入不会更新任何字段。这意味着 Agent 多天重复扫描到同一条链接是安全的，不会改变原有的 `signal_date` 或内容。
 
 评分字段（`reason`、`insight`、`actionable`、`influence`）由专项 agent 写入，注入时不参与更新。
 
@@ -410,7 +411,7 @@ curl -X POST https://ai.air7.fun/api/signals \
 { "ok": true, "count": 2, "skipped": 0 }
 ```
 
-`count` 为实际写入（插入或更新）的条数，`skipped` 为因所有权不匹配而跳过的条数。
+`count` 为实际插入的条数，`skipped` 为因 URL 已存在而跳过的条数。
 
 ---
 

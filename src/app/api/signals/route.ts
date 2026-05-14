@@ -153,7 +153,7 @@ export async function POST(req: NextRequest) {
   if (allowed.length > 0) {
     const { error } = await supabase
       .from('ai_pulse_signals')
-      .upsert(allowed, { onConflict: 'url', ignoreDuplicates: false })
+      .upsert(allowed, { onConflict: 'url', ignoreDuplicates: true })
 
     if (error) {
       console.error('[api/signals] upsert failed', { count: allowed.length, message: error.message })
