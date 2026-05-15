@@ -35,10 +35,13 @@ export interface Subscriber {
   confirmation_expires_at?: string | null
 }
 
+export type SignalSourceType = 'x' | 'github' | 'arxiv' | 'a16z' | 'techcrunch' | 'ithome' | 'yc' | 'web'
+
 export interface Signal {
   id: string
   url: string
-  source_type: string
+  source_type: SignalSourceType
+  source_channel: string | null
   source_name: string | null
   title: string
   description: string

@@ -4,11 +4,27 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { resolveAuthor } from '@/lib/api-auth'
 import { getTodayYmd, parseYmd } from '@/lib/timezone'
 
-const VALID_SOURCE_TYPES = new Set(['hn', 'github', 'arxiv', 'twitter', 'web'])
+type SourceType = 'x' | 'github' | 'arxiv' | 'a16z' | 'techcrunch' | 'ithome' | 'yc' | 'web'
+
+function inferSourceType(url: string): SourceType {
+  try {
+    const host = new URL(url).hostname.toLowerCase()
+    if (host === 'x.com' || host === 'twitter.com') return 'x'
+    if (host === 'arxiv.org') return 'arxiv'
+    if (host === 'github.com' || host === 'github.blog') return 'github'
+    if (host === 'a16z.com') return 'a16z'
+    if (host === 'techcrunch.com') return 'techcrunch'
+    if (host === 'www.ithome.com') return 'ithome'
+    if (host === 'news.ycombinator.com' || host === 'ycombinator.com') return 'yc'
+  } catch {
+    // invalid URL falls through to web
+  }
+  return 'web'
+}
 
 interface SignalInput {
   url: string
-  source_type: string
+  source_channel?: string | null
   source_name?: string | null
   title: string
   description: string
@@ -21,9 +37,6 @@ function validateSignal(s: SignalInput, index?: number): string | null {
 
   if (!s.url || typeof s.url !== 'string' || !/^https?:\/\/.+/.test(s.url.trim()))
     return `${p}field "url" must be a valid URL`
-
-  if (!s.source_type || !VALID_SOURCE_TYPES.has(s.source_type))
-    return `${p}field "source_type" must be one of: hn, github, arxiv, twitter, web`
 
   if (!s.title || typeof s.title !== 'string' || !s.title.trim())
     return `${p}field "title" is required`
@@ -41,6 +54,9 @@ function validateSignal(s: SignalInput, index?: number): string | null {
   if (s.source_name !== undefined && s.source_name !== null && s.source_name.trim() === '')
     return `${p}field "source_name" must not be an empty string`
 
+  if (s.source_channel !== undefined && s.source_channel !== null && s.source_channel.trim() === '')
+    return `${p}field "source_channel" must not be an empty string`
+
   if (s.signal_date !== undefined) {
     if (!parseYmd(s.signal_date)) return `${p}field "signal_date" must be YYYY-MM-DD`
     const today = getTodayYmd()
@@ -57,7 +73,8 @@ function validateSignal(s: SignalInput, index?: number): string | null {
 function toRow(s: SignalInput, agentId: string) {
   return {
     url: s.url.trim(),
-    source_type: s.source_type,
+    source_type: inferSourceType(s.url.trim()),
+    source_channel: s.source_channel?.trim() ?? null,
     source_name: s.source_name?.trim() ?? null,
     title: s.title.trim(),
     description: s.description.trim(),
@@ -86,7 +103,7 @@ export async function GET(req: NextRequest) {
   const supabase = await createServiceClient()
   let query = supabase
     .from('ai_pulse_signals')
-    .select('id, url, source_type, source_name, title, description, signal_date, metadata, reason, insight, actionable, influence, score_status')
+    .select('id, url, source_type, source_channel, source_name, title, description, signal_date, metadata, reason, insight, actionable, influence, score_status')
     .eq('status', 'enabled')
     .order('signal_date', { ascending: false })
     .order('insight', { ascending: false, nullsFirst: false })

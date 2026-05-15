@@ -5,11 +5,12 @@ Canonical source: `docs/api-guide.md` (`POST /api/signals`, `DELETE /api/signals
 ## Key Fields
 
 1. `url` required, unique.
-2. `source_type` required: `hn|github|arxiv|twitter|web`.
-3. `title`, `description` required.
-4. `signal_date` optional (`YYYY-MM-DD`, not future).  
+2. `source_type` — **auto-inferred from URL by server, do not pass**. Values: `x|github|arxiv|a16z|techcrunch|ithome|yc|web`.
+3. `source_channel` optional, free-text, agent-injected. Identifies the discovery channel (e.g. `"hn"`, `"rss"`, `"manual"`).
+4. `title`, `description` required.
+5. `signal_date` optional (`YYYY-MM-DD`, not future).  
 If omitted, server defaults to current day in `Asia/Shanghai` (UTC+8).
-5. `metadata.og_image` must be `https://` when provided.
+6. `metadata.og_image` must be `https://` when provided.
 
 ## Ownership Model
 
