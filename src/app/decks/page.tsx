@@ -27,6 +27,16 @@ const decks: Deck[] = [
     duration: '60 min',
     date: '2026.04',
   },
+  {
+    slug: 'anthropic-founders-playbook',
+    title: "The Founder's Playbook：AI-Native 创业指南",
+    kicker: 'Anthropic · 35 页',
+    description:
+      'Anthropic 2026 年官方创始人手册完整精读。覆盖 Idea → MVP → Launch → Scale 四阶段，详解 Claude / Claude Code / Claude Cowork 的实战用法与案例。',
+    slides: 35,
+    duration: '25 min',
+    date: '2026.05',
+  },
 ]
 
 export default function DecksPage() {
