@@ -6,6 +6,7 @@ import rehypePrettyCode from 'rehype-pretty-code'
 import rehypeSlug from 'rehype-slug'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeStringify from 'rehype-stringify'
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
 
 interface MarkdownNode {
   type?: string
@@ -13,6 +14,7 @@ interface MarkdownNode {
   value?: string
   properties?: {
     className?: string[]
+    [key: string]: string | string[] | number | boolean | undefined
   }
   children?: MarkdownNode[]
 }
@@ -66,19 +68,52 @@ function rehypeMermaidBlocks() {
   }
 }
 
+/**
+ * Custom schema for rehype-sanitize to allow rich media while staying secure.
+ */
+const schema = {
+  ...defaultSchema,
+  tagNames: [
+    ...(defaultSchema.tagNames || []),
+    'audio',
+    'video',
+    'source',
+    'iframe',
+  ],
+  attributes: {
+    ...defaultSchema.attributes,
+    audio: ['src', 'controls', 'style'],
+    video: ['src', 'controls', 'style', 'width', 'height', 'poster'],
+    source: ['src', 'type'],
+    iframe: [
+      'src',
+      'width',
+      'height',
+      'frameborder',
+      'allow',
+      'allowfullscreen',
+      'style',
+      'title',
+    ],
+    // Allow mermaid data attributes
+    div: [...(defaultSchema.attributes?.div || []), 'className', 'data-mermaid', 'data-mermaid-processed'],
+  },
+}
+
 export async function markdownToHtml(markdown: string): Promise<string> {
   const file = await unified()
     .use(remarkParse)
     .use(remarkGfm)
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeMermaidBlocks)
+    .use(rehypeSanitize, schema) // Sanitize AFTER mermaid blocks are converted
     .use(rehypePrettyCode, {
       theme: 'github-light',
       keepBackground: false,
     })
     .use(rehypeSlug)
     .use(rehypeAutolinkHeadings, { behavior: 'wrap' })
-    .use(rehypeStringify, { allowDangerousHtml: true })
+    .use(rehypeStringify) // allowDangerousHtml is no longer needed here as we sanitize before
     .process(markdown)
 
   return String(file)
