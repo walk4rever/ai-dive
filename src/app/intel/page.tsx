@@ -113,7 +113,7 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
         <p className="kicker mb-2" style={{ color: 'var(--accent)' }}>Intel</p>
         <h1 className="font-serif text-3xl font-medium tracking-tight">情报</h1>
         <p className="mt-4 text-base md:text-lg text-[var(--muted)] leading-relaxed">
-          每日 AI 信号精选 —— 追踪真正值得关注的变化，来自 HN、GitHub 与 arXiv。
+          过滤海量技术噪点，追踪源头的微小震动；从深度洞察、落地实践与行业影响三重维度，还原每一个 AI 信号的真实价值。
         </p>
       </div>
       <section className="mb-10 flex flex-col sm:flex-row sm:items-center items-start gap-6">

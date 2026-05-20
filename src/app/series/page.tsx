@@ -61,7 +61,7 @@ export default async function SeriesPage() {
       <ListPageHeader
         kicker="Topics"
         title="专题"
-        description="围绕一个主题深入探索 —— 从线索到全貌。"
+        description="围绕核心议题展开结构化深度探索；通过编织零散的技术线索与行业脉络，还原宏大背景下的系统工程全貌。"
         count={storyList.length}
         hideBorder
       />

@@ -33,7 +33,7 @@ export default async function ArchivePage() {
       <ListPageHeader
         kicker="Archive"
         title="全部文章"
-        description="所有发布过的内容 —— 按时间倒序排列。"
+        description="归档沉淀下来的思想结晶与技术记录；提供完备的时间检索体系，方便随时回溯本站创刊以来发布的所有历史篇章。"
         count={allPosts.length}
       />
       <div className="divide-y divide-[var(--border-subtle)]">

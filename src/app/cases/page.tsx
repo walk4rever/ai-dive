@@ -31,7 +31,7 @@ export default async function CasesPage() {
       <ListPageHeader
         kicker="Cases"
         title="案例"
-        description="真实项目、真实决策 —— 拆解团队如何把 AI 变成可交付的产品。"
+        description="拆解真实项目与硬核技术决策；还原先锋团队如何穿越 Demo 迷雾，在实践中将 AI 技术锻造成可交付的工业级产品。"
         count={allPosts.length}
       />
       <div className="divide-y divide-[var(--border-subtle)]">

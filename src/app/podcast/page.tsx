@@ -31,7 +31,7 @@ export default async function PodcastPage() {
       <ListPageHeader
         kicker="Podcast"
         title="播客"
-        description="和一线的人对话 —— 听见决策的现场。"
+        description="对话大模型时代的现场亲历者；在思想碰撞与深度访谈中，倾听技术与商业最前沿那些不为人知的关键决策时刻。"
         count={allPosts.length}
       />
       <div className="divide-y divide-[var(--border-subtle)]">

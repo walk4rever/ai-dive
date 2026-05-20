@@ -30,7 +30,7 @@ export default async function LatestPage() {
       <ListPageHeader
         kicker="Latest"
         title="最新"
-        description="所有内容的时间流 —— 最近发生了什么。"
+        description="纵览生成式 AI 领域的每一次呼吸与脉动；按时间线索无缝连接，第一时间向你呈现站点最新发布的所有篇章。"
         count={allPosts.length}
       />
       <div className="divide-y divide-[var(--border-subtle)]">

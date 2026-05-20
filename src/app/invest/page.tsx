@@ -31,7 +31,7 @@ export default async function InvestPage() {
       <ListPageHeader
         kicker="Invest"
         title="投资"
-        description="AI 赛道的资金流向与投资逻辑。"
+        description="追踪 AI 赛道资金流向与商业化进程；从一级市场融资、巨头布局与估值变化的三重维度，研判行业最新发展趋势。"
         count={allPosts.length}
       />
       <div className="divide-y divide-[var(--border-subtle)]">

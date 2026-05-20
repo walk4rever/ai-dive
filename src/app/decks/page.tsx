@@ -43,9 +43,9 @@ export default function DecksPage() {
   return (
     <div className="mx-auto max-w-4xl px-6 py-16">
       <ListPageHeader
-        kicker="演讲"
-        title="Decks"
-        description="把文章变成可讲、可翻、可分享的幻灯片。"
+        kicker="Decks"
+        title="演讲"
+        description="将深度思考浓缩为极具传播力的视觉脉络；提供可宣讲、可阅读、可分享的高质量幻灯片，加速前沿知识的流动。"
         count={decks.length}
       />
       <ul className="flex flex-col gap-10">

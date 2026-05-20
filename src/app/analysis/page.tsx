@@ -31,7 +31,7 @@ export default async function AnalysisPage() {
       <ListPageHeader
         kicker="Analysis"
         title="深度"
-        description="解释真正重要的变化 —— 模型、产品与工程决策背后的长期逻辑。"
+        description="透视技术与商业的关键跃迁；聚焦学术前沿、重大产品解析与技术主题报告，探寻变革背后真正的长期主义逻辑。"
         count={allPosts.length}
       />
       <div className="divide-y divide-[var(--border-subtle)]">
