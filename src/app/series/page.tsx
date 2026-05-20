@@ -62,18 +62,53 @@ export default async function SeriesPage() {
         kicker="Topics"
         title="专题"
         description="围绕一个主题深入探索 —— 从线索到全貌。"
-        count={topicList.length}
+        count={storyList.length}
+        hideBorder
       />
 
       {topicList.length === 0 && (
         <p className="text-sm text-[var(--muted)]">专题内容即将发布。</p>
       )}
 
+      {topicList.length > 0 && (
+        <div className="mb-16 pb-10 border-b border-[var(--border-subtle)]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-4">
+            {topicList.map((topic, index) => {
+              const items = grouped.get(topic.id) ?? []
+              return (
+                <a
+                  key={topic.id}
+                  href={`#${topic.id}`}
+                  className="group flex items-baseline justify-between text-sm py-1.5 border-b border-dashed border-[var(--border-subtle)] hover:border-[var(--accent-coral)] transition-colors duration-200"
+                >
+                  <div className="flex items-baseline gap-2 min-w-0">
+                    <span className="font-mono text-xs text-[var(--subtle)]">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span className="font-serif text-base text-[var(--foreground-soft)] group-hover:text-[var(--accent)] transition-colors duration-200 truncate">
+                      {topic.name}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs text-[var(--muted)] shrink-0">
+                      {items.length} 篇
+                    </span>
+                    <span className="text-[var(--subtle)] group-hover:text-[var(--accent-coral)] transition-transform duration-200 group-hover:translate-x-0.5 text-xs">
+                      →
+                    </span>
+                  </div>
+                </a>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="space-y-16">
         {topicList.map((topic) => {
           const items = grouped.get(topic.id) ?? []
           return (
-            <section key={topic.id} id={topic.id}>
+            <section key={topic.id} id={topic.id} className="scroll-mt-10">
               <h2 className="font-serif text-2xl md:text-3xl font-medium mb-2 text-[var(--foreground)]">
                 {topic.name}
               </h2>

@@ -3,11 +3,12 @@ interface ListPageHeaderProps {
   title: string
   description?: string
   count?: number
+  hideBorder?: boolean
 }
 
-export function ListPageHeader({ kicker, title, description, count }: ListPageHeaderProps) {
+export function ListPageHeader({ kicker, title, description, count, hideBorder = false }: ListPageHeaderProps) {
   return (
-    <header className="mb-14 pb-10 border-b border-[var(--border)]">
+    <header className={`${hideBorder ? 'pb-0 mb-6' : 'pb-10 mb-14 border-b border-[var(--border)]'}`}>
       <p className="kicker mb-5" style={{ color: 'var(--accent)' }}>
         {kicker}
       </p>
