@@ -7,7 +7,7 @@ import { createClient } from '@supabase/supabase-js'
 import yaml from 'js-yaml'
 import { markdownToHtml } from './markdown.mjs'
 
-const VALID_CONTENT_TYPES = new Set(['daily', 'weekly', 'series', 'interview'])
+const VALID_CONTENT_TYPES = new Set(['analysis', 'case', 'podcast', 'invest'])
 const VALID_STATUS = new Set(['draft', 'published'])
 
 async function main() {
@@ -34,7 +34,6 @@ async function main() {
     status: normalized.status,
     content_type: normalized.contentType,
     featured: normalized.featured,
-    series_slug: normalized.seriesSlug,
     author_slug: normalized.authorSlug,
     published_at: normalized.publishedAt,
   }
@@ -47,7 +46,6 @@ async function main() {
       content_type: payload.content_type,
       status: payload.status,
       featured: payload.featured,
-      series_slug: payload.series_slug,
       author_slug: payload.author_slug,
       published_at: payload.published_at,
       excerpt: payload.excerpt,
@@ -67,7 +65,7 @@ async function main() {
 
   const supabase = createClient(url, serviceRoleKey)
   const { error } = await supabase
-    .from('ai_pulse_posts')
+    .from('ai_pulse_stories')
     .upsert(payload, { onConflict: 'slug' })
 
   if (error) {
@@ -80,7 +78,6 @@ async function main() {
   console.log(`- type: ${normalized.contentType}`)
   console.log(`- status: ${normalized.status}`)
   console.log(`- featured: ${normalized.featured}`)
-  console.log(`- series: ${normalized.seriesSlug ?? '—'}`)
   console.log(`- author: ${normalized.authorSlug}`)
 
 }
@@ -152,7 +149,7 @@ function normalizePost({ filePath, data, body }) {
 
   const contentType = asNonEmptyString(data.type)
   if (!VALID_CONTENT_TYPES.has(contentType)) {
-    throw new Error('Frontmatter field "type" must be daily, weekly, series, or interview.')
+    throw new Error('Frontmatter field "type" must be analysis, case, podcast, or invest.')
   }
 
   const status = asNonEmptyString(data.status) || 'draft'
@@ -177,7 +174,6 @@ function normalizePost({ filePath, data, body }) {
     status,
     contentType,
     featured: Boolean(data.featured),
-    seriesSlug: nullableString(data.series) ? asNonEmptyString(data.series).toLowerCase() : null,
     authorSlug: nullableString(data.author) ? asNonEmptyString(data.author).toLowerCase() : 'rafa',
     publishedAt,
     filePath,

@@ -39,6 +39,8 @@ Use this skill when interacting with `https://ai.air7.fun` APIs, especially:
 2. Signal date model:
 `signal_date` is business event date; `created_at` is ingestion time; `updated_at` is last modification time.
 3. If `signal_date` omitted, server defaults to current day in `Asia/Shanghai` (UTC+8).
+4. YouTube 嵌入（podcast 常见）：
+封面图建议通过 `/api/upload` 上传，并在 `content` Markdown 顶部以图片形式引用（用于列表页展示）。如果首图误用了 YouTube 缩略图（`https://i.ytimg.com/vi/<id>/...`），服务端会自动镜像到 R2 并替换为上传后的 URL。YouTube 链接照常写入，站内会渲染为内嵌播放器（详情页出现播放器后会自动隐藏封面图，避免重复）。
 
 ## Outputs
 

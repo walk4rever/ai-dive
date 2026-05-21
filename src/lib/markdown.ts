@@ -68,9 +68,110 @@ function rehypeMermaidBlocks() {
   }
 }
 
-/**
- * Custom schema for rehype-sanitize to allow rich media while staying secure.
- */
+function extractYouTubeVideoId(href: string): string | null {
+  try {
+    const url = new URL(href)
+    const host = url.hostname.replace(/^www\./, '')
+
+    if (host === 'youtu.be') {
+      const id = url.pathname.replace(/^\//, '').split('/')[0]
+      return id ? id : null
+    }
+
+    if (host === 'youtube.com' || host === 'm.youtube.com') {
+      if (url.pathname === '/watch') {
+        const id = url.searchParams.get('v')
+        return id ? id : null
+      }
+      const match = url.pathname.match(/^\/embed\/([^/?#]+)/)
+      if (match?.[1]) return match[1]
+    }
+  } catch {
+    return null
+  }
+
+  return null
+}
+
+function rehypeYouTubeEmbeds() {
+  return (tree: MarkdownNode) => {
+    const visit = (node: MarkdownNode) => {
+      if (!node || !Array.isArray(node.children)) return
+
+      node.children = node.children.map((child) => {
+        if (child?.type !== 'element') {
+          visit(child)
+          return child
+        }
+
+        if ((child.tagName === 'p' || child.tagName === 'li') && Array.isArray(child.children)) {
+          if (child.children.length === 1 && child.children[0]?.type === 'text') {
+            const text = extractText(child).trim()
+            const id = extractYouTubeVideoId(text)
+            if (id) {
+              return {
+                type: 'element',
+                tagName: 'iframe',
+                properties: {
+                  src: `https://www.youtube.com/embed/${id}`,
+                  title: 'YouTube',
+                  width: '100%',
+                  height: '315',
+                  frameborder: '0',
+                  allow:
+                    'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
+                  allowfullscreen: true,
+                  style: 'width:100%;aspect-ratio:16/9;',
+                },
+                children: [],
+              }
+            }
+          }
+
+          const anchors = child.children.filter((n) => n?.type === 'element' && n.tagName === 'a')
+          if (anchors.length === 1) {
+            const href = String(anchors[0].properties?.href ?? '')
+            const id = extractYouTubeVideoId(href)
+            if (id) {
+              const text = extractText(child).trim().replace(/\s+/g, ' ')
+              const linkText = extractText(anchors[0]).trim()
+              if (
+                text === href ||
+                text === linkText ||
+                text === `原视频：${href}` ||
+                text === `原视频: ${href}` ||
+                (text.endsWith(href) && text.length <= href.length + 6)
+              ) {
+                return {
+                  type: 'element',
+                  tagName: 'iframe',
+                  properties: {
+                    src: `https://www.youtube.com/embed/${id}`,
+                    title: 'YouTube',
+                    width: '100%',
+                    height: '315',
+                    frameborder: '0',
+                    allow:
+                      'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
+                    allowfullscreen: true,
+                    style: 'width:100%;aspect-ratio:16/9;',
+                  },
+                  children: [],
+                }
+              }
+            }
+          }
+        }
+
+        visit(child)
+        return child
+      })
+    }
+
+    visit(tree)
+  }
+}
+
 const schema = {
   ...defaultSchema,
   tagNames: [
@@ -95,7 +196,6 @@ const schema = {
       'style',
       'title',
     ],
-    // Allow mermaid data attributes
     div: [...(defaultSchema.attributes?.div || []), 'className', 'data-mermaid', 'data-mermaid-processed'],
   },
 }
@@ -106,14 +206,15 @@ export async function markdownToHtml(markdown: string): Promise<string> {
     .use(remarkGfm)
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeMermaidBlocks)
-    .use(rehypeSanitize, schema) // Sanitize AFTER mermaid blocks are converted
+    .use(rehypeYouTubeEmbeds)
+    .use(rehypeSanitize, schema)
     .use(rehypePrettyCode, {
       theme: 'github-light',
       keepBackground: false,
     })
     .use(rehypeSlug)
     .use(rehypeAutolinkHeadings, { behavior: 'wrap' })
-    .use(rehypeStringify) // allowDangerousHtml is no longer needed here as we sanitize before
+    .use(rehypeStringify)
     .process(markdown)
 
   return String(file)

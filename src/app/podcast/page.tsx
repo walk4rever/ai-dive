@@ -10,7 +10,12 @@ export const metadata = {
   title: '播客 | AI-DIVE',
 }
 
-type ListPost = Pick<Post, 'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type'>
+type ListPost = Pick<Post, 'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type' | 'content'>
+
+function extractFirstImageUrlFromHtml(html: string): string | null {
+  const match = html.match(/<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/i)
+  return match?.[1] ? match[1] : null
+}
 
 export default async function PodcastPage() {
   const { hasPublicEnv } = getSupabaseEnv()
@@ -19,7 +24,7 @@ export default async function PodcastPage() {
   const supabase = await createClient()
   const { data: posts } = await supabase
     .from('ai_pulse_stories')
-    .select('id, slug, title, excerpt, published_at, content_type')
+    .select('id, slug, title, excerpt, published_at, content_type, content')
     .eq('status', 'published')
     .eq('content_type', 'podcast')
     .order('published_at', { ascending: false }).order('created_at', { ascending: false })
@@ -36,7 +41,7 @@ export default async function PodcastPage() {
       />
       <div className="divide-y divide-[var(--border-subtle)]">
         {allPosts.map((post) => (
-          <ArticleListItem key={post.id} post={post} />
+          <ArticleListItem key={post.id} post={post} coverUrl={extractFirstImageUrlFromHtml(post.content)} />
         ))}
         {allPosts.length === 0 && (
           <p className="py-8 text-sm text-[var(--muted)]">播客内容即将发布。</p>

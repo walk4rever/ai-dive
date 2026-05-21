@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
         hostname: 'pub-675abd2580e643e89dde5e766edae1b7.r2.dev',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'i.ytimg.com',
+        pathname: '/**',
+      },
     ],
   },
 };

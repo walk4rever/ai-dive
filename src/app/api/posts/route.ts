@@ -3,7 +3,10 @@ import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 import { markdownToHtml } from '@/lib/markdown'
 import { resolveAuthor } from '@/lib/api-auth'
+import { uploadToR2 } from '@/lib/r2'
 import type { PostContentType } from '@/types'
+
+export const runtime = 'nodejs'
 
 const VALID_TYPES = new Set<PostContentType>(['analysis', 'case', 'podcast', 'invest'])
 const VALID_STATUS = new Set(['draft', 'published'])
@@ -19,6 +22,58 @@ interface PostPayload {
   status?: string
   is_premium?: boolean
   author?: string
+}
+
+function extractFirstMarkdownImageUrl(markdown: string): string | null {
+  const match = markdown.match(/!\[[^\]]*\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)/)
+  return match?.[1] ? match[1] : null
+}
+
+function replaceFirstMarkdownImageUrl(markdown: string, nextUrl: string): string {
+  return markdown.replace(/(!\[[^\]]*\]\()([^)\s]+)((?:\s+\"[^\"]*\")?\))/, `$1${nextUrl}$3`)
+}
+
+function isYouTubeThumbnailUrl(url: URL): boolean {
+  if (url.protocol !== 'https:') return false
+  if (url.hostname !== 'i.ytimg.com') return false
+  return url.pathname.startsWith('/vi/')
+}
+
+function isR2PublicUrl(url: URL): boolean {
+  const base = process.env.CLOUDFLARE_R2_PUBLIC_URL
+  if (!base) return false
+  try {
+    const baseUrl = new URL(base)
+    return url.protocol === baseUrl.protocol && url.hostname === baseUrl.hostname
+  } catch {
+    return false
+  }
+}
+
+async function mirrorYouTubeCoverToR2(markdown: string, folder: string): Promise<string> {
+  const first = extractFirstMarkdownImageUrl(markdown)
+  if (!first) return markdown
+
+  let url: URL
+  try {
+    url = new URL(first)
+  } catch {
+    return markdown
+  }
+
+  if (isR2PublicUrl(url)) return markdown
+  if (!isYouTubeThumbnailUrl(url)) return markdown
+
+  const res = await fetch(url.toString(), { signal: AbortSignal.timeout(10_000) })
+  if (!res.ok) return markdown
+
+  const contentType = res.headers.get('content-type') ?? ''
+  if (!contentType.startsWith('image/')) return markdown
+
+  const buffer = await res.arrayBuffer()
+  const file = new File([buffer], 'cover.jpg', { type: contentType })
+  const uploaded = await uploadToR2(file, folder)
+  return replaceFirstMarkdownImageUrl(markdown, uploaded.url)
 }
 
 export async function GET(req: NextRequest) {
@@ -112,9 +167,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Current user username is not available' }, { status: 422 })
   }
 
+  let normalizedContent = content
+  if (type === 'podcast' && author.agentId) {
+    try {
+      normalizedContent = await mirrorYouTubeCoverToR2(content, `posts/${author.agentId}`)
+    } catch {
+      normalizedContent = content
+    }
+  }
+
   let html: string
   try {
-    html = await markdownToHtml(content)
+    html = await markdownToHtml(normalizedContent)
   } catch {
     return NextResponse.json({ error: 'Failed to render markdown content' }, { status: 422 })
   }
