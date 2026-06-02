@@ -3,9 +3,10 @@ import { getSupabaseEnv } from '@/lib/supabase/env'
 import { Post, Signal } from '@/types'
 import { getTypeLabel } from '@/lib/content'
 import Link from 'next/link'
-import { IntelCalendar, type IntelDay } from '@/app/intel/IntelCalendar'
+import { IntelCalendar } from '@/app/intel/IntelCalendar'
 import { SignalHighlights } from '@/app/intel/SignalHighlights'
 import { getTodayYmd } from '@/lib/timezone'
+import { fetchSignalCalendarDays, getMonthDateRange } from '@/lib/signals-calendar'
 
 export const revalidate = 60
 
@@ -148,11 +149,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const selectedMonth = byDate ?? parseYearMonth(m) ?? parseYearMonth(im) ?? todayYearMonth
   const year = selectedMonth.year
   const month = selectedMonth.month
-  const monthStart = new Date(year, month - 1, 1).toISOString()
-  const monthEnd = new Date(year, month, 1).toISOString()
+  const { monthStart, monthEnd } = getMonthDateRange(year, month)
   const targetDate = d ?? today
 
-  const [{ data: posts }, { data: topicsData }, { data: storiesWithTopics }, { data: signalData }, { data: monthSignals }] = await Promise.all([
+  const [{ data: posts }, { data: topicsData }, { data: storiesWithTopics }, { data: signalData }, intelDays] = await Promise.all([
     supabase
       .from('ai_pulse_stories')
       .select('id, slug, title, excerpt, is_premium, published_at, content_type, featured')
@@ -173,51 +173,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       .eq('status', 'enabled')
       .eq('signal_date', targetDate)
       .order('created_at', { ascending: false }),
-    supabase
-      .from('ai_pulse_signals')
-      .select('signal_date, title, source_name, url, created_at')
-      .eq('status', 'enabled')
-      .gte('signal_date', monthStart.slice(0, 10))
-      .lt('signal_date', monthEnd.slice(0, 10))
-      .order('created_at', { ascending: false }),
+    fetchSignalCalendarDays(supabase, monthStart, monthEnd),
   ])
 
   const allPosts = (posts ?? []) as HomePost[]
   const { featured, recent } = buildSections(allPosts)
-
-  const dayMap = new Map<string, IntelDay>()
-  for (const row of monthSignals ?? []) {
-    const date = row.signal_date
-    if (!date) continue
-
-    const existing = dayMap.get(date)
-    if (!existing) {
-      dayMap.set(date, {
-        date,
-        overview: '',
-        keywords: [],
-        image_url: null,
-        signal_previews: [{
-          title: row.title ?? 'Untitled',
-          source_name: row.source_name ?? null,
-          url: row.url ?? null,
-        }],
-      })
-      continue
-    }
-
-    const previews = existing.signal_previews ?? []
-    if (previews.length < 3) {
-      previews.push({
-        title: row.title ?? 'Untitled',
-        source_name: row.source_name ?? null,
-        url: row.url ?? null,
-      })
-      existing.signal_previews = previews
-    }
-  }
-
-  const intelDays = Array.from(dayMap.values()).sort((a, b) => b.date.localeCompare(a.date))
   const signals = (signalData ?? []) as Signal[]
 
   const countMap = new Map<string, number>()
