@@ -7,7 +7,7 @@ import { ListPageHeader } from '@/components/ListPageHeader'
 export const revalidate = 60
 
 export const metadata = {
-  title: '播客 | AI-DIVE',
+  title: '洞见 | AI-DIVE',
 }
 
 type ListPost = Pick<Post, 'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type' | 'content'>
@@ -34,8 +34,8 @@ export default async function PodcastPage() {
   return (
     <div>
       <ListPageHeader
-        kicker="Podcast"
-        title="播客"
+        kicker="Insight"
+        title="洞见"
         description="对话大模型时代的现场亲历者；在思想碰撞与深度访谈中，倾听技术与商业最前沿那些不为人知的关键决策时刻。"
         count={allPosts.length}
       />
@@ -44,7 +44,7 @@ export default async function PodcastPage() {
           <ArticleListItem key={post.id} post={post} coverUrl={extractFirstImageUrlFromHtml(post.content)} />
         ))}
         {allPosts.length === 0 && (
-          <p className="py-8 text-sm text-[var(--muted)]">播客内容即将发布。</p>
+          <p className="py-8 text-sm text-[var(--muted)]">洞见内容即将发布。</p>
         )}
       </div>
     </div>

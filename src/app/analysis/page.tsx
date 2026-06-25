@@ -7,7 +7,7 @@ import { ListPageHeader } from '@/components/ListPageHeader'
 export const revalidate = 60
 
 export const metadata = {
-  title: '深度 | AI-DIVE',
+  title: '技术 | AI-DIVE',
 }
 
 type ListPost = Pick<Post, 'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type'>
@@ -30,7 +30,7 @@ export default async function AnalysisPage() {
     <div>
       <ListPageHeader
         kicker="Analysis"
-        title="深度"
+        title="技术"
         description="透视技术与商业的关键跃迁；聚焦学术前沿、重大产品解析与技术主题报告，探寻变革背后真正的长期主义逻辑。"
         count={allPosts.length}
       />
@@ -39,7 +39,7 @@ export default async function AnalysisPage() {
           <ArticleListItem key={post.id} post={post} />
         ))}
         {allPosts.length === 0 && (
-          <p className="py-8 text-sm text-[var(--muted)]">深度文章即将发布。</p>
+          <p className="py-8 text-sm text-[var(--muted)]">技术文章即将发布。</p>
         )}
       </div>
     </div>
