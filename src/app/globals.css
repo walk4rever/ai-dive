@@ -307,12 +307,26 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .prose .callout-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.4;
+  margin-bottom: 0.55rem;
+  color: var(--foreground);
+}
+
+.prose .callout-label {
   font-family: "Noto Sans SC", system-ui, sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 600;
+  font-size: 0.625rem;
+  font-weight: 700;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  margin-bottom: 0.55rem;
+  flex-shrink: 0;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-sm);
+  line-height: 1.6;
 }
 
 .prose .callout-content p:last-child,
@@ -323,34 +337,52 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(59, 130, 246, 0.05);
   border-color: #3b82f6;
 }
-.prose .callout-overview .callout-title { color: #3b82f6; }
+.prose .callout-overview .callout-label {
+  color: #1d4ed8;
+  background: rgba(59, 130, 246, 0.12);
+}
 
 .prose .callout-tips {
   background: rgba(217, 119, 6, 0.06);
   border-color: #d97706;
 }
-.prose .callout-tips .callout-title { color: #d97706; }
+.prose .callout-tips .callout-label {
+  color: #92400e;
+  background: rgba(217, 119, 6, 0.15);
+}
 
 .prose .callout-facts {
   background: rgba(22, 163, 74, 0.05);
   border-color: #16a34a;
 }
-.prose .callout-facts .callout-title { color: #16a34a; }
+.prose .callout-facts .callout-label {
+  color: #14532d;
+  background: rgba(22, 163, 74, 0.12);
+}
 
 .prose .callout-value {
   background: rgba(201, 100, 66, 0.06);
   border-color: var(--accent);
 }
-.prose .callout-value .callout-title { color: var(--accent); }
+.prose .callout-value .callout-label {
+  color: #7c2d12;
+  background: rgba(201, 100, 66, 0.15);
+}
 
 .prose .callout-inverse {
   background: rgba(124, 58, 237, 0.05);
   border-color: #7c3aed;
 }
-.prose .callout-inverse .callout-title { color: #7c3aed; }
+.prose .callout-inverse .callout-label {
+  color: #4c1d95;
+  background: rgba(124, 58, 237, 0.12);
+}
 
 .prose .callout-takeaway {
   background: rgba(135, 134, 127, 0.08);
   border-color: var(--subtle);
 }
-.prose .callout-takeaway .callout-title { color: var(--charcoal); }
+.prose .callout-takeaway .callout-label {
+  color: var(--charcoal);
+  background: rgba(135, 134, 127, 0.15);
+}

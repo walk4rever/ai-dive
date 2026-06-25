@@ -10,12 +10,7 @@ export const metadata = {
   title: '洞见 | AI-DIVE',
 }
 
-type ListPost = Pick<Post, 'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type' | 'content'>
-
-function extractFirstImageUrlFromHtml(html: string): string | null {
-  const match = html.match(/<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/i)
-  return match?.[1] ? match[1] : null
-}
+type ListPost = Pick<Post, 'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type'>
 
 export default async function PodcastPage() {
   const { hasPublicEnv } = getSupabaseEnv()
@@ -24,7 +19,7 @@ export default async function PodcastPage() {
   const supabase = await createClient()
   const { data: posts } = await supabase
     .from('ai_pulse_stories')
-    .select('id, slug, title, excerpt, published_at, content_type, content')
+    .select('id, slug, title, excerpt, published_at, content_type')
     .eq('status', 'published')
     .eq('content_type', 'podcast')
     .order('published_at', { ascending: false }).order('created_at', { ascending: false })
@@ -34,14 +29,14 @@ export default async function PodcastPage() {
   return (
     <div>
       <ListPageHeader
-        kicker="Insight"
+        kicker="Insights"
         title="洞见"
         description="对话大模型时代的现场亲历者；在思想碰撞与深度访谈中，倾听技术与商业最前沿那些不为人知的关键决策时刻。"
         count={allPosts.length}
       />
       <div className="divide-y divide-[var(--border-subtle)]">
         {allPosts.map((post) => (
-          <ArticleListItem key={post.id} post={post} coverUrl={extractFirstImageUrlFromHtml(post.content)} />
+          <ArticleListItem key={post.id} post={post} />
         ))}
         {allPosts.length === 0 && (
           <p className="py-8 text-sm text-[var(--muted)]">洞见内容即将发布。</p>

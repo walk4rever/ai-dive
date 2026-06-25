@@ -61,7 +61,15 @@ function rehypeCallouts() {
               type: 'element',
               tagName: 'div',
               properties: { className: ['callout-title'] },
-              children: titleText ? [{ type: 'text', value: titleText }] : [],
+              children: [
+                {
+                  type: 'element',
+                  tagName: 'span',
+                  properties: { className: ['callout-label'] },
+                  children: [{ type: 'text', value: type }],
+                },
+                ...(titleText ? [{ type: 'text', value: ` ${titleText}` }] : []),
+              ],
             },
             {
               type: 'element',
