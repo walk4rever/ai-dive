@@ -5,11 +5,11 @@ import { usePathname } from 'next/navigation'
 
 const NAV_ITEMS: ReadonlyArray<{ href: string; label: string }> = [
   { href: '/intel', label: '情报' },
-  { href: '/analysis', label: '深度' },
+  { href: '/analysis', label: '技术' },
   { href: '/cases', label: '案例' },
   { href: '/invest', label: '投资' },
+  { href: '/podcast', label: '洞见' },
   { href: '/series', label: '专题' },
-  { href: '/podcast', label: '播客' },
   { href: '/decks', label: '演讲' },
 ]
 

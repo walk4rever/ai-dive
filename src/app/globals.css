@@ -296,3 +296,61 @@ h1, h2, h3, h4, h5, h6 {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Callout blocks (Obsidian-style annotations) */
+.prose .callout {
+  margin: 1.75rem 0;
+  padding: 0.9rem 1.25rem;
+  border-left: 3px solid;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  font-style: normal;
+}
+
+.prose .callout-title {
+  font-family: "Noto Sans SC", system-ui, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 0.55rem;
+}
+
+.prose .callout-content p:last-child,
+.prose .callout-content ul:last-child,
+.prose .callout-content ol:last-child { margin-bottom: 0; }
+
+.prose .callout-overview {
+  background: rgba(59, 130, 246, 0.05);
+  border-color: #3b82f6;
+}
+.prose .callout-overview .callout-title { color: #3b82f6; }
+
+.prose .callout-tips {
+  background: rgba(217, 119, 6, 0.06);
+  border-color: #d97706;
+}
+.prose .callout-tips .callout-title { color: #d97706; }
+
+.prose .callout-facts {
+  background: rgba(22, 163, 74, 0.05);
+  border-color: #16a34a;
+}
+.prose .callout-facts .callout-title { color: #16a34a; }
+
+.prose .callout-value {
+  background: rgba(201, 100, 66, 0.06);
+  border-color: var(--accent);
+}
+.prose .callout-value .callout-title { color: var(--accent); }
+
+.prose .callout-inverse {
+  background: rgba(124, 58, 237, 0.05);
+  border-color: #7c3aed;
+}
+.prose .callout-inverse .callout-title { color: #7c3aed; }
+
+.prose .callout-takeaway {
+  background: rgba(135, 134, 127, 0.08);
+  border-color: var(--subtle);
+}
+.prose .callout-takeaway .callout-title { color: var(--charcoal); }
