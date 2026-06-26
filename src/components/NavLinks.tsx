@@ -10,7 +10,6 @@ const NAV_ITEMS: ReadonlyArray<{ href: string; label: string }> = [
   { href: '/invest', label: '投资' },
   { href: '/podcast', label: '洞见' },
   { href: '/series', label: '专题' },
-  { href: '/decks', label: '演讲' },
 ]
 
 interface NavLinksProps {

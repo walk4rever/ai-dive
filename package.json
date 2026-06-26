@@ -4,16 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run wiki:build && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "import:post": "node scripts/import-post.mjs",
     "import:batch": "node scripts/import-batch.mjs",
-    "score:signals:v1": "node scripts/score-signals-v1.mjs",
-    "wiki:sync": "node scripts/sync-wiki.mjs",
-    "wiki:build": "node scripts/build-wiki.mjs"
+    "score:signals:v1": "node scripts/score-signals-v1.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1031.0",
@@ -26,7 +24,6 @@
     "next": "16.2.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-force-graph-2d": "^1.29.1",
     "rehype-autolink-headings": "^7.1.0",
     "rehype-pretty-code": "^0.14.3",
     "rehype-sanitize": "^6.0.0",
@@ -39,7 +36,6 @@
     "unified": "^11.0.5"
   },
   "devDependencies": {
-    "@jackyzha0/quartz": "git+https://github.com/jackyzha0/quartz.git#v4.5.2",
     "@tailwindcss/postcss": "^4",
     "@types/js-yaml": "^4.0.9",
     "@types/mime-types": "^3.0.1",

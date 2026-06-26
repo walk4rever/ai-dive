@@ -54,12 +54,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 >
                   API
                 </Link>
-                <Link
-                  href="/wiki"
-                  className="font-medium text-[var(--foreground-soft)] hover:text-[var(--accent)] transition-colors"
-                >
-                  Wiki
-                </Link>
                 <a
                   href="mailto:walkklaw@gmail.com"
                   className="font-medium text-[var(--foreground-soft)] hover:text-[var(--accent)] transition-colors"
