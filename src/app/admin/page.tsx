@@ -85,7 +85,11 @@ function AdminConsole() {
     return () => window.clearTimeout(timer)
   }, [fetchPosts, router])
 
-  async function toggleFeatured(slug: string, current: boolean, featuredCount: number) {
+  async function toggleFeatured(slug: string, current: boolean, featuredCount: number, contentType: string) {
+    if (!current && !['tech', 'case', 'insight'].includes(contentType)) {
+      alert('只有技术、案例、洞见类型的文章可以设为精选。')
+      return
+    }
     if (!current && featuredCount >= 3) {
       alert('最多精选 3 篇，请先取消其他精选文章。')
       return
@@ -264,7 +268,7 @@ function AdminConsole() {
                     编辑
                   </a>
                   <button
-                    onClick={() => toggleFeatured(post.slug, post.featured, featuredCount)}
+                    onClick={() => toggleFeatured(post.slug, post.featured, featuredCount, post.content_type)}
                     className={`kicker transition-colors ${post.featured ? 'text-[var(--accent)]' : 'text-[var(--muted)] hover:text-[var(--foreground)]'}`}
                   >
                     {post.featured ? '★ 精选' : '☆ 精选'}

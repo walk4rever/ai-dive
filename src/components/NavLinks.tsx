@@ -4,12 +4,10 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const NAV_ITEMS: ReadonlyArray<{ href: string; label: string }> = [
-  { href: '/intel', label: '情报' },
-  { href: '/analysis', label: '技术' },
+  { href: '/intels', label: '情报' },
+  { href: '/techs', label: '技术' },
   { href: '/cases', label: '案例' },
-  { href: '/invest', label: '投资' },
-  { href: '/podcast', label: '洞见' },
-  { href: '/series', label: '专题' },
+  { href: '/insights', label: '洞见' },
 ]
 
 interface NavLinksProps {

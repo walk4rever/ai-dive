@@ -3,8 +3,8 @@ import { getSupabaseEnv } from '@/lib/supabase/env'
 import { Post, Signal } from '@/types'
 import { getTypeLabel } from '@/lib/content'
 import Link from 'next/link'
-import { IntelCalendar } from '@/app/intel/IntelCalendar'
-import { SignalHighlights } from '@/app/intel/SignalHighlights'
+import { IntelCalendar } from '@/app/intels/IntelCalendar'
+import { SignalHighlights } from '@/app/intels/SignalHighlights'
 import { getTodayYmd } from '@/lib/timezone'
 import { fetchSignalCalendarDays, getMonthDateRange } from '@/lib/signals-calendar'
 
@@ -212,7 +212,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             <p className="kicker mb-3">{targetDate} 精选</p>
             <SignalHighlights signals={signals} />
             <Link
-              href={`/intel?d=${targetDate}`}
+              href={`/intels?d=${targetDate}`}
               className="inline-flex items-center mt-4 text-sm text-[var(--accent)] hover:underline"
             >
               查看当日情报 →
@@ -237,7 +237,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       {seriesList.length > 0 && (
         <section className="mb-20 -mx-6 bg-[#141413] px-8 md:px-12 py-16 md:py-20 rounded-3xl">
           <div className="flex items-baseline justify-between mb-8">
-            <p className="kicker" style={{ color: 'var(--accent-coral)' }}>专题</p>
+            <p className="kicker" style={{ color: 'var(--accent-coral)' }}>按专题浏览</p>
             <Link href="/series" className="kicker text-[#b0aea5] hover:text-[var(--accent-coral)] transition-colors">
               全部专题 →
             </Link>

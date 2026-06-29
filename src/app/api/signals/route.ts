@@ -178,7 +178,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  revalidatePath('/intel')
+  revalidatePath('/intels')
 
   return NextResponse.json({ ok: true, count: allowed.length, skipped }, { status: 200 })
 }
@@ -223,7 +223,7 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: 'Database error' }, { status: 500 })
   }
 
-  revalidatePath('/intel')
+  revalidatePath('/intels')
 
   return NextResponse.json({ ok: true, deleted: data?.length ?? 0 })
 }

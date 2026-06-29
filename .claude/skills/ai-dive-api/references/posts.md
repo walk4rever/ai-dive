@@ -10,7 +10,7 @@
 |------|------|------|------|
 | `slug` | string | ✅ | 全局唯一，见 Slug 规范 |
 | `title` | string | ✅ | 文章标题 |
-| `type` | string | ✅ | `analysis` / `case` / `intel` / `invest` / `podcast` |
+| `type` | string | ✅ | `intel` / `tech` / `case` / `insight` |
 | `content` | string | ✅ | Markdown 正文（服务端转 HTML 存储） |
 | `excerpt` | string | ✅ | 纯文本摘要 |
 | `date` | string | — | YYYY-MM-DD，缺省当天 |
@@ -25,11 +25,10 @@
 
 | 类型 | 格式 | 示例 |
 |------|------|------|
-| analysis | `analysis-YYYY-MM-DD-{topic}` | `analysis-2026-04-08-reasoning-pricing` |
-| case | `case-YYYY-MM-DD-{company}` | `case-2026-04-08-cursor-growth` |
 | intel | `intel-YYYY-MM-DD` | `intel-2026-04-08` |
-| invest | `invest-YYYY-MM-DD-{topic}` | `invest-2026-04-08-series-b` |
-| podcast | `podcast-YYYY-MM-DD-{guest}` | `podcast-2026-04-08-sam-altman` |
+| tech | `tech-YYYY-MM-DD-{topic}` | `tech-2026-04-08-reasoning-pricing` |
+| case | `case-YYYY-MM-DD-{company}` | `case-2026-04-08-cursor-growth` |
+| insight | `insight-YYYY-MM-DD-{guest}` | `insight-2026-04-08-sam-altman` |
 
 `{topic}` 取核心主题英文关键词，多词用连字符。Slug 是永久标识符，**发布后不要修改**。
 
@@ -40,9 +39,9 @@ curl -X POST https://ai.air7.fun/api/posts \
   -H "Authorization: Bearer <agent_api_key>" \
   -H "Content-Type: application/json" \
   -d '{
-    "slug": "analysis-2026-04-08-reasoning-pricing",
+    "slug": "tech-2026-04-08-reasoning-pricing",
     "title": "推理模型开始进入价格战",
-    "type": "analysis",
+    "type": "tech",
     "date": "2026-04-08",
     "excerpt": "推理模型不再只比能力，开始同时比延迟、价格和可落地性。",
     "content": "## 背景\n\n..."
@@ -60,7 +59,7 @@ curl -X POST https://ai.air7.fun/api/posts \
 `title` / `excerpt` / `content`（传 Markdown）/ `type` / `date`（YYYY-MM-DD）/ `featured` / `status` / `is_premium` / `author`
 
 ```bash
-curl -X PATCH https://ai.air7.fun/api/posts/analysis-2026-04-08-reasoning-pricing \
+curl -X PATCH https://ai.air7.fun/api/posts/tech-2026-04-08-reasoning-pricing \
   -H "Authorization: Bearer <agent_api_key>" \
   -H "Content-Type: application/json" \
   -d '{"title": "更新后的标题", "excerpt": "更新后的摘要"}'
@@ -71,7 +70,7 @@ curl -X PATCH https://ai.air7.fun/api/posts/analysis-2026-04-08-reasoning-pricin
 ## GET /api/posts — 读取文章列表
 
 ```bash
-curl "https://ai.air7.fun/api/posts?type=analysis&limit=20&offset=0" \
+curl "https://ai.air7.fun/api/posts?type=tech&limit=20&offset=0" \
   -H "Authorization: Bearer <agent_api_key>"
 ```
 

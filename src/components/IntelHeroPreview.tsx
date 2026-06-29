@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import type { IntelDay } from '@/app/intel/IntelCalendar'
+import type { IntelDay } from '@/app/intels/IntelCalendar'
 
 interface Props {
   year: number
@@ -74,7 +74,7 @@ export function IntelHeroPreview({ year, month, days }: Props) {
               ›
             </button>
           </div>
-          <Link href="/intel" className="text-[0.65rem] text-[var(--accent)] hover:underline">
+          <Link href="/intels" className="text-[0.65rem] text-[var(--accent)] hover:underline">
             全部情报 →
           </Link>
         </div>
@@ -136,7 +136,7 @@ export function IntelHeroPreview({ year, month, days }: Props) {
           )}
           <p className="text-sm text-[var(--muted)] leading-relaxed line-clamp-4">{current.overview}</p>
           <Link
-            href={`/intel?d=${current.date}`}
+            href={`/intels?d=${current.date}`}
             className="inline-flex items-center mt-4 text-sm text-[var(--accent)] hover:underline"
           >
             查看完整情报 →

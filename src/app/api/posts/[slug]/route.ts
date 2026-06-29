@@ -5,7 +5,7 @@ import { markdownToHtml } from '@/lib/markdown'
 import { resolveAuthor } from '@/lib/api-auth'
 import type { PostContentType } from '@/types'
 
-const VALID_TYPES = new Set<PostContentType>(['analysis', 'case', 'podcast', 'invest'])
+const VALID_TYPES = new Set<PostContentType>(['intel', 'tech', 'case', 'insight'])
 const VALID_STATUS = new Set(['draft', 'published'])
 
 interface RouteParams {
@@ -63,7 +63,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
   if (type !== undefined && !VALID_TYPES.has(type)) {
     return NextResponse.json(
-      { error: 'Field "type" must be one of: analysis, case, podcast, invest' },
+      { error: 'Field "type" must be one of: intel, tech, case, insight' },
       { status: 422 }
     )
   }
@@ -116,9 +116,10 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   }
 
   revalidatePath('/')
-  revalidatePath('/analysis')
+  revalidatePath('/intels')
+  revalidatePath('/techs')
+  revalidatePath('/insights')
   revalidatePath('/cases')
-  revalidatePath('/invest')
   revalidatePath('/archive')
   revalidatePath(`/post/${slug}`)
 

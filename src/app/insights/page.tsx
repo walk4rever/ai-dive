@@ -21,7 +21,7 @@ export default async function PodcastPage() {
     .from('ai_pulse_stories')
     .select('id, slug, title, excerpt, published_at, content_type')
     .eq('status', 'published')
-    .eq('content_type', 'podcast')
+    .eq('content_type', 'insight')
     .order('published_at', { ascending: false }).order('created_at', { ascending: false })
 
   const allPosts = (posts ?? []) as ListPost[]

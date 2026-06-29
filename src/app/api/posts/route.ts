@@ -8,7 +8,7 @@ import type { PostContentType } from '@/types'
 
 export const runtime = 'nodejs'
 
-const VALID_TYPES = new Set<PostContentType>(['analysis', 'case', 'podcast', 'invest'])
+const VALID_TYPES = new Set<PostContentType>(['intel', 'tech', 'case', 'insight'])
 const VALID_STATUS = new Set(['draft', 'published'])
 
 interface PostPayload {
@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
 
   if (!VALID_TYPES.has(type)) {
     return NextResponse.json(
-      { error: 'Field "type" must be one of: analysis, case, podcast, invest' },
+      { error: 'Field "type" must be one of: intel, tech, case, insight' },
       { status: 422 }
     )
   }
@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
   }
 
   let normalizedContent = content
-  if (type === 'podcast' && author.agentId) {
+  if (type === 'insight' && author.agentId) {
     try {
       normalizedContent = await mirrorYouTubeCoverToR2(content, `posts/${author.agentId}`)
     } catch {
@@ -212,9 +212,10 @@ export async function POST(req: NextRequest) {
   }
 
   revalidatePath('/')
-  revalidatePath('/analysis')
+  revalidatePath('/intels')
+  revalidatePath('/techs')
   revalidatePath('/cases')
-  revalidatePath('/invest')
+  revalidatePath('/insights')
   revalidatePath('/archive')
   revalidatePath(`/post/${slug}`)
 
