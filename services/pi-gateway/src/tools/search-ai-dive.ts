@@ -19,7 +19,7 @@ async function fullTextSearch(query: string, contentType: string | null, limit: 
       title,
       excerpt,
       content_type,
-      published_at,
+      to_char(published_at, 'YYYY-MM-DD') AS published_at,
       ts_rank_cd(
         to_tsvector('english', coalesce(title, '') || ' ' || coalesce(excerpt, '') || ' ' || coalesce(content, '')),
         websearch_to_tsquery('english', $1)
@@ -58,11 +58,11 @@ function formatResults(rows: StoryRow[]): string {
 }
 
 export const searchAiDiveTool = defineTool({
-  name: "search_ai-dive",
+  name: "search_ai_dive",
   label: "Search AI-DIVE Content",
   description:
     "Search published AI-DIVE articles (技术 tech analyses, 案例 case studies, 洞见 insights, 情报 intels). Use this to find what AI-DIVE has already covered on a topic, and connect the user's question to existing curated content.",
-  promptSnippet: "search_ai-dive(query, content_type?) → matching articles with title, excerpt, and URL",
+  promptSnippet: "search_ai_dive(query, content_type?) → matching articles with title, excerpt, and URL",
   parameters: Type.Object({
     query: Type.String({ description: "Search query — keywords or a natural language question" }),
     content_type: Type.Optional(

@@ -29,7 +29,7 @@ interface Message {
 const TOOL_META: Record<string, { icon: string; label: string }> = {
   analyze_arxiv:   { icon: '📄', label: '读取论文' },
   analyze_github:  { icon: '📦', label: '读取仓库' },
-  'search_ai-dive': { icon: '🔍', label: '搜索 AI-DIVE' },
+  'search_ai_dive': { icon: '🔍', label: '搜索 AI-DIVE' },
 }
 
 function toolDetail(name: string, args: Record<string, unknown> | undefined): string | undefined {
@@ -37,7 +37,7 @@ function toolDetail(name: string, args: Record<string, unknown> | undefined): st
   const s = (k: string) => typeof args[k] === 'string' ? args[k] as string : undefined
   if (name === 'analyze_arxiv') return s('paper')
   if (name === 'analyze_github') return s('repo')
-  if (name === 'search_ai-dive') return s('query')
+  if (name === 'search_ai_dive') return s('query')
   return s('query')
 }
 
