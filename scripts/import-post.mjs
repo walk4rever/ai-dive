@@ -7,7 +7,7 @@ import { createClient } from '@supabase/supabase-js'
 import yaml from 'js-yaml'
 import { markdownToHtml } from './markdown.mjs'
 
-const VALID_CONTENT_TYPES = new Set(['analysis', 'case', 'podcast', 'invest'])
+const VALID_CONTENT_TYPES = new Set(['intel', 'tech', 'case', 'insight'])
 const VALID_STATUS = new Set(['draft', 'published'])
 
 async function main() {

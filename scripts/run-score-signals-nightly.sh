@@ -4,5 +4,4 @@ cd /root/ai-dive
 set -a
 source .env.local
 set +a
-npm run score:signals:v1 -- --force --limit 2000
-
+npm run score:signals:v1 -- --limit 500

@@ -5,7 +5,8 @@ import { SignalFeed } from './SignalFeed'
 import { SignalHighlights } from './SignalHighlights'
 import type { Signal } from '@/types'
 import { getTodayYmd } from '@/lib/timezone'
-import { fetchSignalCalendarDays, getMonthDateRange } from '@/lib/signals-calendar'
+import { getMonthDateRange } from '@/lib/signals-calendar'
+import { fetchCachedSignalCalendarDays } from '@/lib/signals-calendar-server'
 
 export const revalidate = 300
 
@@ -62,7 +63,7 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
       .eq('status', 'enabled')
       .eq('signal_date', targetDate)
       .order('created_at', { ascending: false }),
-    fetchSignalCalendarDays(supabase, monthStart, monthEnd),
+    fetchCachedSignalCalendarDays(monthStart, monthEnd),
   ])
 
   const signals = (signalData ?? []) as Signal[]

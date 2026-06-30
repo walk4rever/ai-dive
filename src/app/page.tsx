@@ -6,7 +6,8 @@ import Link from 'next/link'
 import { IntelCalendar } from '@/app/intels/IntelCalendar'
 import { SignalHighlights } from '@/app/intels/SignalHighlights'
 import { getTodayYmd } from '@/lib/timezone'
-import { fetchSignalCalendarDays, getMonthDateRange } from '@/lib/signals-calendar'
+import { getMonthDateRange } from '@/lib/signals-calendar'
+import { fetchCachedSignalCalendarDays } from '@/lib/signals-calendar-server'
 
 export const revalidate = 60
 
@@ -157,7 +158,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       .from('ai_pulse_stories')
       .select('id, slug, title, excerpt, is_premium, published_at, content_type, featured')
       .eq('status', 'published')
-      .order('published_at', { ascending: false }).order('created_at', { ascending: false }),
+      .order('published_at', { ascending: false }).order('created_at', { ascending: false })
+      .limit(100),
     serviceSupabase
       .from('ai_pulse_topics')
       .select('id, name, description')
@@ -173,7 +175,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       .eq('status', 'enabled')
       .eq('signal_date', targetDate)
       .order('created_at', { ascending: false }),
-    fetchSignalCalendarDays(supabase, monthStart, monthEnd),
+    fetchCachedSignalCalendarDays(monthStart, monthEnd),
   ])
 
   const allPosts = (posts ?? []) as HomePost[]

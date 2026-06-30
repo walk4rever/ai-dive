@@ -12,7 +12,7 @@ export interface SignalCalendarDay {
   }>
 }
 
-interface SignalCalendarRow {
+export interface SignalCalendarRow {
   signal_date: string | null
   title: string | null
   source_name: string | null
@@ -33,12 +33,49 @@ export function getMonthDateRange(year: number, month: number) {
   return { monthStart, monthEnd }
 }
 
+export function buildSignalCalendarDays(rows: SignalCalendarRow[]): SignalCalendarDay[] {
+  const dayMap = new Map<string, SignalCalendarDay>()
+
+  for (const row of rows) {
+    const date = row.signal_date
+    if (!date) continue
+
+    const existing = dayMap.get(date)
+    if (!existing) {
+      dayMap.set(date, {
+        date,
+        overview: '',
+        keywords: [],
+        image_url: null,
+        signal_previews: [{
+          title: row.title ?? 'Untitled',
+          source_name: row.source_name,
+          url: row.url,
+        }],
+      })
+      continue
+    }
+
+    const previews = existing.signal_previews ?? []
+    if (previews.length < 3) {
+      previews.push({
+        title: row.title ?? 'Untitled',
+        source_name: row.source_name,
+        url: row.url,
+      })
+      existing.signal_previews = previews
+    }
+  }
+
+  return Array.from(dayMap.values()).sort((a, b) => b.date.localeCompare(a.date))
+}
+
 export async function fetchSignalCalendarDays(
   supabase: SupabaseClient,
   monthStart: string,
   monthEnd: string
 ): Promise<SignalCalendarDay[]> {
-  const dayMap = new Map<string, SignalCalendarDay>()
+  const allRows: SignalCalendarRow[] = []
 
   for (let from = 0; ; from += PAGE_SIZE) {
     const to = from + PAGE_SIZE - 1
@@ -64,39 +101,10 @@ export async function fetchSignalCalendarDays(
     }
 
     const rows = (data ?? []) as SignalCalendarRow[]
-    for (const row of rows) {
-      const date = row.signal_date
-      if (!date) continue
-
-      const existing = dayMap.get(date)
-      if (!existing) {
-        dayMap.set(date, {
-          date,
-          overview: '',
-          keywords: [],
-          image_url: null,
-          signal_previews: [{
-            title: row.title ?? 'Untitled',
-            source_name: row.source_name,
-            url: row.url,
-          }],
-        })
-        continue
-      }
-
-      const previews = existing.signal_previews ?? []
-      if (previews.length < 3) {
-        previews.push({
-          title: row.title ?? 'Untitled',
-          source_name: row.source_name,
-          url: row.url,
-        })
-        existing.signal_previews = previews
-      }
-    }
+    allRows.push(...rows)
 
     if (rows.length < PAGE_SIZE) break
   }
 
-  return Array.from(dayMap.values()).sort((a, b) => b.date.localeCompare(a.date))
+  return buildSignalCalendarDays(allRows)
 }

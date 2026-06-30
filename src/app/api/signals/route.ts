@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 import { resolveAuthor } from '@/lib/api-auth'
 import { getTodayYmd, parseYmd } from '@/lib/timezone'
@@ -179,6 +179,7 @@ export async function POST(req: NextRequest) {
   }
 
   revalidatePath('/intels')
+  revalidateTag('signal-calendar-days', { expire: 0 })
 
   return NextResponse.json({ ok: true, count: allowed.length, skipped }, { status: 200 })
 }
@@ -224,6 +225,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   revalidatePath('/intels')
+  revalidateTag('signal-calendar-days', { expire: 0 })
 
   return NextResponse.json({ ok: true, deleted: data?.length ?? 0 })
 }
