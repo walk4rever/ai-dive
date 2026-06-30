@@ -297,6 +297,91 @@ h1, h2, h3, h4, h5, h6 {
   display: none;
 }
 
+/* ── Agent chat markdown ── */
+.agent-md { font-size: 0.84rem; line-height: 1.85; color: #141413; }
+.agent-md p { margin: 0 0 0.85em; }
+.agent-md p:last-child { margin-bottom: 0; }
+.agent-md h1, .agent-md h2, .agent-md h3 {
+  font-family: var(--font-serif, Georgia, serif);
+  font-weight: 500;
+  line-height: 1.3;
+  margin: 1.1em 0 0.4em;
+  color: #141413;
+}
+.agent-md h2 { font-size: 1.05rem; }
+.agent-md h3 { font-size: 0.95rem; }
+.agent-md strong { font-weight: 600; }
+.agent-md em { font-style: italic; }
+.agent-md code {
+  font-size: 0.82em;
+  background: #f5f4ed;
+  border: 1px solid #e8e6dc;
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-family: ui-monospace, monospace;
+}
+.agent-md pre {
+  background: #f5f4ed;
+  border: 1px solid #e8e6dc;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  margin: 0.75em 0;
+}
+.agent-md pre code { background: none; border: none; padding: 0; font-size: 0.83rem; }
+.agent-md ul, .agent-md ol { padding-left: 1.4em; margin: 0.5em 0 0.75em; }
+.agent-md li { margin-bottom: 0.25em; }
+.agent-md blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 0.9rem;
+  margin: 0.75em 0;
+  color: #5e5d59;
+  font-style: italic;
+}
+.agent-md table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin: 0.75em 0;
+}
+.agent-md th, .agent-md td {
+  border: 1px solid #e8e6dc;
+  padding: 0.4rem 0.7rem;
+  text-align: left;
+}
+.agent-md th { background: #f5f4ed; font-weight: 600; }
+.agent-md hr { border: none; border-top: 1px solid #e8e6dc; margin: 1em 0; }
+.agent-md a { color: var(--accent); text-underline-offset: 2px; }
+
+/* ── Agent full-screen layout ── */
+body:has(.agent-screen) {
+  overflow: hidden;
+  height: 100dvh;
+}
+body:has(.agent-screen) > div {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+body:has(.agent-screen) header {
+  flex-shrink: 0;
+}
+body:has(.agent-screen) main {
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+body:has(.agent-screen) footer {
+  display: none;
+}
+.agent-screen {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 /* Callout blocks (Obsidian-style annotations) */
 .prose .callout {
   margin: 1.75rem 0;
