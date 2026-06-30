@@ -27,12 +27,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <NavLinks variant="desktop" />
               <div className="flex items-center justify-end gap-3 md:gap-4">
                 <NavUser />
-                <Link
-                  href="/subscribe"
-                  className="text-sm font-medium bg-[var(--accent)] text-[#faf9f5] px-4 py-2 md:px-5 md:py-2.5 rounded-xl hover:bg-[var(--accent-coral)] transition-colors shadow-[0_0_0_1px_var(--accent),0_4px_12px_rgba(201,100,66,0.2)]"
-                >
-                  订阅
-                </Link>
               </div>
             </div>
 
@@ -60,6 +54,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 >
                   联系
                 </a>
+                <Link
+                  href="/subscribe"
+                  className="font-medium text-[var(--foreground-soft)] hover:text-[var(--accent)] transition-colors"
+                >
+                  订阅
+                </Link>
               </nav>
             </div>
           </div>
