@@ -11,29 +11,53 @@ type StoryRow = {
   rank: number;
 };
 
+// websearch_to_tsquery('english', ...) doesn't segment CJK text and requires every
+// term to match (AND), so mixed Chinese/English queries reliably return zero rows.
+// Tokenize into CJK/Latin runs and OR-match them with ILIKE instead, ranked by hit count.
+function tokenize(query: string): string[] {
+  const spaced = query
+    .replace(/([一-鿿])([a-zA-Z0-9])/g, "$1 $2")
+    .replace(/([a-zA-Z0-9])([一-鿿])/g, "$1 $2");
+  const terms = spaced
+    .split(/[\s,，。！？、；;:："“”‘’()（）\[\]【】·]+/)
+    .map((t) => t.trim().replace(/[%_\\]/g, (c) => `\\${c}`))
+    .filter((t) => t.length > 0);
+  return [...new Set(terms)];
+}
+
 async function fullTextSearch(query: string, contentType: string | null, limit: number): Promise<StoryRow[]> {
+  const terms = tokenize(query);
+  if (terms.length === 0) return [];
+
   const result = await pool.query<StoryRow>(
     `
+    WITH terms AS (SELECT unnest($1::text[]) AS term)
     SELECT
-      slug,
-      title,
-      excerpt,
-      content_type,
-      to_char(published_at, 'YYYY-MM-DD') AS published_at,
-      ts_rank_cd(
-        to_tsvector('english', coalesce(title, '') || ' ' || coalesce(excerpt, '') || ' ' || coalesce(content, '')),
-        websearch_to_tsquery('english', $1)
+      s.slug,
+      s.title,
+      s.excerpt,
+      s.content_type,
+      to_char(s.published_at, 'YYYY-MM-DD') AS published_at,
+      (
+        SELECT count(*)::int FROM terms t
+        WHERE s.title ILIKE '%' || t.term || '%' ESCAPE '\\'
+           OR s.excerpt ILIKE '%' || t.term || '%' ESCAPE '\\'
+           OR s.content ILIKE '%' || t.term || '%' ESCAPE '\\'
       ) AS rank
-    FROM ai_pulse_stories
+    FROM ai_pulse_stories s
     WHERE
-      status = 'published'
-      AND ($2::text IS NULL OR content_type = $2)
-      AND to_tsvector('english', coalesce(title, '') || ' ' || coalesce(excerpt, '') || ' ' || coalesce(content, ''))
-          @@ websearch_to_tsquery('english', $1)
-    ORDER BY rank DESC, published_at DESC
+      s.status = 'published'
+      AND ($2::text IS NULL OR s.content_type = $2)
+      AND EXISTS (
+        SELECT 1 FROM terms t
+        WHERE s.title ILIKE '%' || t.term || '%' ESCAPE '\\'
+           OR s.excerpt ILIKE '%' || t.term || '%' ESCAPE '\\'
+           OR s.content ILIKE '%' || t.term || '%' ESCAPE '\\'
+      )
+    ORDER BY rank DESC, s.published_at DESC
     LIMIT $3
     `,
-    [query, contentType ?? null, limit],
+    [terms, contentType ?? null, limit],
   );
   return result.rows;
 }
