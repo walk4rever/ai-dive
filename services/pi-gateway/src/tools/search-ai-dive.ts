@@ -141,7 +141,7 @@ function storyToResultItem(r: StoryRow): ResultItem {
     title: r.title,
     excerpt: r.excerpt,
     date: r.published_at ? r.published_at.slice(0, 10) : "",
-    url: `https://ai-dive.com/${r.content_type}s/${r.slug}`,
+    url: `https://ai.air7.fun/post/${r.slug}`,
     rank: r.rank,
   };
 }
