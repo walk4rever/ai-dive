@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { NavUser } from '@/components/NavUser'
 import { NavLinks } from '@/components/NavLinks'
+import 'katex/dist/katex.min.css'
 import './globals.css'
 
 export const metadata: Metadata = {
