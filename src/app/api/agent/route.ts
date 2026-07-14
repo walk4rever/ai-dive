@@ -1,9 +1,25 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 export const maxDuration = 90
 
 const GATEWAY_URL = process.env.AI_DIVE_AGENT_GATEWAY_URL
 const AGENT_SECRET = process.env.AI_DIVE_AGENT_SECRET
+
+async function resolveArticleSlug(candidate: unknown): Promise<string | undefined> {
+  if (typeof candidate !== 'string' || !candidate) return undefined
+
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('ai_pulse_stories')
+    .select('slug')
+    .eq('slug', candidate)
+    .eq('status', 'published')
+    .eq('is_premium', false)
+    .single()
+
+  return data?.slug
+}
 
 export async function POST(req: Request) {
   if (!GATEWAY_URL || !AGENT_SECRET) {
@@ -15,13 +31,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'message is required' }, { status: 400 })
   }
 
+  const articleSlug = await resolveArticleSlug(body.articleSlug)
+
   const upstream = await fetch(`${GATEWAY_URL}/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-Agent-Secret': AGENT_SECRET,
     },
-    body: JSON.stringify({ message: body.message, userId: body.userId }),
+    body: JSON.stringify({ message: body.message, userId: body.userId, articleSlug }),
     signal: AbortSignal.timeout(85_000),
   })
 

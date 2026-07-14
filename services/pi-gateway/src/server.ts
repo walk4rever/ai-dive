@@ -12,7 +12,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.post("/chat", requireSecret, async (req, res) => {
-  const { message, userId } = req.body as { message?: string; userId?: string };
+  const { message, userId, articleSlug } = req.body as { message?: string; userId?: string; articleSlug?: string };
 
   if (!message || typeof message !== "string" || message.trim() === "") {
     res.status(400).json({ error: "message is required" });
@@ -21,7 +21,7 @@ app.post("/chat", requireSecret, async (req, res) => {
 
   let session;
   try {
-    session = await getSession(userId);
+    session = await getSession(userId, typeof articleSlug === "string" && articleSlug ? articleSlug : undefined);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     res.status(500).json({ error: `Failed to create session: ${msg}` });

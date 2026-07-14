@@ -29,6 +29,7 @@ async function main() {
     slug: normalized.slug,
     title: normalized.title,
     content: await markdownToHtml(normalized.body),
+    body_markdown: normalized.body,
     excerpt: normalized.excerpt,
     is_premium: normalized.isPremium,
     status: normalized.status,

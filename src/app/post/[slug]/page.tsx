@@ -6,6 +6,7 @@ import { Metadata } from 'next'
 import { BackButton } from '@/components/BackButton'
 import { MermaidContent } from '@/components/MermaidContent'
 import { WechatShare } from '@/components/WechatShare'
+import { ArticleChatPanel } from '@/components/ArticleChatPanel'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -71,8 +72,8 @@ export default async function PostPage({ params }: Props) {
   const contentTypeLabel = getTypeLabel(post.content_type)
   const authorLabel = formatAuthorLabel(post.author_slug)
 
-  return (
-    <article className="max-w-2xl mx-auto">
+  const header = (
+    <>
       <div className="mb-12">
         <BackButton />
       </div>
@@ -93,18 +94,32 @@ export default async function PostPage({ params }: Props) {
           <p className="mt-8 text-lg md:text-xl text-[var(--muted)] leading-relaxed">{post.excerpt}</p>
         )}
       </header>
+    </>
+  )
 
+  const share = (
+    <WechatShare
+      title={post.title}
+      description={post.excerpt ?? ''}
+      imageUrl={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://ai.air7.fun'}/post/${post.slug}/opengraph-image`}
+    />
+  )
+
+  return (
+    <article>
       {post.is_premium ? (
-        <PremiumPaywall excerpt={post.excerpt} />
+        <div className="mx-auto max-w-2xl">
+          {header}
+          <PremiumPaywall excerpt={post.excerpt} />
+          {share}
+        </div>
       ) : (
-        <MermaidContent className="prose" html={post.content} />
+        <ArticleChatPanel slug={post.slug} title={post.title}>
+          {header}
+          <MermaidContent className="prose" html={post.content} />
+          {share}
+        </ArticleChatPanel>
       )}
-
-      <WechatShare
-        title={post.title}
-        description={post.excerpt ?? ''}
-        imageUrl={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://ai.air7.fun'}/post/${post.slug}/opengraph-image`}
-      />
     </article>
   )
 }
