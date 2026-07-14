@@ -70,6 +70,7 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
   const quoteButtonRef = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
   const [quoteButton, setQuoteButton] = useState<QuoteButtonState | null>(null)
+  const pendingArticleScrollRef = useRef<number | null>(null)
   const isDesktop = useIsDesktop()
   const docked = open && isDesktop
 
@@ -111,6 +112,12 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
     // down to select a passage before opening the panel), locking scroll at
     // that position leaves the row stuck mid-page with its top cut off.
     window.scrollTo(0, 0)
+    // Replay the reading position captured in openPanel() as the article's
+    // own scrollTop, now that it's an independent scroll box.
+    if (pendingArticleScrollRef.current !== null && articleRef.current) {
+      articleRef.current.scrollTop = pendingArticleScrollRef.current
+    }
+    pendingArticleScrollRef.current = null
     const prevBody = document.body.style.overflow
     const prevHtml = document.documentElement.style.overflow
     document.body.style.overflow = 'hidden'
@@ -157,11 +164,23 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
     }
   }, [])
 
+  // The article switches from window-scrolled (normal flow) to its own
+  // scroll box the moment the panel docks — a brand new scroll context that
+  // starts at scrollTop 0 regardless of how far the reader had scrolled.
+  // Capture how far down they were before that switch so it can be replayed
+  // as the new box's scrollTop, instead of the view snapping to the top.
+  function openPanel() {
+    pendingArticleScrollRef.current = articleRef.current
+      ? Math.max(0, -articleRef.current.getBoundingClientRect().top)
+      : null
+    setOpen(true)
+  }
+
   function askAboutQuote() {
     if (!quoteButton) return
     const quoted = quoteButton.text.length > 400 ? quoteButton.text.slice(0, 400) + '…' : quoteButton.text
     setInput(`关于这段：「${quoted}」\n\n`)
-    setOpen(true)
+    openPanel()
     setQuoteButton(null)
     window.getSelection()?.removeAllRanges()
     requestAnimationFrame(() => inputRef.current?.focus())
@@ -325,7 +344,7 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
       {!open && (
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={openPanel}
           className="fixed bottom-6 right-6 z-30 rounded-full px-5 py-3 text-sm font-medium shadow-lg transition-transform hover:scale-105"
           style={{ background: 'var(--accent)', color: '#faf9f5' }}
         >
