@@ -282,7 +282,7 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
                   ref={inputRef}
                   value={input}
                   disabled={streaming}
-                  rows={2}
+                  rows={1}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -292,7 +292,7 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
                   }}
                   placeholder="针对这篇文章提问…（⌘Enter 发送）"
                   className="flex-1 resize-none overflow-y-auto rounded-[10px] px-3 py-2 text-[0.85rem] leading-relaxed outline-none"
-                  style={{ minHeight: '52px', maxHeight: '160px', border: '1px solid var(--border)', background: '#ffffff', color: '#141413' }}
+                  style={{ minHeight: '36px', maxHeight: '160px', border: '1px solid var(--border)', background: '#ffffff', color: '#141413' }}
                 />
                 <button
                   type="button"
