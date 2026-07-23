@@ -471,3 +471,12 @@ body:has(.agent-screen) footer {
   color: var(--charcoal);
   background: rgba(135, 134, 127, 0.15);
 }
+
+.prose .callout-highlights {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.06), rgba(212, 160, 23, 0.1));
+  border-color: #d4a017;
+}
+.prose .callout-highlights .callout-label {
+  color: #b91c1c;
+  background: rgba(212, 160, 23, 0.18);
+}
