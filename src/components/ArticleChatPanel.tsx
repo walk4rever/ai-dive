@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { ComponentPropsWithoutRef } from 'react'
@@ -128,6 +128,19 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
     }
   }, [open])
 
+  // Mirror of the capture above: once docked flips back to false, the
+  // article reverts from its own scroll box to the window-scrolled
+  // `mx-auto` layout, which starts the window back at scrollTop 0. Replay
+  // the position saved in closePanel() before paint so closing the panel
+  // doesn't snap the reader back to the top of the article.
+  useLayoutEffect(() => {
+    if (open) return
+    if (pendingArticleScrollRef.current !== null) {
+      window.scrollTo(0, pendingArticleScrollRef.current)
+      pendingArticleScrollRef.current = null
+    }
+  }, [open])
+
   // Selection collapses natively on mousedown/mouseup as part of clicking the
   // quote button itself in some browsers, even with preventDefault on the
   // button. Tying "hide" to that same selectionchange event races the click:
@@ -176,6 +189,15 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
     setOpen(true)
   }
 
+  // The reverse of openPanel(): while docked, the article's reading position
+  // lives in its own scroll box (articleRef.current.scrollTop), which the
+  // window knows nothing about. Capture it before undocking so it can be
+  // replayed onto the window in the effect above.
+  function closePanel() {
+    pendingArticleScrollRef.current = docked && articleRef.current ? articleRef.current.scrollTop : null
+    setOpen(false)
+  }
+
   function askAboutQuote() {
     if (!quoteButton) return
     const quoted = quoteButton.text.length > 400 ? quoteButton.text.slice(0, 400) + '…' : quoteButton.text
@@ -214,7 +236,7 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
                 <p className="text-[0.7rem] font-medium uppercase tracking-[0.1em]" style={{ color: 'var(--accent)' }}>AI解读</p>
                 <p className="truncate text-sm font-medium" style={{ color: '#141413' }}>{title}</p>
               </div>
-              <button type="button" onClick={() => setOpen(false)} aria-label="关闭" className="flex-shrink-0 text-xl leading-none" style={{ color: '#87867f' }}>
+              <button type="button" onClick={closePanel} aria-label="关闭" className="flex-shrink-0 text-xl leading-none" style={{ color: '#87867f' }}>
                 ×
               </button>
             </div>
