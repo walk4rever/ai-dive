@@ -7,7 +7,7 @@ import { createClient } from '@supabase/supabase-js'
 import yaml from 'js-yaml'
 import { markdownToHtml } from './markdown.mjs'
 
-const VALID_CONTENT_TYPES = new Set(['intel', 'tech', 'case', 'insight'])
+const VALID_CONTENT_TYPES = new Set(['intel', 'dive', 'insight'])
 const VALID_STATUS = new Set(['draft', 'published'])
 
 async function main() {
@@ -150,7 +150,7 @@ function normalizePost({ filePath, data, body }) {
 
   const contentType = asNonEmptyString(data.type)
   if (!VALID_CONTENT_TYPES.has(contentType)) {
-    throw new Error('Frontmatter field "type" must be analysis, case, podcast, or invest.')
+    throw new Error('Frontmatter field "type" must be intel, dive, or insight.')
   }
 
   const status = asNonEmptyString(data.status) || 'draft'

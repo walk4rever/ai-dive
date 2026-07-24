@@ -8,8 +8,7 @@ const NAV_ITEMS: ReadonlyArray<
   | { type: 'divider' }
 > = [
   { type: 'link', href: '/intels', label: '情报' },
-  { type: 'link', href: '/techs', label: '技术' },
-  { type: 'link', href: '/cases', label: '案例' },
+  { type: 'link', href: '/dives', label: '深度' },
   { type: 'link', href: '/insights', label: '洞见' },
   { type: 'divider' },
   { type: 'link', href: '/series', label: '专题' },

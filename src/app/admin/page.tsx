@@ -86,8 +86,8 @@ function AdminConsole() {
   }, [fetchPosts, router])
 
   async function toggleFeatured(slug: string, current: boolean, featuredCount: number, contentType: string) {
-    if (!current && !['tech', 'case', 'insight'].includes(contentType)) {
-      alert('只有技术、案例、洞见类型的文章可以设为精选。')
+    if (!current && !['dive', 'insight'].includes(contentType)) {
+      alert('只有深度、洞见类型的文章可以设为精选。')
       return
     }
     if (!current && featuredCount >= 3) {

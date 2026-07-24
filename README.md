@@ -2,13 +2,13 @@
 
 帮你读懂 AI，而不只是跟上 AI。
 
-`AI-DIVE` 面向所有关注 AI 的用户，围绕**创造力、判断与审美**三个维度，筛选真正重要的变化，通过**简讯 / 深度 / 案例 / 访谈**帮助读者理解变化的长期意义。
+`AI-DIVE` 面向所有关注 AI 的用户，围绕**创造力、判断与审美**三个维度，筛选真正重要的变化，通过**简讯 / 深度 / 访谈**帮助读者理解变化的长期意义。
 
 Powered by [Air7.fun](https://air7.fun)
 
 ## 当前能力
 
-- 极简首页：单一文章列表（深度 / 案例 / 投资 / 播客混排）
+- 极简首页：单一文章列表（深度 / 投资 / 播客混排）
 - 文章详情页：适合中文长文阅读的 editorial 排版
 - `/wiki`：Quartz 静态知识库子站，挂在 `ai.air7.fun/wiki/`
 - `/intel`：信号日历页，含每日 overview + 关键词，以及 SignalHighlights（洞见 / 实践 / 影响力三维 top 信号）和 SignalFeed（当日完整信号列表）
@@ -117,8 +117,7 @@ npm run import:post -- "/path/to/article.md"
 - `/`：首页
 - `/post/[slug]`：文章详情
 - `/intel`：信号日历 + 信号流页
-- `/analysis`：深度分析列表
-- `/cases`：案例列表
+- `/dives`：深度列表
 - `/invest`：投资列表
 - `/podcast`：播客列表
 - `/series`：专题列表

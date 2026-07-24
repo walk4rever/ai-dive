@@ -8,7 +8,7 @@ import type { PostContentType } from '@/types'
 
 export const runtime = 'nodejs'
 
-const VALID_TYPES = new Set<PostContentType>(['intel', 'tech', 'case', 'insight'])
+const VALID_TYPES = new Set<PostContentType>(['intel', 'dive', 'insight'])
 const VALID_STATUS = new Set(['draft', 'published'])
 
 interface PostPayload {
@@ -213,8 +213,7 @@ export async function POST(req: NextRequest) {
 
   revalidatePath('/')
   revalidatePath('/intels')
-  revalidatePath('/techs')
-  revalidatePath('/cases')
+  revalidatePath('/dives')
   revalidatePath('/insights')
   revalidatePath('/archive')
   revalidatePath(`/post/${slug}`)

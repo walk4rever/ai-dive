@@ -5,7 +5,7 @@ import { markdownToHtml } from '@/lib/markdown'
 import { resolveAuthor } from '@/lib/api-auth'
 import type { PostContentType } from '@/types'
 
-const VALID_TYPES = new Set<PostContentType>(['intel', 'tech', 'case', 'insight'])
+const VALID_TYPES = new Set<PostContentType>(['intel', 'dive', 'insight'])
 const VALID_STATUS = new Set(['draft', 'published'])
 
 interface RouteParams {
@@ -117,9 +117,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
   revalidatePath('/')
   revalidatePath('/intels')
-  revalidatePath('/techs')
+  revalidatePath('/dives')
   revalidatePath('/insights')
-  revalidatePath('/cases')
   revalidatePath('/archive')
   revalidatePath(`/post/${slug}`)
 

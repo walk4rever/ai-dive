@@ -23,7 +23,6 @@ function SourceBadge({ type }: { type: string }) {
 }
 
 function SignalCard({ signal }: { signal: Signal }) {
-  const ogImage = signal.metadata?.og_image
   const category = signal.metadata?.category as string | null | undefined
 
   return (
@@ -49,17 +48,6 @@ function SignalCard({ signal }: { signal: Signal }) {
         <p className="mt-1.5 text-xs text-[var(--muted)] leading-relaxed">
           {signal.description}
         </p>
-      )}
-      {ogImage && (
-        <div className="mt-3 aspect-[1.91/1] w-64 overflow-hidden bg-[var(--subtle)]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={ogImage}
-            alt=""
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        </div>
       )}
     </a>
   )

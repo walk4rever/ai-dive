@@ -57,11 +57,11 @@ Pick top clusters. Prefer variety: don't pick two model-release topics on the sa
 
 | Signal profile | Recommended type |
 |---|---|
-| arxiv paper, methodology, theory | `analysis` |
-| github project + documentation | `case` |
-| model release + benchmark data | `analysis` |
+| arxiv paper, methodology, theory | `dive` |
+| github project + documentation | `dive` |
+| model release + benchmark data | `dive` |
 | company funding / strategy / market | `invest` |
-| product launch, UI/UX, consumer tool | `case` |
+| product launch, UI/UX, consumer tool | `dive` |
 | conversation-style topic, opinion | `podcast` |
 
 ## Output Format
@@ -78,7 +78,7 @@ Respond in Chinese. Structure:
   1. {direction}
   2. {direction}
   3. {direction}
-建议类型：{analysis | case | invest | podcast}
+建议类型：{dive | invest | podcast}
 信号 IDs：{id1}, {id2}, ...
 
 ---

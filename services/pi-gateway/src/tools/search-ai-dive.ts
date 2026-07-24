@@ -130,8 +130,7 @@ async function recentSignals(limit: number): Promise<SignalRow[]> {
 
 const CONTENT_TYPE_LABEL: Record<string, string> = {
   intel: "情报",
-  tech: "技术",
-  case: "案例",
+  dive: "深度",
   insight: "洞见",
 };
 
@@ -172,13 +171,13 @@ export const searchAiDiveTool = defineTool({
   name: "search_ai_dive",
   label: "Search AI-DIVE Content",
   description:
-    "Search AI-DIVE content: published articles (技术 tech analyses, 案例 case studies, 洞见 insights) and the 情报 intel feed (scored daily signals from X/GitHub/arXiv/news). Use this to find what AI-DIVE has already covered on a topic, or what's new in today's intel feed.",
+    "Search AI-DIVE content: published articles (深度 dive analyses, 洞见 insights) and the 情报 intel feed (scored daily signals from X/GitHub/arXiv/news). Use this to find what AI-DIVE has already covered on a topic, or what's new in today's intel feed.",
   promptSnippet: "search_ai_dive(query, content_type?) → matching articles/signals with title, excerpt, and URL",
   parameters: Type.Object({
     query: Type.String({ description: "Search query — keywords or a natural language question" }),
     content_type: Type.Optional(
       Type.String({
-        description: "Filter by type: intel | tech | case | insight. Omit to search all types.",
+        description: "Filter by type: intel | dive | insight. Omit to search all types.",
       }),
     ),
   }),
