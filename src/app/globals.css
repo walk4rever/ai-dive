@@ -289,6 +289,24 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: var(--radius-xl);
 }
 
+.prose video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.75rem 0;
+  border-radius: var(--radius-xl);
+  background: var(--subtle);
+}
+
+.prose iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: 1.75rem 0;
+  border: none;
+  border-radius: var(--radius-xl);
+}
+
 .scrollbar-hide {
   scrollbar-width: none;
   -ms-overflow-style: none;

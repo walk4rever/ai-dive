@@ -5,7 +5,10 @@ import path from 'node:path'
 import process from 'node:process'
 import { createClient } from '@supabase/supabase-js'
 import yaml from 'js-yaml'
-import { markdownToHtml } from './markdown.mjs'
+import { markdownToHtml as renderMarkdown } from '../src/lib/markdown-pipeline.mjs'
+
+// Trusted, locally-authored content (Vault CLI import) — no sanitization.
+const markdownToHtml = (markdown) => renderMarkdown(markdown, { sanitize: false })
 
 const VALID_CONTENT_TYPES = new Set(['intel', 'dive', 'insight'])
 const VALID_STATUS = new Set(['draft', 'published'])
