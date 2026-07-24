@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
 
   if (!VALID_TYPES.has(type)) {
     return NextResponse.json(
-      { error: 'Field "type" must be one of: intel, tech, case, insight' },
+      { error: 'Field "type" must be one of: intel, dive, insight' },
       { status: 422 }
     )
   }
