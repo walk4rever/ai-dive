@@ -2,9 +2,12 @@
 /**
  * upload-vault-images.mjs
  *
- * Batch-upload Obsidian wiki-style image embeds (![[file.png]]) referenced in a
- * Vault markdown file to Cloudflare R2, then rewrite the embeds in-place to
- * standard markdown image syntax with the returned public URLs.
+ * Batch-upload local assets referenced in a Vault markdown file to Cloudflare R2,
+ * then rewrite the references in-place with the returned public URLs. Handles both
+ * Obsidian wiki embeds (`![[file.png]]`) and standard markdown images that point at
+ * the given assets dir (`![alt](assets/file.png)`). Video files (mp4/webm/mov) are
+ * rewritten to an HTML `<video>` tag instead of `![]()` — an `<img>` pointing at a
+ * video URL will not play.
  *
  * Usage:
  *   node scripts/upload-vault-images.mjs <markdown-file> <assets-dir> [r2-folder]
@@ -52,16 +55,25 @@ const r2 = new S3Client({
   credentials: { accessKeyId: CLOUDFLARE_R2_ACCESS_KEY_ID, secretAccessKey: CLOUDFLARE_R2_SECRET_ACCESS_KEY },
 })
 
-const MAX_SIZE = 20 * 1024 * 1024
+const MAX_SIZE = 60 * 1024 * 1024
+
+const VIDEO_EXTENSIONS = new Set(['.mp4', '.webm', '.mov'])
+const isVideo = (name) => VIDEO_EXTENSIONS.has(path.extname(name).toLowerCase())
 
 let md = fs.readFileSync(mdPath, 'utf8')
-const embeds = [...new Set([...md.matchAll(/!\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g)].map(m => m[1]))]
+
+// Wiki embeds may include a leading path (e.g. `![[assets/file.mp4]]`); normalize to the
+// bare filename since that's what actually lives under assetsDir.
+const wikiEmbeds = [...md.matchAll(/!\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g)].map((m) => path.basename(m[1]))
+const standardEmbeds = [...md.matchAll(/!\[[^\]]*\]\(assets\/([^)\s]+)\)/g)].map((m) => path.basename(m[1]))
+const embeds = [...new Set([...wikiEmbeds, ...standardEmbeds])]
+
 if (embeds.length === 0) {
-  console.log('No ![[...]] embeds found; nothing to do.')
+  console.log('No local asset references found; nothing to do.')
   process.exit(0)
 }
 
-console.log(`Found ${embeds.length} unique embeds.`)
+console.log(`Found ${embeds.length} unique asset references.`)
 const urlByName = new Map()
 
 for (const name of embeds) {
@@ -72,7 +84,7 @@ for (const name of embeds) {
   }
   const stat = fs.statSync(filePath)
   if (stat.size > MAX_SIZE) {
-    console.error(`SKIP: ${name} exceeds 20MB (${(stat.size / 1048576).toFixed(1)}MB)`)
+    console.error(`SKIP: ${name} exceeds ${MAX_SIZE / 1048576}MB (${(stat.size / 1048576).toFixed(1)}MB)`)
     continue
   }
   const key = `${folder}/${name}`
@@ -91,11 +103,19 @@ for (const name of embeds) {
 
 // --- rewrite embeds in the markdown file ---
 let rewritten = 0
-md = md.replace(/!\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g, (whole, name) => {
+
+const replacement = (rawName, alt = '') => {
+  const name = path.basename(rawName)
   const url = urlByName.get(name)
-  if (!url) return whole
+  if (!url) return null
   rewritten++
-  return `![](${url})`
-})
+  return isVideo(name)
+    ? `<video controls style="width:100%" src="${url}"></video>`
+    : `![${alt}](${url})`
+}
+
+md = md.replace(/!\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g, (whole, name) => replacement(name) ?? whole)
+md = md.replace(/!\[([^\]]*)\]\(assets\/([^)\s]+)\)/g, (whole, alt, name) => replacement(name, alt) ?? whole)
+
 fs.writeFileSync(mdPath, md)
-console.log(`Rewrote ${rewritten} embeds in ${path.basename(mdPath)}.`)
+console.log(`Rewrote ${rewritten} references in ${path.basename(mdPath)}.`)

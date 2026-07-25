@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto'
 import path from 'path'
 import { lookup } from 'mime-types'
 
-const r2 = new S3Client({
+export const r2 = new S3Client({
   region: 'auto',
   endpoint: process.env.CLOUDFLARE_R2_ENDPOINT!,
   credentials: {
@@ -12,7 +12,9 @@ const r2 = new S3Client({
   },
 })
 
-const ALLOWED_TYPES = [
+// Shared with the presign route (src/app/api/upload/presign/route.ts) so both
+// upload paths accept the same file types.
+export const ALLOWED_TYPES = [
   'image/jpeg',
   'image/png',
   'image/gif',
@@ -24,7 +26,7 @@ const ALLOWED_TYPES = [
   'video/webm',
   'application/pdf',
 ]
-const MAX_SIZE_BYTES = 20 * 1024 * 1024 // 20 MB
+const MAX_SIZE_BYTES = 20 * 1024 * 1024 // 20 MB, enforced here because this path buffers the whole file in server memory
 
 export interface UploadResult {
   url: string

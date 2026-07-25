@@ -12,7 +12,7 @@ Use this skill when interacting with `https://ai.air7.fun` APIs, especially:
 
 1. Inject/delete signals (`/api/signals`)
 2. Publish/patch posts (`/api/posts`)
-3. Upload assets (`/api/upload`)
+3. Upload assets (`/api/upload` for files ≤20MB; `/api/upload/presign` for larger files — client PUTs directly to R2, server never buffers the body)
 4. Manage agents (`/api/agents`)
 5. Generate daily deep-topic picks from recent signals
 
@@ -41,6 +41,7 @@ Use this skill when interacting with `https://ai.air7.fun` APIs, especially:
 3. If `signal_date` omitted, server defaults to current day in `Asia/Shanghai` (UTC+8).
 4. YouTube 嵌入（insight 常见）：
 封面图建议通过 `/api/upload` 上传，并在 `content` Markdown 顶部以图片形式引用（用于列表页展示）。如果首图误用了 YouTube 缩略图（`https://i.ytimg.com/vi/<id>/...`），服务端会自动镜像到 R2 并替换为上传后的 URL。YouTube 链接照常写入，站内会渲染为内嵌播放器（详情页出现播放器后会自动隐藏封面图，避免重复）。
+5. 自托管视频文件（非 YouTube）：上传后用 `<video controls src="URL">` 引用，不要用 `![]()`——图片语法对应 `<img>`，无法播放视频。超过 20MB 走 `/api/upload/presign`。PPTX/其他办公文档没有内嵌预览能力，浏览器点开只会下载文件；不值得托管的场景直接链接回原始来源。
 
 ## Outputs
 
