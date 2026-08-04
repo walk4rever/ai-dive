@@ -142,17 +142,49 @@ h1, h2, h3, h4, h5, h6 {
 .prose h2,
 .prose h3,
 .prose h4 {
-  font-family: "Noto Serif SC", Georgia, serif;
-  font-weight: 500;
   color: var(--foreground);
-  line-height: 1.3;
-  margin-top: 2.8rem;
-  margin-bottom: 0.8rem;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
 }
 
-.prose h2 { font-size: 1.5rem; letter-spacing: -0.01em; }
-.prose h3 { font-size: 1.25rem; }
-.prose h4 { font-size: 1.125rem; }
+.prose h2 {
+  position: relative;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-subtle);
+  font-family: "Noto Serif SC", Georgia, serif;
+  font-size: 1.5625rem;
+  font-weight: 500;
+  line-height: 1.3;
+  margin-top: 4rem;
+  margin-bottom: 1.25rem;
+  scroll-margin-top: 5rem;
+}
+
+.prose h3 {
+  font-family: "Noto Serif SC", Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.35;
+  margin-top: 2.75rem;
+  margin-bottom: 0.875rem;
+  scroll-margin-top: 5rem;
+}
+
+.prose h4 {
+  font-family: "Noto Sans SC", system-ui, sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--muted);
+  margin-top: 2rem;
+  margin-bottom: 0.625rem;
+  scroll-margin-top: 5rem;
+}
+
+@media (min-width: 768px) {
+  .prose h2 { font-size: 1.75rem; }
+  .prose h3 { font-size: 1.375rem; }
+}
 
 .prose h2 a,
 .prose h3 a,
