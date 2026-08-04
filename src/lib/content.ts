@@ -12,6 +12,7 @@ default: return ''
 const SOURCE_LABEL_OVERRIDES: Record<string, string> = {
   '20vc': '20VC',
   'twiml ai': 'TWIML AI',
+  'ai dive': 'AI-DIVE',
 }
 
 export function getSourceLabel(authorSlug: string | null): string | null {

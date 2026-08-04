@@ -8,14 +8,16 @@ Powered by [Air7.fun](https://air7.fun)
 
 ## 当前能力
 
-- 极简首页：单一文章列表（深度 / 投资 / 播客混排）
+- 极简首页：精选文章、最新文章、专题入口和每日 Signals
 - 文章详情页：适合中文长文阅读的 editorial 排版
 - `/wiki`：Quartz 静态知识库子站，挂在 `ai.air7.fun/wiki/`
-- `/intel`：信号日历页，含每日 overview + 关键词，以及 SignalHighlights（洞见 / 实践 / 影响力三维 top 信号）和 SignalFeed（当日完整信号列表）
+- `/intels`：信号日历页，含 SignalHighlights（洞见 / 实践 / 影响力三维 top 信号）和 SignalFeed（当日完整信号列表）
 - 邮件订阅页
 - 双重确认订阅流程
-- 草稿 / 已发布内容工作流
-- 系列管理（管理员）：创建系列、把文章加入多个系列、设置系列内顺序
+- 登录、注册和用户文章管理
+- 管理后台：编辑文章元数据、发布状态、精选状态和专题编排
+- Newsletter 批量发送、退订处理和发送记录
+- R2 文件上传（包括大文件 presigned upload）
 - Vault Markdown → Supabase 内容导入脚本
 - 付费内容占位式 paywall
 - Signal 注入 API：`POST /api/signals`，支持单条或批量 upsert 到 `ai_pulse_signals`（可选 `signal_date`；不传默认 UTC+8 当天）
@@ -68,7 +70,7 @@ cp .env.example .env.local
 
 ### 3. 初始化数据库
 
-在 Supabase SQL Editor 中执行 `supabase/schema.sql`。
+首次初始化时，在 Supabase SQL Editor 中执行 `supabase/schema.sql`。已有环境按文件名中的时间顺序执行 `supabase/migrations/` 下尚未执行的迁移，不要反复执行整份 schema。
 
 当前 schema 会创建以下表：
 
@@ -112,22 +114,35 @@ npm run build
 npm run import:post -- "/path/to/article.md"
 ```
 
-## 当前关键路由
+## 当前页面路由
 
 - `/`：首页
 - `/post/[slug]`：文章详情
-- `/intel`：信号日历 + 信号流页
+- `/intels`：信号日历 + 信号流页
 - `/dives`：深度列表
-- `/invest`：投资列表
-- `/podcast`：播客列表
+- `/insights`：洞见列表
+- `/latest`：最新内容列表
+- `/archive`：内容归档
 - `/series`：专题列表
+- `/admin`：管理员内容后台
+- `/admin/edit/[slug]`：管理员文章元数据编辑
+- `/my/posts`：用户文章列表
+- `/agent`：Agent 入口
+- `/docs`：API 文档
 - `/subscribe`：订阅页
 - `/subscribe/confirmed`：确认结果页
+
+## 当前 API 路由
 - `/api/subscribe`：订阅接口
 - `/api/confirm`：确认接口
 - `/api/signals`：信号注入接口（POST，agent auth，单条或批量）
 - `/api/posts`：故事发布接口（GET/POST，agent auth）
 - `/api/posts/[slug]`：故事更新接口（PATCH，agent auth）
+- `/api/my/posts`、`/api/my/posts/[slug]`：用户文章管理
+- `/api/admin/posts`、`/api/admin/posts/[slug]`：管理员文章管理
+- `/api/admin/posts/[slug]/send`：向确认订阅者发送文章
+- `/api/upload`、`/api/upload/presign`：文件上传
+- `/api/agents`：Agent 管理接口
 
 ## 当前确认流程
 
@@ -147,6 +162,8 @@ npm run lint
 npm run test
 npm run build
 ```
+
+当前 GitHub Actions 只在 push/PR 到 `main` 时执行 `npm run lint`；`test` 和 `build` 目前仍需本地手动执行。
 
 ## License
 

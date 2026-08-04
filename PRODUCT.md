@@ -81,8 +81,8 @@
 | `intel` | `/intels` | 每日 AI 信号精选，日历导航 |
 | `dive` | `/dives` | 深度分析（产品/技术/案例），认知升级 |
 | `insight` | `/insights` | 围绕人 / 公司的洞见，商业模式与外部播客 |
-| `invest` | `/invest` | AI 赛道资金流向与投资逻辑 |
-| `podcast` | `/podcast` | 对话与播客内容 |
+
+当前应用的文章内容类型只有 `intel`、`dive`、`insight`。投资和播客仍属于产品方向描述，尚未对应独立路由或内容类型。
 
 ---
 
@@ -245,9 +245,9 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 
 高分信号路由给对应专项 agent 生产 Story；低分信号归档或丢弃。
 
-### /intel 页信号展示
+### /intels 页信号展示
 
-`/intel` 页消费 `ai_pulse_signals`，以日历为导航，展示：
+`/intels` 页消费 `ai_pulse_signals`，以日历为导航，展示：
 
 - **SignalHighlights**：每个维度得分最高的信号各一张卡片（共三张）
 - **SignalFeed**：当日完整信号列表，随日历点击切换（URL 参数 `?d=YYYY-MM-DD`）
@@ -263,14 +263,14 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - 新读者先需要理解“这里有什么内容”
 - 再理解“这些内容属于哪个系列或作者”
 
-当前首页结构应优先体现：
+当前首页实际结构为：
 
-1. Hero：一句话定位 + 订阅 CTA
-2. 本周主打
-3. 周刊
-4. 深度
-5. Brief
-6. 订阅模块
+1. Hero：一句话定位与副标题
+2. Signals 日历与当日精选
+3. 精选文章
+4. 专题入口
+5. 最新文章
+6. 归档入口
 
 ### 5.1 首页结构
 
@@ -279,28 +279,18 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 #### Hero
 - 一句话定位
 - 简短副标题
-- `订阅周刊` CTA
-- 最新一期或最新深度入口
+- Signals 日历与当日精选入口
 
-#### 本周主打
-- 当前最值得推荐的一篇内容
-- 可是最新周刊，也可以是当前主推深度文
+#### 精选
+- 最多展示三篇标记为精选的 `dive` / `insight` 内容
 
-#### 周刊
-- 展示最近数期周刊
-- 强调稳定更新节奏
+#### 专题
+- 展示已有专题及文章数量
+- 通过 `/series` 进入专题编排和阅读
 
-#### 深度
-- 展示近期深度文章与专题
-- 例如 `Harness` 系列
-
-#### Brief
-- 展示较短的判断型内容
-- 作为节奏补充层
-
-#### 订阅模块
-- 重点强调“节省时间、提高判断质量”
-- 不只写“欢迎订阅”
+#### 最新
+- 展示最近发布的文章
+- 通过 `/archive` 查看完整归档
 
 ### 5.2 内容类型优先于系列/作者
 
@@ -352,8 +342,11 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - Signal 注入 API（`POST /api/signals`），支持单条或批量（上限 100）upsert 到 `ai_pulse_signals`，冲突键为 `url`
 - `ai_pulse_signals` 三维评分 schema（insight / actionable / influence 0-10），`scripts/score-signals-v1.mjs` 规则打分，PM2 定时任务每小时/每晚自动跑
 - `ai_pulse_signals` 时间语义：`signal_date`（归属日）/ `created_at`（入库）/ `updated_at`（更新）
-- `/intel` 页 SignalHighlights（三维 top 信号卡片）与 SignalFeed（日历驱动信号列表）
-- 后台管理端（`/admin`）：文章编辑、精选管理、专题（系列）创建与排序
+- `/intels` 页 SignalHighlights（三维 top 信号卡片）与 SignalFeed（日历驱动信号列表）
+- 后台管理端（`/admin`）：文章元数据编辑、精选管理、专题（系列）创建与排序
+- 用户文章管理（`/my/posts`）：查看和编辑自己发布的文章元数据
+- Agent 发布接口（`/api/posts`、`/api/signals`）
+- R2 文件上传接口（`/api/upload`、`/api/upload/presign`）
 - 系列页（`/series`）
 - Newsletter 批量发送（`/api/admin/posts/[slug]/send`）：遍历活跃订阅者、去重已发送、写入 `ai_pulse_email_sends`
 - 退订链接与退订处理（`/api/unsubscribe`）
@@ -364,6 +357,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 ### 7.2 当前明确未实现
 
 - 后台创建全新文章（当前只能编辑/管理已导入的文章，写作仍在 Vault 中完成）
+- 后台编辑文章正文和草稿预览（当前后台只编辑标题、摘要、日期、状态、精选和付费属性）
 - 自动化内容导入后台（当前是手动触发的 CLI 脚本，见 4.1 节，这是有意选择而非缺口）
 - 打开追踪与点击追踪（`ai_pulse_email_sends.opened_at`/`clicked_at` 字段已预留，未写入）
 - 邮件模板管理（当前硬编码单一模板）
@@ -375,7 +369,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 
 ### 7.3 当前技术约束
 
-- 文章正文当前以 HTML 方式渲染
+- 文章正文当前以已消毒 HTML 方式渲染，Markdown 转换主要发生在导入阶段
 - CI 目前只跑 `lint`，build / test 仍需手动执行
 - 缺少错误监控与埋点分析
 
@@ -439,8 +433,18 @@ Supabase 当前承担：
 src/
   app/
     api/
+      admin/
+      agents/
+      auth/
       confirm/route.ts
+      my/posts/
+      posts/
+      signals/route.ts
       subscribe/route.ts
+      upload/
+    admin/
+    intels/
+    my/posts/
     post/[slug]/page.tsx
     subscribe/page.tsx
     layout.tsx
@@ -518,6 +522,7 @@ scripts/
 - 用 Brief 保持节奏弹性
 - 用 Markdown + frontmatter 统一内容源
 - 用手动导入建立稳定、可控的发布流程
+- 用本地后台管理文章元数据、发布状态和专题关系；正文仍以 Vault Markdown 为主要写作源
 
 后续的一切系统设计，都应服务于这个核心方向。
 

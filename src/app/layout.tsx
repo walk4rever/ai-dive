@@ -1,18 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Noto_Serif_SC } from 'next/font/google'
 import { Logo } from '@/components/Logo'
 import { NavUser } from '@/components/NavUser'
 import { NavLinks } from '@/components/NavLinks'
 import 'katex/dist/katex.min.css'
 import './globals.css'
-
-const serifSC = Noto_Serif_SC({
-  weight: '500',
-  subsets: ['latin'],
-  variable: '--font-serif-sc',
-  display: 'swap',
-})
 
 export const metadata: Metadata = {
   title: 'AI-DIVE | 面向 AI 工程师的周刊与深度研究',
@@ -22,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-CN" className={serifSC.variable}>
+    <html lang="zh-CN">
       <body className="antialiased">
         <div className="mx-auto max-w-5xl bg-[var(--background)]">
         <header>
