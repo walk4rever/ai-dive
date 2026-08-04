@@ -42,7 +42,7 @@ export function ArticleListItem({
   showSource = false,
   coverUrl,
 }: ArticleListItemProps) {
-  const sourceLabel = showSource && !post.agent_id ? (post.author_display ?? getSourceLabel(post.author_slug ?? null)) : null
+  const sourceLabel = showSource ? (post.author_display ?? getSourceLabel(post.author_slug ?? null)) : null
   const dateParts = formatDateParts(post.published_at)
 
   return (
