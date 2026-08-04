@@ -10,7 +10,7 @@ export const metadata = {
   title: '深度 | AI-DIVE',
 }
 
-type ListPost = Pick<Post, 'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type'>
+type ListPost = Pick<Post, 'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type' | 'author_slug' | 'author_display' | 'agent_id'>
 
 export default async function DivesPage() {
   const { hasPublicEnv } = getSupabaseEnv()
@@ -19,7 +19,7 @@ export default async function DivesPage() {
   const supabase = await createClient()
   const { data: posts } = await supabase
     .from('ai_pulse_stories')
-    .select('id, slug, title, excerpt, published_at, content_type')
+    .select('id, slug, title, excerpt, published_at, content_type, author_slug, author_display, agent_id')
     .eq('status', 'published')
     .eq('content_type', 'dive')
     .order('published_at', { ascending: false }).order('created_at', { ascending: false })
@@ -36,7 +36,7 @@ export default async function DivesPage() {
       />
       <div className="divide-y divide-[var(--border-subtle)]">
         {allPosts.map((post) => (
-          <ArticleListItem key={post.id} post={post} />
+          <ArticleListItem key={post.id} post={post} showSource />
         ))}
         {allPosts.length === 0 && (
           <p className="py-8 text-sm text-[var(--muted)]">深度文章即将发布。</p>
