@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireAdminSession } from '@/lib/admin-auth'
+import { markdownToHtml } from '@/lib/markdown'
 
 interface RouteParams {
   params: Promise<{ slug: string }>
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
   const supabase = await createServiceClient()
   const { data: post, error } = await supabase
     .from('ai_pulse_stories')
-    .select('slug, title, excerpt, featured, status, published_at, is_premium, content_type, author_slug')
+    .select('slug, title, content, body_markdown, excerpt, featured, status, published_at, is_premium, content_type, author_slug, author_display')
     .eq('slug', slug)
     .single()
 
@@ -37,6 +38,9 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   revalidatePath('/')
+  revalidatePath('/intels')
+  revalidatePath('/dives')
+  revalidatePath('/insights')
   revalidatePath('/archive')
   revalidatePath('/series')
   revalidatePath(`/post/${slug}`)
@@ -59,6 +63,26 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     if (key in body) update[key] = body[key]
   }
 
+  if ('title' in body && (typeof body.title !== 'string' || !body.title.trim())) {
+    return NextResponse.json({ error: 'Title is required' }, { status: 422 })
+  }
+
+  if ('status' in body && !['draft', 'published'].includes(body.status)) {
+    return NextResponse.json({ error: 'Status must be draft or published' }, { status: 422 })
+  }
+
+  if ('content' in body) {
+    if (typeof body.content !== 'string' || !body.content.trim()) {
+      return NextResponse.json({ error: 'Content is required' }, { status: 422 })
+    }
+    try {
+      update.content = await markdownToHtml(body.content)
+      update.body_markdown = body.content
+    } catch {
+      return NextResponse.json({ error: 'Failed to render markdown content' }, { status: 422 })
+    }
+  }
+
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 422 })
   }
@@ -69,6 +93,9 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   revalidatePath('/')
+  revalidatePath('/intels')
+  revalidatePath('/dives')
+  revalidatePath('/insights')
   revalidatePath('/archive')
   revalidatePath('/series')
   revalidatePath(`/post/${slug}`)

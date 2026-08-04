@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 import { resolveSession } from '@/lib/auth/session'
+import { markdownToHtml } from '@/lib/markdown'
+import { toAuthorSlug } from '@/lib/author'
 
 interface RouteParams {
   params: Promise<{ slug: string }>
@@ -19,7 +21,7 @@ async function verifyOwnership(
 ) {
   const { data: post } = await supabase
     .from('ai_pulse_stories')
-    .select('slug, agent_id, user_id, title, excerpt, featured, status, published_at, is_premium, content_type, author_slug')
+    .select('slug, agent_id, user_id, title, content, body_markdown, excerpt, featured, status, published_at, is_premium, content_type, author_slug, author_display')
     .eq('slug', slug)
     .eq('user_id', userId)
     .single()
@@ -52,10 +54,27 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   const body = await req.json().catch(() => null)
   if (!body) return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
 
-  const allowed = ['title', 'excerpt', 'status', 'published_at', 'is_premium', 'author_slug']
+  const allowed = ['title', 'excerpt', 'status', 'published_at', 'is_premium']
   const update: Record<string, unknown> = {}
   for (const key of allowed) {
     if (key in body) update[key] = body[key]
+  }
+
+  if ('content' in body) {
+    if (typeof body.content !== 'string' || !body.content.trim()) return NextResponse.json({ error: 'Content is required' }, { status: 422 })
+    try {
+      update.content = await markdownToHtml(body.content)
+      update.body_markdown = body.content
+    } catch {
+      return NextResponse.json({ error: 'Failed to render markdown content' }, { status: 422 })
+    }
+  }
+
+  if ('author_display' in body && typeof body.author_display === 'string') {
+    if (body.author_display.trim()) {
+      update.author_display = body.author_display.trim()
+      update.author_slug = toAuthorSlug(body.author_display)
+    }
   }
 
   if (Object.keys(update).length === 0) {

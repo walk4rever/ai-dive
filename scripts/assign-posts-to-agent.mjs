@@ -1,5 +1,5 @@
 /**
- * Assigns posts to agents by matching author_slug (case-insensitive) to agent name.
+ * Assigns stories to agents by matching author_display (case-insensitive) to agent name.
  * Unmatched author_slugs are reported but not updated.
  * Usage: node scripts/assign-posts-to-agent.mjs <email>
  */
@@ -51,13 +51,13 @@ async function main() {
   // Build lookup: lowercase name → agent id
   const nameToId = Object.fromEntries(agents.map((a) => [a.name.toLowerCase(), a.id]))
 
-  // 3. Get all posts with author_slug
-  const posts = await db(`ai_pulse_posts?select=id,slug,author_slug,agent_id&limit=1000`)
+  // 3. Get all stories with author identity fields
+  const posts = await db(`ai_pulse_stories?select=id,slug,author_slug,author_display,agent_id&limit=1000`)
 
-  // Group by author_slug
+  // Group by display name, with slug as a legacy fallback
   const groups = {}
   for (const p of posts) {
-    const key = (p.author_slug ?? '').toLowerCase()
+    const key = (p.author_display ?? p.author_slug ?? '').toLowerCase()
     if (!groups[key]) groups[key] = []
     groups[key].push(p)
   }

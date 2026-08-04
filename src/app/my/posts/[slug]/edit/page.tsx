@@ -2,16 +2,20 @@
 
 import { useEffect, useEffectEvent, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { MarkdownEditor } from '@/components/MarkdownEditor'
 
 interface Post {
   slug: string
   title: string
+  content: string
+  body_markdown: string | null
   excerpt: string
   status: string
   published_at: string | null
   is_premium: boolean
   content_type: string
   author_slug: string | null
+  author_display: string | null
 }
 
 function getToken() {
@@ -27,7 +31,7 @@ export default function MyPostEditPage() {
   const slug = params.slug as string
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
-  const [form, setForm] = useState({ title: '', excerpt: '', status: 'published', published_at: '', is_premium: false, author_slug: '' })
+  const [form, setForm] = useState({ title: '', excerpt: '', content: '', status: 'published', published_at: '', is_premium: false, author_display: '' })
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
@@ -44,10 +48,11 @@ export default function MyPostEditPage() {
     setForm({
       title: p.title,
       excerpt: p.excerpt ?? '',
+      content: p.body_markdown ?? '',
       status: p.status,
       published_at: p.published_at ? p.published_at.slice(0, 10) : '',
       is_premium: p.is_premium,
-      author_slug: p.author_slug ?? '',
+      author_display: p.author_display ?? p.author_slug ?? '',
     })
     setLoading(false)
   })
@@ -73,10 +78,11 @@ export default function MyPostEditPage() {
       body: JSON.stringify({
         title: form.title,
         excerpt: form.excerpt,
+        content: form.content || undefined,
         status: form.status,
         published_at: form.published_at ? new Date(form.published_at).toISOString() : null,
         is_premium: form.is_premium,
-        author_slug: form.author_slug || null,
+        author_display: form.author_display || null,
       }),
     })
 
@@ -121,6 +127,11 @@ export default function MyPostEditPage() {
         </div>
 
         <div>
+          <label className={labelClass}>正文 Markdown</label>
+          <MarkdownEditor value={form.content} onChange={(content) => update('content', content)} legacyHtml={!post.body_markdown} />
+        </div>
+
+        <div>
           <label className={labelClass}>摘要</label>
           <textarea value={form.excerpt} onChange={(e) => update('excerpt', e.target.value)} rows={4} className={inputClass} />
         </div>
@@ -132,7 +143,7 @@ export default function MyPostEditPage() {
 
         <div>
           <label className={labelClass}>署名</label>
-          <input type="text" value={form.author_slug} onChange={(e) => update('author_slug', e.target.value)} placeholder="留空使用 Agent 默认署名" className={inputClass} />
+          <input type="text" value={form.author_display} onChange={(e) => update('author_display', e.target.value)} placeholder="例如 R129" className={inputClass} />
           <p className="mt-1 text-xs text-[var(--muted)]">可填入你的用户名以署名自己，或留空保持 Agent 署名</p>
         </div>
 

@@ -151,6 +151,12 @@ function AdminConsole() {
               >
                 控制台
               </a>
+              <a
+                href="/admin/new"
+                className="px-4 py-2 text-sm bg-[var(--foreground)] text-[var(--background)] hover:opacity-80 transition-opacity"
+              >
+                新建文章
+              </a>
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 text-sm border border-[var(--subtle)] border-opacity-35 hover:border-[var(--foreground)] transition-colors"

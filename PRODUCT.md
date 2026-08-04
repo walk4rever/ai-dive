@@ -121,7 +121,7 @@ title: 标题
 slug: 可选但推荐
 date: 2026-03-30
 content_type: intel | dive | insight | invest | podcast
-author_slug: rafa
+author: R129
 source_type: editorial | guest | syndicated
 status: draft | published
 featured: false
@@ -139,7 +139,7 @@ is_premium: false
 - `slug`：URL 标识，推荐显式填写
 - `date`：发布日期
 - `content_type`：内容类型，固定为 `intel` / `dive` / `insight` / `invest` / `podcast`
-- `author_slug`：作者标识，当前默认 `rafa`
+- `author`：作者展示名称；导入时生成稳定的 `author_slug`，同时写入 `author_display`
 - `source_type`：内容来源，当前默认 `editorial`
 - `status`：发布状态，使用 `draft` 或 `published`
 - `featured`：是否作为首页主打内容
@@ -323,6 +323,8 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - `ai_pulse_subscribers`：邮件订阅用户
 - `ai_pulse_email_sends`：邮件发送日志（`story_id` 关联 stories，原为 `post_id`）
 
+作者字段约定：`author_slug` 是稳定机器标识，`author_display` 是展示名称。迁移文件 `20260804_add_author_display.sql` 会为现有文章回填展示名称并规范化 slug。
+
 数据流向：**Signal → Story → Distribution**。
 
 长期上，系列和作者应成为独立资产，但第一阶段不需要过度工程化。
@@ -344,6 +346,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - `ai_pulse_signals` 时间语义：`signal_date`（归属日）/ `created_at`（入库）/ `updated_at`（更新）
 - `/intels` 页 SignalHighlights（三维 top 信号卡片）与 SignalFeed（日历驱动信号列表）
 - 后台管理端（`/admin`）：文章元数据编辑、精选管理、专题（系列）创建与排序
+- 后台文章工作流（`/admin/new`、`/admin/edit/[slug]`）：创建文章、编辑 Markdown 正文、预览、保存草稿、发布和撤回
 - 用户文章管理（`/my/posts`）：查看和编辑自己发布的文章元数据
 - Agent 发布接口（`/api/posts`、`/api/signals`）
 - R2 文件上传接口（`/api/upload`、`/api/upload/presign`）
@@ -356,8 +359,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 
 ### 7.2 当前明确未实现
 
-- 后台创建全新文章（当前只能编辑/管理已导入的文章，写作仍在 Vault 中完成）
-- 后台编辑文章正文和草稿预览（当前后台只编辑标题、摘要、日期、状态、精选和付费属性）
+- Vault 内容自动回写（后台正文编辑不会自动同步回 Vault，仍需明确内容事实源）
 - 自动化内容导入后台（当前是手动触发的 CLI 脚本，见 4.1 节，这是有意选择而非缺口）
 - 打开追踪与点击追踪（`ai_pulse_email_sends.opened_at`/`clicked_at` 字段已预留，未写入）
 - 邮件模板管理（当前硬编码单一模板）
@@ -369,8 +371,8 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 
 ### 7.3 当前技术约束
 
-- 文章正文当前以已消毒 HTML 方式渲染，Markdown 转换主要发生在导入阶段
-- CI 目前只跑 `lint`，build / test 仍需手动执行
+- 文章正文保存 Markdown 源（`body_markdown`）和已消毒 HTML（`content`）两种形态
+- CI 执行 lint、test、build
 - 缺少错误监控与埋点分析
 
 ---

@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { markdownToHtml } from '@/lib/markdown'
 import { resolveAuthor } from '@/lib/api-auth'
 import type { PostContentType } from '@/types'
+import { toAuthorSlug } from '@/lib/author'
 
 const VALID_TYPES = new Set<PostContentType>(['intel', 'dive', 'insight'])
 const VALID_STATUS = new Set(['draft', 'published'])
@@ -92,7 +93,10 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   if (featured !== undefined) updates.featured = Boolean(featured)
   if (status !== undefined && VALID_STATUS.has(status)) updates.status = status
   if (is_premium !== undefined) updates.is_premium = Boolean(is_premium)
-  if (authorMode !== undefined) updates.author_slug = authorMode === 'user' ? author.username! : author.authorSlug
+  if (authorMode !== undefined) {
+    updates.author_slug = authorMode === 'user' ? toAuthorSlug(author.username) : author.authorSlug
+    updates.author_display = authorMode === 'user' ? author.username! : author.authorDisplay
+  }
 
   if (content !== undefined) {
     try {

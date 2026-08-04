@@ -8,6 +8,7 @@ export interface Post {
   slug: string
   title: string
   content: string
+  body_markdown?: string | null
   excerpt: string
   is_premium: boolean
   status: PostStatus
@@ -16,6 +17,7 @@ export interface Post {
   topic_ids: string[]
   signal_ids: string[]
   author_slug: string | null
+  author_display: string | null
   agent_id: string | null
   published_at: string | null
   created_at: string

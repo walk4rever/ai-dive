@@ -2,10 +2,13 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { MarkdownEditor } from '@/components/MarkdownEditor'
 
 interface Post {
   slug: string
   title: string
+  content: string
+  body_markdown: string | null
   excerpt: string
   featured: boolean
   status: string
@@ -13,12 +16,14 @@ interface Post {
   is_premium: boolean
   content_type: string
   author_slug: string | null
+  author_display: string | null
 }
 
 export function EditForm({ post }: { post: Post }) {
   const router = useRouter()
   const [form, setForm] = useState({
     title: post.title,
+    content: post.body_markdown ?? '',
     excerpt: post.excerpt ?? '',
     featured: post.featured,
     status: post.status,
@@ -41,7 +46,7 @@ export function EditForm({ post }: { post: Post }) {
     setSaving(true)
     setError('')
 
-    const body = {
+    const body: Record<string, unknown> = {
       title: form.title,
       excerpt: form.excerpt,
       featured: form.featured,
@@ -49,6 +54,7 @@ export function EditForm({ post }: { post: Post }) {
       published_at: form.published_at ? new Date(form.published_at).toISOString() : null,
       is_premium: form.is_premium,
     }
+    if (form.content.trim() || post.body_markdown) body.content = form.content
 
     const token = localStorage.getItem('user_token')
     const res = await fetch(`/api/admin/posts/${post.slug}`, {
@@ -111,6 +117,15 @@ export function EditForm({ post }: { post: Post }) {
           onChange={(e) => update('title', e.target.value)}
           required
           className={inputClass}
+        />
+      </div>
+
+      <div>
+        <label className={labelClass}>正文 Markdown</label>
+        <MarkdownEditor
+          value={form.content}
+          onChange={(content) => update('content', content)}
+          legacyHtml={!post.body_markdown}
         />
       </div>
 

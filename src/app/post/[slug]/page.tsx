@@ -70,7 +70,7 @@ export default async function PostPage({ params }: Props) {
   if (!post) notFound()
 
   const contentTypeLabel = getTypeLabel(post.content_type)
-  const authorLabel = formatAuthorLabel(post.author_slug)
+  const authorLabel = post.author_display ?? formatAuthorLabel(post.author_slug)
 
   const header = (
     <>

@@ -39,6 +39,7 @@ async function main() {
     content_type: normalized.contentType,
     featured: normalized.featured,
     author_slug: normalized.authorSlug,
+    author_display: normalized.authorDisplay,
     published_at: normalized.publishedAt,
   }
 
@@ -51,6 +52,7 @@ async function main() {
       status: payload.status,
       featured: payload.featured,
       author_slug: payload.author_slug,
+      author_display: payload.author_display,
       published_at: payload.published_at,
       excerpt: payload.excerpt,
     }, null, 2))
@@ -178,7 +180,8 @@ function normalizePost({ filePath, data, body }) {
     status,
     contentType,
     featured: Boolean(data.featured),
-    authorSlug: nullableString(data.author) ? asNonEmptyString(data.author).toLowerCase() : 'rafa',
+    authorSlug: toAuthorSlug(data.author) || 'r129',
+    authorDisplay: toAuthorDisplay(data.author) || 'R129',
     publishedAt,
     filePath,
   }
@@ -213,9 +216,24 @@ function asNonEmptyString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : ''
 }
 
-function nullableString(value) {
-  const normalized = asNonEmptyString(value)
-  return normalized || null
+function toAuthorSlug(value) {
+  const raw = asNonEmptyString(value)
+  if (!raw) return null
+  return raw.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, '-').replace(/^-+|-+$/g, '') || null
+}
+
+function toAuthorDisplay(value) {
+  const raw = asNonEmptyString(value)
+  if (!raw) return null
+  const key = raw.toLowerCase().replace(/[-_]+/g, ' ').replace(/\s+/g, ' ')
+  const overrides = {
+    '20vc': '20VC',
+    'twiml ai': 'TWIML AI',
+    'ai dive': 'AI-DIVE',
+    'the a16z show': 'The a16z Show',
+  }
+  if (overrides[key]) return overrides[key]
+  return raw.replace(/[-_]+/g, ' ').split(/\s+/).map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
 }
 
 function deriveExcerpt(markdown) {

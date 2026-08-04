@@ -7,6 +7,8 @@ import { EditForm } from './EditForm'
 interface Post {
   slug: string
   title: string
+  content: string
+  body_markdown: string | null
   excerpt: string
   featured: boolean
   status: string
@@ -14,6 +16,7 @@ interface Post {
   is_premium: boolean
   content_type: string
   author_slug: string | null
+  author_display: string | null
 }
 
 function getToken() {

@@ -7,7 +7,7 @@ type ListPost = Pick<
   Post,
   'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type'
 > &
-  Partial<Pick<Post, 'author_slug' | 'agent_id'>>
+  Partial<Pick<Post, 'author_slug' | 'author_display' | 'agent_id'>>
 
 interface ArticleListItemProps {
   post: ListPost
@@ -42,7 +42,7 @@ export function ArticleListItem({
   showSource = false,
   coverUrl,
 }: ArticleListItemProps) {
-  const sourceLabel = showSource && !post.agent_id ? getSourceLabel(post.author_slug ?? null) : null
+  const sourceLabel = showSource && !post.agent_id ? (post.author_display ?? getSourceLabel(post.author_slug ?? null)) : null
   const dateParts = formatDateParts(post.published_at)
 
   return (

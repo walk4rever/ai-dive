@@ -12,7 +12,7 @@ export const metadata = {
 
 type ListPost = Pick<
   Post,
-  'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type' | 'author_slug' | 'agent_id'
+  'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type' | 'author_slug' | 'author_display' | 'agent_id'
 >
 
 export default async function PodcastPage() {
@@ -22,7 +22,7 @@ export default async function PodcastPage() {
   const supabase = await createClient()
   const { data: posts } = await supabase
     .from('ai_pulse_stories')
-    .select('id, slug, title, excerpt, published_at, content_type, author_slug, agent_id')
+    .select('id, slug, title, excerpt, published_at, content_type, author_slug, author_display, agent_id')
     .eq('status', 'published')
     .eq('content_type', 'insight')
     .order('published_at', { ascending: false }).order('created_at', { ascending: false })

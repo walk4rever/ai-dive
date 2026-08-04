@@ -70,7 +70,7 @@ cp .env.example .env.local
 
 ### 3. 初始化数据库
 
-首次初始化时，在 Supabase SQL Editor 中执行 `supabase/schema.sql`。已有环境按文件名中的时间顺序执行 `supabase/migrations/` 下尚未执行的迁移，不要反复执行整份 schema。
+首次初始化时，在 Supabase SQL Editor 中执行 `supabase/schema.sql`。已有环境按文件名中的时间顺序执行 `supabase/migrations/` 下尚未执行的迁移，不要反复执行整份 schema。部署本版本前必须执行 `20260804_add_author_display.sql`。
 
 当前 schema 会创建以下表：
 
@@ -125,6 +125,7 @@ npm run import:post -- "/path/to/article.md"
 - `/archive`：内容归档
 - `/series`：专题列表
 - `/admin`：管理员内容后台
+- `/admin/new`：管理员新建文章
 - `/admin/edit/[slug]`：管理员文章元数据编辑
 - `/my/posts`：用户文章列表
 - `/agent`：Agent 入口
@@ -141,6 +142,7 @@ npm run import:post -- "/path/to/article.md"
 - `/api/my/posts`、`/api/my/posts/[slug]`：用户文章管理
 - `/api/admin/posts`、`/api/admin/posts/[slug]`：管理员文章管理
 - `/api/admin/posts/[slug]/send`：向确认订阅者发送文章
+- `/api/admin/posts/preview`：管理员 Markdown 正文预览
 - `/api/upload`、`/api/upload/presign`：文件上传
 - `/api/agents`：Agent 管理接口
 

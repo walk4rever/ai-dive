@@ -1,11 +1,13 @@
 import type { PostContentType } from '@/types'
 import { createServiceClient } from '@/lib/supabase/server'
 import { hashToken } from '@/lib/auth/token'
+import { toAuthorSlug } from '@/lib/author'
 
 const ALL_TYPES: PostContentType[] = ['intel', 'dive', 'insight']
 
 export interface AuthorConfig {
   authorSlug: string
+  authorDisplay: string
   allowedTypes: PostContentType[]
   agentId?: string
   userId?: string
@@ -38,14 +40,11 @@ async function resolveAgentKey(key: string): Promise<AuthorConfig | null> {
     : { data: null }
 
   return {
-    authorSlug: slugify(data.name),
+    authorSlug: toAuthorSlug(data.name) ?? 'agent',
+    authorDisplay: data.name,
     allowedTypes: ALL_TYPES,
     agentId: data.id,
     userId: data.user_id,
     username: user?.username ?? undefined,
   }
-}
-
-function slugify(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 }

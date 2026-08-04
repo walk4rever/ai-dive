@@ -70,8 +70,8 @@
 - [x] 明确文章内容格式：Vault 使用 Markdown，导入后转换为 HTML，展示前经过 `rehype-sanitize` 消毒。
 - [x] 为文章渲染增加 HTML 消毒，解决 `dangerouslySetInnerHTML` 风险。
 - [x] 建立已导入文章的元数据编辑 / 发布后台入口。
-- [ ] 建立后台文章正文编辑和新建文章入口。
-- [ ] 增加草稿预览能力。
+- [x] 建立后台文章正文编辑和新建文章入口。
+- [x] 增加 Markdown 草稿预览能力。
 - [x] 支持文章级 metadata 和 Open Graph；结构化数据仍未实现。
 - [ ] 支持封面图、作者、分类、标签等扩展字段。
 - [ ] 为首页补充分页或归档策略，避免文章增多后列表失控。
@@ -105,14 +105,14 @@
 目标：让项目具备可持续迭代能力，而不是停留在手工维护阶段。
 
 - [x] 建立订阅、确认、退订、Markdown 和 newsletter 发送核心测试（当前 31 个测试通过）。
-- [ ] 补充文章管理、Agent 发布、Signals 和上传 API 测试。
+- [x] 补充文章管理 API 和作者标识工具测试；Agent 发布、Signals、上传 API 测试仍待补充。
 - [ ] 补充集成测试，覆盖核心 API 路由。
 - [x] 建立数据库迁移策略，替代单一 `schema.sql` 手工维护（`supabase/migrations/`）。
 - [ ] 接入错误监控与告警。
 - [ ] 建立审计与运营日志规范。
 - [ ] 对外部依赖失败场景做降级设计，例如 Resend 或 Supabase 不可用。
 - [ ] 明确缓存策略与失效策略，覆盖首页与文章详情页。
-- [ ] 将 CI 从仅执行 lint 扩展为 lint、test、build。
+- [x] 将 CI 从仅执行 lint 扩展为 lint、test、build。
 
 ## 阶段 6：增长与体验优化
 
@@ -137,6 +137,12 @@
 - [x] 邮件发送失败处理
 - [x] HTML 消毒方案
 - [x] 订阅 / 确认 API 测试
-- [ ] 后台正文编辑与草稿预览
-- [ ] 文章管理、Agent 发布、Signals、上传 API 测试
-- [ ] CI 增加 test 和 build
+- [x] 后台正文编辑与草稿预览
+- [x] 文章管理 API 和作者标识测试
+- [x] CI 增加 test 和 build
+
+### 下一步执行拆分
+
+1. 为 Agent 发布、Signals 注入和文件上传 API 增加核心测试。
+2. 应用 `20260804_add_author_display.sql` 数据库迁移。
+3. 明确后台编辑内容与 Vault Markdown 之间的同步规则。

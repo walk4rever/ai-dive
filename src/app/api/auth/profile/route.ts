@@ -63,13 +63,13 @@ export async function PATCH(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Sync author_slug on posts that were signed with the old username
+  // Sync author identity on posts that were signed with the old username
   if (current?.username) {
     await supabase
-      .from('ai_pulse_posts')
-      .update({ author_slug: username })
+      .from('ai_pulse_stories')
+      .update({ author_slug: username.toLowerCase(), author_display: username })
       .eq('user_id', user.id)
-      .eq('author_slug', current.username)
+      .or(`author_slug.eq.${current.username.toLowerCase()},author_display.eq.${current.username}`)
   }
 
   return NextResponse.json({ ok: true, username })

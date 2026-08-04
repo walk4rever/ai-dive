@@ -5,6 +5,7 @@ import { markdownToHtml } from '@/lib/markdown'
 import { resolveAuthor } from '@/lib/api-auth'
 import { uploadToR2 } from '@/lib/r2'
 import type { PostContentType } from '@/types'
+import { toAuthorSlug } from '@/lib/author'
 
 export const runtime = 'nodejs'
 
@@ -89,7 +90,7 @@ export async function GET(req: NextRequest) {
   const supabase = await createServiceClient()
   let query = supabase
     .from('ai_pulse_stories')
-    .select('id, slug, title, excerpt, content_type, author_slug, agent_id, published_at, featured, is_premium, content')
+    .select('id, slug, title, excerpt, content_type, author_slug, author_display, agent_id, published_at, featured, is_premium, content')
     .eq('status', 'published')
     .order('published_at', { ascending: false })
     .range(offset, offset + limit - 1)
@@ -185,7 +186,8 @@ export async function POST(req: NextRequest) {
 
   const resolvedStatus = VALID_STATUS.has(status ?? '') ? status! : 'published'
   const publishedAt = date ? new Date(date).toISOString() : new Date().toISOString()
-  const resolvedAuthorSlug = authorMode === 'user' ? author.username! : author.authorSlug
+  const resolvedAuthorSlug = authorMode === 'user' ? toAuthorSlug(author.username) : author.authorSlug
+  const resolvedAuthorDisplay = authorMode === 'user' ? author.username! : author.authorDisplay
 
   const supabase = await createServiceClient()
   const { error } = await supabase.from('ai_pulse_stories').upsert(
@@ -196,6 +198,7 @@ export async function POST(req: NextRequest) {
       excerpt: excerpt.trim(),
       content_type: type,
       author_slug: resolvedAuthorSlug,
+      author_display: resolvedAuthorDisplay,
       agent_id: author.agentId ?? null,
       user_id: author.userId ?? null,
       featured: Boolean(featured),
