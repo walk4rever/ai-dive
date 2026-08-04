@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { buildPostEmailHtml } from '@/lib/subscription/email'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { getResend } from '@/lib/resend'
 
 interface RouteParams {
   params: Promise<{ slug: string }>
@@ -18,6 +16,11 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
   const siteUrl = req.nextUrl.origin
   const confirmationSecret = process.env.EMAIL_CONFIRMATION_SECRET
   if (!siteUrl || !confirmationSecret) {
+    return NextResponse.json({ error: 'Missing email configuration' }, { status: 500 })
+  }
+
+  const resend = getResend()
+  if (!resend) {
     return NextResponse.json({ error: 'Missing email configuration' }, { status: 500 })
   }
 

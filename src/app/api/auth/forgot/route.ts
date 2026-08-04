@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { hashConfirmationNonce } from '@/lib/subscription/confirmation-token'
-import { Resend } from 'resend'
 import crypto from 'crypto'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { getResend } from '@/lib/resend'
 
 export async function POST(req: NextRequest) {
   let body: { email?: string }
@@ -19,6 +17,9 @@ export async function POST(req: NextRequest) {
 
   const secret = process.env.EMAIL_CONFIRMATION_SECRET
   if (!secret) return NextResponse.json({ error: 'Service unavailable' }, { status: 500 })
+
+  const resend = getResend()
+  if (!resend) return NextResponse.json({ error: 'Service unavailable' }, { status: 500 })
 
   const supabase = await createServiceClient()
   const { data: user } = await supabase

@@ -3,11 +3,9 @@ import {
   hashConfirmationNonce,
 } from '@/lib/subscription/confirmation-token'
 import { buildConfirmationUrl } from '@/lib/subscription/links'
-import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { getResend } from '@/lib/resend'
 
 export async function POST(req: NextRequest) {
   let body: { email?: string; name?: string }
@@ -29,6 +27,12 @@ export async function POST(req: NextRequest) {
 
   if (!confirmationSecret) {
     console.error('[subscribe] missing EMAIL_CONFIRMATION_SECRET')
+    return NextResponse.json({ error: '订阅服务暂不可用，请稍后重试。' }, { status: 500 })
+  }
+
+  const resend = getResend()
+  if (!resend) {
+    console.error('[subscribe] missing RESEND_API_KEY')
     return NextResponse.json({ error: '订阅服务暂不可用，请稍后重试。' }, { status: 500 })
   }
 
