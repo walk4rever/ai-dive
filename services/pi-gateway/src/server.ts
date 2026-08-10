@@ -3,7 +3,7 @@ import { requireSecret } from "./auth.js";
 import { getSession } from "./session-manager.js";
 import { streamPrompt } from "./stream.js";
 
-const PORT = Number(process.env.PORT ?? 3457);
+const PORT = Number(process.env.PORT ?? 3458);
 const app = express();
 app.use(express.json());
 

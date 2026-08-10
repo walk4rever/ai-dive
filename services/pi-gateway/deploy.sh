@@ -12,7 +12,7 @@
 #      DIRECT_URL = Supabase direct postgres URL (vlaawtpxqzclhmhrlwti project)
 #      AGENT_SECRET = 904e130c5404006a463ef6d2e6b27e315dbc44612abb7ef6
 #      PI_AGENT_DIR = /root/pi-gateway-ai-dive/.pi-agent
-#      PORT = 3457
+#      PORT = 3458
 #
 # 2. After first deploy, fill in the DeepSeek API key:
 #      nano /root/pi-gateway-ai-dive/.pi-agent/models.json
@@ -20,7 +20,7 @@
 #
 # 3. Add nginx reverse proxy (if using relay.air7.fun):
 #    location /pi-ai-dive/ {
-#      proxy_pass http://127.0.0.1:3457/;
+#      proxy_pass http://127.0.0.1:3458/;
 #      proxy_http_version 1.1;
 #      proxy_set_header Connection '';
 #      proxy_buffering off;
@@ -44,9 +44,16 @@ done
 
 if [[ "$RESTART_ONLY" == false ]]; then
   echo "→ Syncing files to ${REMOTE}:${REMOTE_DIR} ..."
+  # .pi-agent is excluded like .env: the committed models.json under
+  # services/pi-gateway/.pi-agent/ is a local-dev template with a
+  # FILL_IN_DEEPSEEK_API_KEY placeholder and no settings.json. Without this
+  # exclude, --delete overwrites production's real key + defaultProvider
+  # config with that placeholder on every deploy (see buffett-tribe's
+  # deploy.sh, which hit and fixed this same issue on 2026-08-02).
   rsync -az --delete \
     --exclude='node_modules' \
     --exclude='.env' \
+    --exclude='.pi-agent' \
     --exclude='*.log' \
     "${SCRIPT_DIR}/" "${REMOTE}:${REMOTE_DIR}/"
 
@@ -61,4 +68,4 @@ echo "→ Status:"
 ssh "$REMOTE" "pm2 show pi-gateway-ai-dive | grep -E 'status|uptime|restarts|pid'"
 
 echo ""
-echo "✓ Deploy complete. Gateway running at air7:3457"
+echo "✓ Deploy complete. Gateway running at air7:3458"
