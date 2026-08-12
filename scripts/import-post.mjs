@@ -23,6 +23,11 @@ async function main() {
     process.exit(1)
   }
 
+  // Loaded before rendering (not just before the Supabase write) because
+  // markdownToHtml's embed-directive handling reads CLOUDFLARE_R2_PUBLIC_URL
+  // from process.env to validate `::embed{src=...}` hosts.
+  const env = await loadEnv()
+
   const articlePath = path.resolve(process.cwd(), inputPath)
   const raw = await fs.readFile(articlePath, 'utf8')
   const { data, body } = parseFrontmatter(raw)
@@ -59,7 +64,6 @@ async function main() {
     return
   }
 
-  const env = await loadEnv()
   const url = env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -119,6 +123,12 @@ async function loadEnv() {
         throw error
       }
     }
+  }
+
+  // Mirror into process.env too — markdownToHtml() (and its embed-directive
+  // host check) reads process.env directly, not this function's return value.
+  for (const [key, value] of Object.entries(merged)) {
+    if (process.env[key] === undefined) process.env[key] = value
   }
 
   return merged

@@ -95,6 +95,18 @@ npm run import:post -- "/absolute/or/relative/path/to/article.md"
 npm run import:post -- "/Users/rafael/R129/Vault/AI-DIVE/Harness系列-篇1-什么是Harness.md"
 ```
 
+### 4b. 嵌入交互式 HTML（可选）
+
+文章正文里可以用 `::embed{src="..." height="..."}` 指令嵌入一个独立的、agent 生成的自包含 HTML 页面（报告、可视化 demo）。渲染为沙箱 iframe（`sandbox="allow-scripts"`，不带 `allow-same-origin`），`src` 必须命中 `CLOUDFLARE_R2_PUBLIC_URL` 配置的域名，指向其他域名会被拦截并显示错误。
+
+先把 HTML 文件传到 R2，拿到可用的 `src` 和一段供 AI 解读用的隐藏摘要：
+
+```bash
+node scripts/upload-html-embed.mjs <html-file> <slug> [--height=2400]
+```
+
+输出可以直接粘贴进文章 markdown。`height` 只是 JS 跑起来之前的初始猜测——嵌入页面里会自动注入一段上报真实高度的脚本，父页面收到后会把 iframe 撑到实际内容高度，不需要手动量准。R2 对象走 `immutable` 缓存，脚本每次运行都会在 URL 后面加 `?v=` 参数防止改完内容后还读到旧缓存。
+
 ### 5. 启动开发服务器
 
 ```bash

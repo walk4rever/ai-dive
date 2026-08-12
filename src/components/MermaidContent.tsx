@@ -94,8 +94,32 @@ function removeYouTubeCoverImage(container: HTMLElement, id: string) {
   }
 }
 
+const EMBED_RESIZE_MESSAGE = 'ai-dive-embed-resize'
+
 export function MermaidContent({ className, html }: MermaidContentProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const embeds = Array.from(
+      container.querySelectorAll<HTMLIFrameElement>('iframe[data-ai-dive-embed="true"]')
+    )
+    if (embeds.length === 0) return
+
+    const handleResize = (event: MessageEvent) => {
+      if (!event.data || event.data.type !== EMBED_RESIZE_MESSAGE) return
+      const height = Number(event.data.height)
+      if (!Number.isFinite(height) || height <= 0) return
+
+      const iframe = embeds.find((el) => el.contentWindow === event.source)
+      if (iframe) iframe.style.height = `${Math.ceil(height)}px`
+    }
+
+    window.addEventListener('message', handleResize)
+    return () => window.removeEventListener('message', handleResize)
+  }, [html])
 
   useEffect(() => {
     let cancelled = false

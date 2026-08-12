@@ -2,6 +2,7 @@ import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
+import remarkDirective from 'remark-directive'
 import remarkRehype from 'remark-rehype'
 import rehypeRaw from 'rehype-raw'
 import rehypeKatex from 'rehype-katex'
@@ -10,6 +11,7 @@ import rehypeSlug from 'rehype-slug'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeStringify from 'rehype-stringify'
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
+import { visit } from 'unist-util-visit'
 
 function extractText(node) {
   if (!node) return ''
@@ -246,6 +248,78 @@ export function rehypeYouTubeEmbeds() {
   }
 }
 
+const EMBED_HEIGHT_DEFAULT = 800
+const EMBED_HEIGHT_MIN = 100
+const EMBED_HEIGHT_MAX = 40000
+
+function allowedEmbedHosts() {
+  const hosts = new Set()
+  if (process.env.CLOUDFLARE_R2_PUBLIC_URL) {
+    try {
+      hosts.add(new URL(process.env.CLOUDFLARE_R2_PUBLIC_URL).host)
+    } catch {
+      // Malformed env value — treat as no allowed hosts (fail closed).
+    }
+  }
+  return hosts
+}
+
+function isAllowedEmbedSrc(src) {
+  try {
+    const url = new URL(src)
+    return url.protocol === 'https:' && allowedEmbedHosts().has(url.host)
+  } catch {
+    return false
+  }
+}
+
+function rejectEmbedDirective(node, message) {
+  node.type = 'paragraph'
+  node.children = [{ type: 'text', value: message }]
+  node.data = { hName: 'p', hProperties: {} }
+  delete node.name
+  delete node.attributes
+}
+
+// Turns `::embed{src="https://<r2-host>/..." height="2400"}` into a sandboxed iframe.
+// `sandbox` is always `allow-scripts` (never `allow-same-origin`) so embedded content
+// can't reach the parent page's cookies or DOM, and `src` must resolve to the
+// configured R2 public host — authors can't point this at an arbitrary third-party URL.
+export function remarkEmbedDirective() {
+  return (tree) => {
+    visit(tree, (node) => node.type === 'leafDirective' && node.name === 'embed', (node) => {
+      const src = typeof node.attributes?.src === 'string' ? node.attributes.src.trim() : ''
+
+      if (!isAllowedEmbedSrc(src)) {
+        rejectEmbedDirective(node, `Embed blocked: src must be an https URL on the configured R2 host (got "${src || 'empty'}").`)
+        return
+      }
+
+      const parsedHeight = Number.parseInt(node.attributes?.height, 10)
+      const height = Number.isFinite(parsedHeight)
+        ? Math.min(Math.max(parsedHeight, EMBED_HEIGHT_MIN), EMBED_HEIGHT_MAX)
+        : EMBED_HEIGHT_DEFAULT
+
+      node.data = {
+        hName: 'iframe',
+        hProperties: {
+          src,
+          sandbox: 'allow-scripts',
+          loading: 'lazy',
+          title: 'Embedded interactive content',
+          style: `width:100%;height:${height}px;border:0;`,
+          // Lets the client find our embeds and auto-resize them from the
+          // postMessage the embedded page's own resize-reporter script sends
+          // (injected at upload time — see scripts/upload-html-embed.mjs).
+          // `height` above is just the pre-JS initial guess.
+          'data-ai-dive-embed': 'true',
+        },
+      }
+      node.children = []
+    })
+  }
+}
+
 export const sanitizeSchema = {
   ...defaultSchema,
   tagNames: [
@@ -269,6 +343,9 @@ export const sanitizeSchema = {
       'allowfullscreen',
       'style',
       'title',
+      'sandbox',
+      'loading',
+      'data-ai-dive-embed',
     ],
     div: [...(defaultSchema.attributes?.div || []), 'className', 'data-mermaid', 'data-mermaid-processed'],
     span: [...(defaultSchema.attributes?.span || []), 'className'],
@@ -283,6 +360,8 @@ export async function markdownToHtml(markdown, { sanitize } = { sanitize: true }
     .use(remarkParse)
     .use(remarkGfm)
     .use(remarkMath)
+    .use(remarkDirective)
+    .use(remarkEmbedDirective)
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeRaw)
     .use(rehypeMermaidBlocks)

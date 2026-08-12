@@ -13,6 +13,7 @@ The main application is a Next.js 16 App Router project. Pages, layouts, and API
 - `npm run test:coverage`: generate text and HTML V8 coverage reports.
 - `npm run build`: perform the production Next.js and TypeScript build.
 - `npm run import:post -- "/path/article.md"`: import one Markdown article.
+- `node scripts/upload-html-embed.mjs <html-file> <slug>`: upload a self-contained interactive HTML page to R2 for use with the `::embed{src="..." height="..."}` markdown directive (renders as a sandboxed iframe; see README).
 
 Before handing off changes, run `npm run lint`, `npm test`, and `npm run build`.
 
