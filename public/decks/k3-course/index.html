@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K3 七天课 — 从零读懂 47 页技术报告</title>
+<style>
+  :root{
+    --bg:#ffffff; --card:#f7f8fa; --card2:#eef1f6; --ink:#1f2329; --muted:#6b7280;
+    --line:#e5e7eb; --blue:#185fa5; --blue-bg:#e6f1fb; --blue-ink:#0c447c;
+    --coral:#993c1d; --coral-bg:#faece7; --coral-ink:#712b13;
+    --teal:#0f6e56; --teal-bg:#e1f5ee; --teal-ink:#085041;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; line-height:1.75; font-size:15px;}
+  .wrap{max-width:860px; margin:0 auto; padding:0 24px 80px;}
+
+  .hero{margin:44px 0 12px;}
+  .chip{display:inline-flex; align-items:center; gap:8px; background:var(--blue-bg); color:var(--blue-ink); border:1px solid #b5d4f4; padding:5px 14px; border-radius:999px; font-size:13px; font-weight:500;}
+  .hero h1{font-size:29px; font-weight:600; margin:16px 0 8px;}
+  .hero .sub{color:var(--muted); font-size:15px; max-width:680px;}
+  .hero .sub b{color:var(--ink);}
+
+  .stat{display:flex; gap:28px; margin:24px 0 8px; font-size:13px; color:var(--muted); flex-wrap:wrap;}
+  .stat b{color:var(--ink); font-size:16px; display:block;}
+
+  .course{display:flex; flex-direction:column; gap:14px; margin-top:30px;}
+  .row{display:flex; gap:16px; align-items:stretch; border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; text-decoration:none; color:inherit; transition:.15s; background:#fff;}
+  .row:hover{border-color:var(--blue); background:var(--card); transform:translateY(-1px);}
+  .row.locked{opacity:.55; cursor:default;}
+  .row.locked:hover{transform:none; border-color:var(--line); background:#fff;}
+  .badge{flex:none; width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:600; color:#fff; background:var(--blue);}
+  .row.done .badge{background:var(--teal);}
+  .row.k3 .badge{background:var(--coral);}
+  .row.k3.done .badge{background:var(--teal);}
+  .row .title{font-size:16px; font-weight:500;}
+  .row .desc{font-size:13.5px; color:var(--muted); margin-top:2px;}
+  .row .map{margin-left:auto; flex:none; align-self:center; font-size:12px; color:var(--muted); background:var(--card2); padding:4px 10px; border-radius:8px; white-space:nowrap;}
+  .status{margin-left:14px; flex:none; align-self:center; font-size:12px; color:var(--teal); font-weight:500;}
+
+  .note{margin-top:36px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:18px 22px; font-size:14px; color:#374151;}
+  .note b{color:var(--ink);}
+  .note ul{padding-left:20px; margin-top:8px;}
+  .note li{margin:5px 0;}
+
+  .foot{margin-top:44px; text-align:center; font-size:12.5px; color:var(--muted);}
+  @media (max-width:720px){
+    .hero h1{font-size:23px;}
+    .row .map{display:none;}
+    .status{margin-left:0;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="hero">
+    <span class="chip">K3 七天课 · 系列导航</span>
+    <h1>从零开始，读懂 47 页 AI 技术报告</h1>
+    <p class="sub">不假设你懂编程、懂数学、懂 AI——<b>假设你只有高中水平</b>：会背单词、会玩成语接龙、知道概率是什么，就足够跟上。<b>先讲概念（用比喻和图解）→ 再回到 Kimi K3 报告对应章节</b>。每篇末尾还有「进阶小注」，给懂点编程/数学的你点破术语。</p>
+    <div class="stat">
+      <div><b>7</b>篇课程</div>
+      <div><b>30–60</b>分钟 / 天</div>
+      <div><b>30+</b>张原创图解</div>
+      <div><b>25</b>道自测题</div>
+    </div>
+  </div>
+
+  <div class="course">
+
+    <a class="row done" href="day-01.html">
+      <div class="badge">1</div>
+      <div>
+        <div class="title">AI 是怎么学会说话的？（接龙、Token、语义地图）</div>
+        <div class="desc">AI 每说一个字前在算什么 · 为什么先拆词再认字 · 词在「语义地图」上的位置 · 训练像考试改错题 · 读懂 K3 的 2.8T / 104B / 1M</div>
+      </div>
+      <span class="map">→ K3 §1 总览</span>
+      <span class="status">今日内容 ✓</span>
+    </a>
+
+    <a class="row done" href="day-02.html">
+      <div class="badge">2</div>
+      <div>
+        <div class="title">注意力机制：全班一起开「讨论会」</div>
+        <div class="desc">AI 怎么做到看完整段话再开口 · 每个词如何「听全班发言」再决定自己说什么 · 为什么顺序很重要 · 学会「上下文」这个词</div>
+      </div>
+      <span class="map">→ K3 §2.1 架构</span>
+      <span class="status">今日内容 ✓</span>
+    </a>
+
+    <a class="row done" href="day-03.html">
+      <div class="badge">3</div>
+      <div>
+        <div class="title">Kimi 的看家本领：一口气记住 100 万字</div>
+        <div class="desc">为什么记的东西越多越慢越贵 · 「便签本」KV Cache 是什么 · KDA：不抄全文、只记重点笔记的省力方案</div>
+      </div>
+      <span class="map">→ K3 §2.1 KDA</span>
+      <span class="status">今日内容 ✓</span>
+    </a>
+
+    <a class="row done" href="day-04.html">
+      <div class="badge">4</div>
+      <div>
+        <div class="title">2.8 万亿数字，为什么每次只用 1040 亿？（MoE）</div>
+        <div class="desc">把大脑拆成 896 个专家小组 · 每个字只问 16 个 · 怎么让专家不吵架、不偷懒 · 规模定律：为什么越大越划算</div>
+      </div>
+      <span class="map">→ K3 §2.3 + 3.2</span>
+      <span class="status">今日内容 ✓</span>
+    </a>
+
+    <a class="row done" href="day-05.html">
+      <div class="badge">5</div>
+      <div>
+        <div class="title">训练一台 K3：从几百万本书到会聊天</div>
+        <div class="desc">预训练=海量阅读 · 教它做事（SFT）· 奖励机制（RL）· 9 个专家合并成 1 个（MOPD）· 5100 多万个沙箱是什么概念</div>
+      </div>
+      <span class="map">→ K3 §3–5</span>
+      <span class="status">今日内容 ✓</span>
+    </a>
+
+    <a class="row k3 done" href="day-06.html">
+      <div class="badge">6</div>
+      <div>
+        <div class="title">K3 创新深读（上）：AttnRes + Stable LatentMoE</div>
+        <div class="desc">用前 5 天学到的武器，逐条拆 K3 的独门绝技：信息跨层串门的 AttnRes、极端稀疏下稳住训练的 Stable LatentMoE 三件套</div>
+      </div>
+      <span class="map">→ K3 §2 全文</span>
+      <span class="status">今日内容 ✓</span>
+    </a>
+
+    <a class="row k3 done" href="day-07.html">
+      <div class="badge">7</div>
+      <div>
+        <div class="title">K3 创新深读（下）+ 大考成绩单</div>
+        <div class="desc">从零训练的视觉编码器 MoonViT-V2 · Per-Head Muon 优化器 · 看懂 benchmark 分数 · 为什么 K3 便宜又强 · 六个真实案例</div>
+      </div>
+      <span class="map">→ K3 §2.4–2.5 + §6–7</span>
+      <span class="status">今日内容 ✓</span>
+    </a>
+
+  </div>
+
+  <div class="note">
+    <b>使用说明</b>
+    <ul>
+      <li>每篇自包含，浏览器直接打开即可，无需联网、无需其他文件。</li>
+      <li>建议顺序学习：Day 1–5 是通用 AI 概念（用 K3 当例子），Day 6–7 是 K3 创新精读。</li>
+      <li>正文按「高中生能懂」的标准写；每节末尾的灰色小字「进阶小注」是给懂编程/数学的读者看的，<b>看不懂完全不影响主线</b>。</li>
+      <li>每篇末尾有自测题，先自己答再展开看解析，确认「真的懂了」而不是「看懂了」。</li>
+      <li>配套资料：<b>白话解读版</b>（快速总览）、<b>原报告</b>（47 页全文，Day 6 起可读 §2）。</li>
+    </ul>
+  </div>
+
+  <div class="foot">
+    本课程基于《Kimi K3 技术报告：开放的前沿智能》编写 · 所有概念图均为原创示意，非官方图表
+  </div>
+
+</div>
+</body>
+</html>

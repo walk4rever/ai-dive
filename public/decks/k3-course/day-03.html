@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 3 · 一口气记住 100 万字 — K3 七天课</title>
+<style>
+  :root{
+    --bg:#ffffff; --card:#f7f8fa; --card2:#eef1f6; --ink:#1f2329; --muted:#6b7280;
+    --line:#e5e7eb; --blue:#185fa5; --blue-bg:#e6f1fb; --blue-ink:#0c447c;
+    --coral:#993c1d; --coral-bg:#faece7; --coral-ink:#712b13;
+    --teal:#0f6e56; --teal-bg:#e1f5ee; --teal-ink:#085041;
+    --amber:#854f0b; --amber-bg:#faeeda;
+    --mono:"SF Mono",Menlo,Consolas,monospace;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; line-height:1.8; font-size:15.5px;}
+  .wrap{max-width:860px; margin:0 auto; padding:0 24px 80px;}
+
+  .topnav{position:sticky; top:0; z-index:10; background:rgba(255,255,255,.94); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
+  .topnav-inner{max-width:860px; margin:0 auto; padding:10px 24px; display:flex; align-items:center; gap:12px; font-size:13px;}
+  .brand{font-weight:500; color:var(--ink);}
+  .brand .d{color:var(--blue);}
+  .spacer{flex:1;}
+  .topnav a{color:var(--muted); text-decoration:none; padding:4px 10px; border-radius:8px; transition:.15s;}
+  .topnav a:hover{background:var(--card2); color:var(--ink);}
+  .progress{height:3px; background:var(--line);}
+  .progress i{display:block; height:100%; width:42.86%; background:var(--blue); border-radius:0 3px 3px 0;}
+
+  .hero{margin:36px 0 28px;}
+  .daychip{display:inline-flex; align-items:center; gap:8px; background:var(--blue-bg); color:var(--blue-ink); border:1px solid #b5d4f4; padding:5px 14px; border-radius:999px; font-size:13px; font-weight:500;}
+  .hero h1{font-size:28px; font-weight:600; margin:16px 0 8px; letter-spacing:.3px;}
+  .hero .sub{color:var(--muted); font-size:15px;}
+  .goals{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:26px;}
+  .goal{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px;}
+  .goal .gq{font-size:12px; color:var(--blue); font-weight:500; margin-bottom:6px;}
+  .goal .gt{font-size:14px;}
+
+  section{margin-top:52px;}
+  h2{font-size:22px; font-weight:600; margin-bottom:6px; display:flex; align-items:center; gap:10px;}
+  h2 .no{background:var(--blue); color:#fff; width:30px; height:30px; border-radius:9px; display:inline-flex; align-items:center; justify-content:center; font-size:15px; flex:none;}
+  h3{font-size:17px; font-weight:600; margin:32px 0 10px;}
+  p{margin:10px 0;}
+  .lead-para{color:#374151;}
+  ul{padding-left:22px; margin:10px 0;}
+  ul li{margin:6px 0;}
+
+  .anchor{width:100%; border-collapse:collapse; margin-top:14px; font-size:14.5px;}
+  .anchor th,.anchor td{border:1px solid var(--line); padding:11px 14px; text-align:left; vertical-align:top;}
+  .anchor th{background:var(--card2); font-weight:500; width:170px;}
+  .anchor tr td:first-child{color:var(--muted);}
+  .anchor td b{color:var(--blue-ink);}
+
+  .fig{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:18px; margin:18px 0;}
+  .fig svg{display:block; width:100%; height:auto;}
+  .figcap{font-size:13.5px; color:var(--muted); margin-top:12px; padding-top:10px; border-top:1px dashed var(--line);}
+  .figcap b{color:var(--ink);}
+
+  .analogy{background:var(--teal-bg); border-left:4px solid var(--teal); border-radius:0 10px 10px 0; padding:14px 18px; margin:16px 0; font-size:14.5px;}
+  .analogy .lbl{font-size:12px; font-weight:500; color:var(--teal); letter-spacing:1px;}
+  .callout{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px 20px; margin:16px 0; font-size:14.5px;}
+  .callout.coral{background:var(--coral-bg); border-color:#f5c4b3;}
+  .callout .ct{display:block; font-size:12px; font-weight:500; color:var(--coral); margin-bottom:6px; letter-spacing:1px;}
+
+  .pro{margin:14px 0; padding:9px 14px; background:var(--card2); border:1px dashed var(--line); border-radius:10px; font-size:12.5px; color:var(--muted); line-height:1.7;}
+  .pro .pl{font-weight:600; color:var(--blue-ink); margin-right:4px;}
+  .pro code{font-family:var(--mono); font-size:12px; background:rgba(255,255,255,.8); padding:1px 5px; border-radius:5px; color:var(--blue-ink);}
+
+  .k3box{background:var(--coral-bg); border:1px solid #f5c4b3; border-radius:var(--radius); padding:18px 22px; margin-top:14px;}
+  .k3box .kt{font-size:13px; font-weight:500; color:var(--coral); letter-spacing:1px; margin-bottom:10px;}
+  .k3quote{font-family:var(--mono); font-size:13.5px; background:rgba(255,255,255,.7); border:1px dashed #e0b0a0; border-radius:8px; padding:10px 14px; margin:10px 0; color:#5c3a2a; line-height:1.8;}
+  .numgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:16px;}
+  .numcard{background:#fff; border:1px solid #f0d5cb; border-radius:12px; padding:16px 10px; text-align:center;}
+  .numcard .n{font-size:22px; font-weight:600; color:var(--coral-ink); font-family:var(--mono);}
+  .numcard .l{font-size:12.5px; color:#8a5a44; margin-top:4px; line-height:1.6;}
+
+  details{border:1px solid var(--line); border-radius:12px; margin:12px 0; background:#fff; overflow:hidden;}
+  summary{cursor:pointer; padding:14px 18px; font-size:14.5px; list-style:none; display:flex; gap:10px; align-items:baseline;}
+  summary::-webkit-details-marker{display:none;}
+  summary .qmark{color:var(--blue); font-weight:600; flex:none;}
+  summary:hover{background:var(--card);}
+  details[open] summary{border-bottom:1px solid var(--line); background:var(--card);}
+  .ans{padding:14px 18px; font-size:14px; color:#374151;}
+  .ans b{color:var(--blue-ink);}
+
+  .next{margin-top:56px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:20px 24px; display:flex; align-items:center; gap:16px;}
+  .next .nt{font-size:13px; color:var(--muted);}
+  .next .nt b{color:var(--ink); font-size:15px;}
+  .next a{margin-left:auto; background:var(--blue); color:#fff; text-decoration:none; padding:9px 20px; border-radius:10px; font-size:14px; flex:none;}
+  .next a:hover{background:#13497e;}
+  .foot{margin-top:40px; text-align:center; font-size:12.5px; color:var(--muted);}
+  .foot a{color:var(--muted); text-decoration:none; border-bottom:1px dashed var(--line);}
+
+  @media (max-width:720px){
+    .goals{grid-template-columns:1fr;}
+    .numgrid{grid-template-columns:repeat(2,1fr);}
+    .topnav-inner{padding:10px 14px;}
+    .hero h1{font-size:23px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="topnav-inner">
+    <span class="brand">K3 七天课 <span class="d">· Day 3 / 7</span></span>
+    <span class="spacer"></span>
+    <a href="index.html">课程首页</a>
+    <a href="#quiz">自测题</a>
+    <a href="#k3">映射 K3</a>
+  </div>
+  <div class="progress"><i></i></div>
+</div>
+
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <span class="daychip">Day 3 · 一口气记住 100 万字</span>
+    <h1>为什么「记得越多」，AI 就越慢越贵？</h1>
+    <p class="sub">昨天学会了：AI 的注意力要「两两打分」，窗口越长越花钱。但 K3 的上下文窗口是 <b>100 万 token</b>——别人做不到的事，它凭什么？今天的主角是 K3 的看家本领：<b>KDA（记笔记式注意力）</b>，以及它背后那两个平凡却关键的词：<b>便签本（KV Cache）</b>和<b>遗忘</b>。</p>
+    <div class="goals">
+      <div class="goal"><div class="gq">学完你能回答</div><div class="gt">为什么上下文窗口越长，AI 越慢越贵？</div></div>
+      <div class="goal"><div class="gq">学完你能回答</div><div class="gt">「便签本」KV Cache 是干什么的？</div></div>
+      <div class="goal"><div class="gq">学完你能回答</div><div class="gt">KDA 怎么做到不抄全文、只记重点？</div></div>
+    </div>
+  </div>
+
+  <!-- ================= 知识锚点 ================= -->
+  <section id="anchor">
+    <h2><span class="no">0</span>起点：这些你早就会了</h2>
+    <p class="lead-para">今天的故事，用一个字就能概括：<b>记</b>。你读书、听课、备考时的那套「记笔记」经验，就是理解 KDA 的全部钥匙：</p>
+    <table class="anchor">
+      <tr><th>你已经会的</th><th>AI 世界里对应的东西</th></tr>
+      <tr><td>背单词：抄一遍不如多过几遍——先记下，反复用</td><td><b>KV Cache（便签本）</b>：AI 把听过的内容「记下来」，下次直接用，不重算</td></tr>
+      <tr><td>错题本：只记重点和错点，不抄整本书</td><td><b>KDA（记笔记式注意力）</b>：AI 只把「重点」写进一个固定大小的笔记本</td></tr>
+      <tr><td>记忆曲线：昨天背的还记得，上个月背的淡了</td><td><b>衰减（遗忘）</b>：旧信息逐渐变淡，越久远越模糊，但不会完全消失</td></tr>
+      <tr><td>传话游戏：越传越走样 → 所以要挑关键句记</td><td><b>Delta 规则</b>：新信息来了，只「更新」旧笔记里相关的那部分</td></tr>
+      <tr><td>听讲座：抄全稿会累死，写摘要又快又够用</td><td><b>MLA（摘要式注意力）</b>：把每个人的发言压缩成一句「摘要」再存</td></tr>
+      <tr><td>长跑：不能一口气冲到底，要分段提速</td><td><b>渐进式上下文扩展</b>：窗口不是一次拉满，是一段一段加长</td></tr>
+    </table>
+    <p style="font-size:13.5px; color:var(--muted); margin-top:10px;">核心就一句：<b>AI 的「记忆」是有成本的——记什么、记多少、怎么忘，决定了它能不能看 100 万字。</b></p>
+  </section>
+
+  <!-- ================= 1 问题引入 ================= -->
+  <section id="s1">
+    <h2><span class="no">1</span>问题：为什么「看得越多」就越贵？</h2>
+
+    <p class="lead-para">回忆 Day 2 的「全班讨论会」：每个词发言前，要跟<b>其他所有词</b>两两打分。这就有个数学问题——<b>词一多，打分次数涨得飞快</b>：</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 302" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>上下文变长，两两打分次数暴涨</title>
+        <desc>4 个词需要 4×4=16 次打分，8 个词 64 次，16 个词 256 次——词数翻倍，次数翻四倍</desc>
+        <text x="40" y="28" style="font-size:13px;font-weight:600;fill:#1f2329">词数翻一倍，打分次数翻四倍</text>
+
+        <g>
+          <rect x="40" y="52" width="180" height="196" rx="12" fill="#f7f8fa" stroke="#d3d1c7" stroke-width="0.5"/>
+          <text x="130" y="74" text-anchor="middle" style="font-size:12.5px;font-weight:600;fill:#0c447c">4 个词</text>
+          <g>
+            <rect x="52" y="88" width="34" height="30" rx="6" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+            <text x="69" y="103" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#0c447c">A</text>
+            <rect x="92" y="88" width="34" height="30" rx="6" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+            <text x="109" y="103" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#0c447c">B</text>
+            <rect x="132" y="88" width="34" height="30" rx="6" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+            <text x="149" y="103" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#0c447c">C</text>
+            <rect x="172" y="88" width="34" height="30" rx="6" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+            <text x="189" y="103" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#0c447c">D</text>
+          </g>
+          <g>
+            <rect x="110" y="134" width="40" height="40" fill="none" stroke="#185fa5" stroke-width="1"/>
+            <rect x="110" y="134" width="10" height="10" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.4"/>
+            <rect x="120" y="134" width="10" height="10" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.4"/>
+            <rect x="130" y="134" width="10" height="10" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.4"/>
+            <rect x="140" y="134" width="10" height="10" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.4"/>
+            <rect x="110" y="144" width="10" height="10" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.4"/>
+            <rect x="120" y="144" width="10" height="10" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.4"/>
+            <rect x="130" y="144" width="10" height="10" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.4"/>
+            <rect x="140" y="144" width="10" height="10" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.4"/>
+            <rect x="110" y="154" width="10" height="10" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.4"/>
+            <rect x="120" y="154" width="10" height="10" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.4"/>
+            <rect x="130" y="154" width="10" height="10" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.4"/>
+            <rect x="140" y="154" width="10" height="10" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.4"/>
+            <rect x="110" y="164" width="10" height="10" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.4"/>
+            <rect x="120" y="164" width="10" height="10" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.4"/>
+            <rect x="130" y="164" width="10" height="10" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.4"/>
+            <rect x="140" y="164" width="10" height="10" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.4"/>
+          </g>
+          <text x="130" y="226" text-anchor="middle" style="font-size:13px;font-weight:600;fill:#185fa5">4 × 4 = 16 次</text>
+        </g>
+
+        <g>
+          <rect x="250" y="52" width="180" height="196" rx="12" fill="#f7f8fa" stroke="#d3d1c7" stroke-width="0.5"/>
+          <text x="340" y="74" text-anchor="middle" style="font-size:12.5px;font-weight:600;fill:#0c447c">8 个词</text>
+          <g>
+            <rect x="266" y="88" width="18" height="30" rx="4" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.5"/>
+            <rect x="286" y="88" width="18" height="30" rx="4" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.5"/>
+            <rect x="306" y="88" width="18" height="30" rx="4" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.5"/>
+            <rect x="326" y="88" width="18" height="30" rx="4" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.5"/>
+            <rect x="346" y="88" width="18" height="30" rx="4" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.5"/>
+            <rect x="366" y="88" width="18" height="30" rx="4" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.5"/>
+            <rect x="386" y="88" width="18" height="30" rx="4" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.5"/>
+            <rect x="406" y="88" width="18" height="30" rx="4" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.5"/>
+          </g>
+          <rect x="320" y="134" width="40" height="40" fill="none" stroke="#185fa5" stroke-width="1.2"/>
+          <g>
+            <circle cx="327" cy="141" r="2.2" fill="#185fa5"/>
+            <circle cx="337" cy="141" r="2.2" fill="#185fa5"/>
+            <circle cx="347" cy="141" r="2.2" fill="#185fa5"/>
+            <circle cx="357" cy="141" r="2.2" fill="#185fa5"/>
+            <circle cx="327" cy="151" r="2.2" fill="#185fa5"/>
+            <circle cx="337" cy="151" r="2.2" fill="#185fa5"/>
+            <circle cx="347" cy="151" r="2.2" fill="#185fa5"/>
+            <circle cx="357" cy="151" r="2.2" fill="#185fa5"/>
+            <circle cx="327" cy="161" r="2.2" fill="#185fa5"/>
+            <circle cx="337" cy="161" r="2.2" fill="#185fa5"/>
+            <circle cx="347" cy="161" r="2.2" fill="#185fa5"/>
+            <circle cx="357" cy="161" r="2.2" fill="#185fa5"/>
+            <circle cx="327" cy="171" r="2.2" fill="#185fa5"/>
+            <circle cx="337" cy="171" r="2.2" fill="#185fa5"/>
+            <circle cx="347" cy="171" r="2.2" fill="#185fa5"/>
+            <circle cx="357" cy="171" r="2.2" fill="#185fa5"/>
+          </g>
+          <text x="340" y="226" text-anchor="middle" style="font-size:13px;font-weight:600;fill:#185fa5">8 × 8 = 64 次</text>
+        </g>
+
+        <g>
+          <rect x="460" y="52" width="180" height="196" rx="12" fill="#f7f8fa" stroke="#d3d1c7" stroke-width="0.5"/>
+          <text x="550" y="74" text-anchor="middle" style="font-size:12.5px;font-weight:600;fill:#0c447c">16 个词</text>
+          <g>
+            <rect x="472" y="88" width="8" height="30" rx="2" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.3"/>
+            <rect x="482" y="88" width="8" height="30" rx="2" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.3"/>
+            <rect x="492" y="88" width="8" height="30" rx="2" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.3"/>
+            <rect x="502" y="88" width="8" height="30" rx="2" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.3"/>
+            <rect x="512" y="88" width="8" height="30" rx="2" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.3"/>
+            <rect x="522" y="88" width="8" height="30" rx="2" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.3"/>
+            <rect x="532" y="88" width="8" height="30" rx="2" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.3"/>
+            <rect x="542" y="88" width="8" height="30" rx="2" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.3"/>
+            <rect x="552" y="88" width="8" height="30" rx="2" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.3"/>
+            <rect x="562" y="88" width="8" height="30" rx="2" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.3"/>
+            <rect x="572" y="88" width="8" height="30" rx="2" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.3"/>
+            <rect x="582" y="88" width="8" height="30" rx="2" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.3"/>
+            <rect x="592" y="88" width="8" height="30" rx="2" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.3"/>
+            <rect x="602" y="88" width="8" height="30" rx="2" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.3"/>
+            <rect x="612" y="88" width="8" height="30" rx="2" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.3"/>
+            <rect x="622" y="88" width="8" height="30" rx="2" fill="#e6f1fb" stroke="#b5d4f4" stroke-width="0.3"/>
+          </g>
+          <rect x="530" y="134" width="40" height="40" fill="none" stroke="#185fa5" stroke-width="1.2"/>
+          <g>
+            <circle cx="537" cy="141" r="2" fill="#185fa5"/>
+            <circle cx="547" cy="141" r="2" fill="#185fa5"/>
+            <circle cx="557" cy="141" r="2" fill="#185fa5"/>
+            <circle cx="537" cy="151" r="2" fill="#185fa5"/>
+            <circle cx="547" cy="151" r="2" fill="#185fa5"/>
+            <circle cx="557" cy="151" r="2" fill="#185fa5"/>
+            <circle cx="537" cy="161" r="2" fill="#185fa5"/>
+            <circle cx="547" cy="161" r="2" fill="#185fa5"/>
+            <circle cx="557" cy="161" r="2" fill="#185fa5"/>
+            <circle cx="537" cy="171" r="2" fill="#185fa5"/>
+            <circle cx="547" cy="171" r="2" fill="#185fa5"/>
+            <circle cx="557" cy="171" r="2" fill="#185fa5"/>
+          </g>
+          <text x="550" y="190" text-anchor="middle" style="font-size:11px;fill:#9aa0a6">⋮ 太多格子，画不下了</text>
+          <text x="550" y="226" text-anchor="middle" style="font-size:13px;font-weight:600;fill:#185fa5">16 × 16 = 256 次</text>
+        </g>
+
+        <text x="340" y="278" text-anchor="middle" style="font-size:12px;fill:#6b7280">词数翻一倍（4→8→16），打分次数翻四倍（16→64→256）——这就是「长文本贵」的根源</text>
+      </svg>
+      <div class="figcap"><b>图 1 · 两两打分的「平方爆炸」：</b>每个词都要和窗口里所有词打一次分，所以打分次数 ≈ 词数 × 词数。4 个词 16 次、8 个词 64 次、16 个词 256 次。100 万个词？那就是 100 万 × 100 万——天文数字。这也是为什么「窗口拉长」是所有 AI 都要面对的大难题。</div>
+    </div>
+
+    <div class="analogy">
+      <span class="lbl">打个比方</span><br>
+      就像开班会：班里 4 个人，每人发言前听一遍全班，一共 16 次「听讲」；班里 16 个人，就是 256 次。人越多，这个「两两听讲」的工作量涨得越离谱。AI 的「班」就是上下文窗口——窗口越大，「班会」越难开。
+    </div>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>这就是全量注意力的 <b>O(L²)</b> 复杂度（L = 序列长度）：每个位置 q 要跟全部 L 个位置的 k 做内积，L 个位置共 L² 次。空间上还要存 L 个 (k, v)。L 从 8K 涨到 1M，开销不是涨 125 倍而是涨 15,625 倍。KDA 的目标，就是把这笔 L² 的账变成「固定成本」。</div>
+  </section>
+
+  <!-- ================= 2 KV Cache ================= -->
+  <section id="s2">
+    <h2><span class="no">2</span>第一笔账：推理时的「重复劳动」→ 便签本（KV Cache）</h2>
+
+    <p class="lead-para">先处理一个「冤大头」问题。AI 跟你聊天是<b>一个字一个字往外蹦</b>的（Day 1 的接龙）。每蹦出一个字，它理论上要「重新听一遍」你之前说的所有话——<b>而同样的内容，它上一轮已经听过一遍了</b>。这不是浪费吗？</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 286" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>KV Cache：推理时把听过的话记下来，避免重复计算</title>
+        <desc>没有便签本时每生成一个词都要重算前面全部；有便签本时第一遍记下 K 和 V，之后直接查</desc>
+        <text x="40" y="28" style="font-size:13px;font-weight:600;fill:#1f2329">推理时：听过的话，为什么要一遍遍重听？</text>
+
+        <g>
+          <rect x="40" y="50" width="280" height="190" rx="12" fill="#faece7" stroke="#f5c4b3" stroke-width="0.5"/>
+          <text x="180" y="72" text-anchor="middle" style="font-size:13px;font-weight:600;fill:#712b13">没有便签本</text>
+          <g>
+            <rect x="52" y="86" width="48" height="38" rx="6" fill="#fff" stroke="#993c1d" stroke-width="0.5"/>
+            <text x="76" y="105" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#712b13">小</text>
+            <rect x="108" y="86" width="48" height="38" rx="6" fill="#fff" stroke="#993c1d" stroke-width="0.5"/>
+            <text x="132" y="105" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#712b13">明</text>
+            <rect x="164" y="86" width="48" height="38" rx="6" fill="#fff" stroke="#993c1d" stroke-width="0.5"/>
+            <text x="188" y="105" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#712b13">递</text>
+          </g>
+          <path d="M212 124 L212 148" stroke="#993c1d" stroke-width="1.5" fill="none" marker-end="url(#d3a)"/>
+          <text x="180" y="172" text-anchor="middle" style="font-size:12.5px;fill:#712b13">每蹦 1 个字，</text>
+          <text x="180" y="192" text-anchor="middle" style="font-size:12.5px;fill:#712b13">前面所有字全部重听一遍</text>
+          <text x="180" y="216" text-anchor="middle" style="font-size:12px;fill:#8a5a44">蹦到第 100 个字 = 重算了 99 遍 😵</text>
+        </g>
+
+        <g>
+          <rect x="360" y="50" width="280" height="190" rx="12" fill="#e1f5ee" stroke="#9fd6c2" stroke-width="0.5"/>
+          <text x="500" y="72" text-anchor="middle" style="font-size:13px;font-weight:600;fill:#085041">有便签本（KV Cache）</text>
+          <g>
+            <rect x="372" y="86" width="48" height="38" rx="6" fill="#fff" stroke="#0f6e56" stroke-width="0.5"/>
+            <text x="396" y="105" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#085041">小</text>
+            <rect x="428" y="86" width="48" height="38" rx="6" fill="#fff" stroke="#0f6e56" stroke-width="0.5"/>
+            <text x="452" y="105" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#085041">明</text>
+            <rect x="484" y="86" width="48" height="38" rx="6" fill="#fff" stroke="#0f6e56" stroke-width="0.5"/>
+            <text x="508" y="105" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#085041">递</text>
+          </g>
+          <path d="M532 124 L532 142" stroke="#0f6e56" stroke-width="1.5" fill="none" marker-end="url(#d3b)"/>
+          <rect x="470" y="144" width="124" height="62" rx="8" fill="#fff" stroke="#0f6e56" stroke-width="1"/>
+          <text x="532" y="164" text-anchor="middle" style="font-size:12px;fill:#085041">便签本</text>
+          <line x1="480" y1="178" x2="584" y2="178" stroke="#9fd6c2" stroke-width="1"/>
+          <line x1="480" y1="190" x2="584" y2="190" stroke="#9fd6c2" stroke-width="1"/>
+          <text x="500" y="222" text-anchor="middle" style="font-size:12.5px;fill:#085041">第一遍就记下「名片+发言」</text>
+          <text x="500" y="240" text-anchor="middle" style="font-size:12px;fill:#0f6e56">之后直接查笔记，不再重算 😌</text>
+        </g>
+
+        <text x="340" y="266" text-anchor="middle" style="font-size:12px;fill:#6b7280">便签本里记的，就是每个词的 K（名片）和 V（发言）——所以它叫 KV Cache（KV 缓存）</text>
+        <defs>
+          <marker id="d3a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#993c1d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+          <marker id="d3b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#0f6e56" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+      </svg>
+      <div class="figcap"><b>图 2 · 便签本（KV Cache）：</b>AI 第一次「听」你的话时，顺手把每个词的 K（名片）和 V（发言）记下来；之后每蹦一个新字，直接查便签本就行——省掉了「重听一遍」的重复劳动。几乎所有 AI 都用这招，但注意：<b>便签本会随对话变长而越记越厚</b>——这就是下一笔账。</div>
+    </div>
+
+    <div class="callout">
+      <b>记一下这个术语：</b>「便签本」在 AI 行话里叫 <b>KV Cache</b>（K 和 V 的缓存）。以后读到这个词，心里翻译成「便签本」就行。它解决了「重复劳动」的问题，但它自己有个新问题——<b>越记越厚，厚到内存装不下</b>。
+    </div>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>推理时每生成一个 token，都要用它的 q 与历史所有 k 算注意力。若不缓存，复杂度退化为对全历史的重复预填充；KV Cache 把增量解码变成「读缓存 + 一次点积」，解码阶段每 token 是 <b>O(L)</b>（L 为已生成长度）。代价是显存占用随 L 线性增长——这也是 100 万上下文下 KV Cache 可能比模型权重还占显存的原因。</div>
+  </section>
+
+  <!-- ================= 3 KDA ================= -->
+  <section id="s3">
+    <h2><span class="no">3</span>第二笔账：便签本越记越厚 → KDA 的「固定大小笔记本」</h2>
+
+    <p class="lead-para">KV Cache 解决了「重复劳动」，但便签本自己越记越厚——看 100 万字，就要记 100 万张卡片，内存照样爆。K3 的 KDA 换了个思路：<b>干脆不要「每词一张卡片」，改用一本固定大小的笔记本——边读边写，写不下就把旧笔记冲淡一点</b>。笔记本就那么大，文章再长也不变。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 302" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>KDA：固定大小的笔记本，边读边写、旧笔记变淡</title>
+        <desc>左侧 token 依次进入，中间是固定大小的笔记本 S，新词写入时旧笔记被冲淡</desc>
+        <text x="40" y="28" style="font-size:13px;font-weight:600;fill:#1f2329">KDA 的笔记本：大小固定，文章再长也不变大</text>
+
+        <g>
+          <rect x="40" y="56" width="90" height="40" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="85" y="76" text-anchor="middle" dominant-baseline="central" style="font-size:13px;fill:#0c447c">读</text>
+          <rect x="40" y="106" width="90" height="40" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="85" y="126" text-anchor="middle" dominant-baseline="central" style="font-size:13px;fill:#0c447c">完</text>
+          <rect x="40" y="156" width="90" height="40" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="85" y="176" text-anchor="middle" dominant-baseline="central" style="font-size:13px;fill:#0c447c">这</text>
+          <rect x="40" y="206" width="90" height="40" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="85" y="226" text-anchor="middle" dominant-baseline="central" style="font-size:13px;fill:#0c447c">句</text>
+        </g>
+
+        <path d="M130 126 L228 126" stroke="#185fa5" stroke-width="1.5" fill="none" marker-end="url(#d3c)"/>
+        <text x="179" y="112" text-anchor="middle" style="font-size:11px;fill:#185fa5">写笔记</text>
+
+        <g>
+          <rect x="230" y="56" width="200" height="200" rx="12" fill="#fff" stroke="#185fa5" stroke-width="1.2"/>
+          <text x="330" y="76" text-anchor="middle" style="font-size:12px;font-weight:600;fill:#0c447c">笔记本 S</text>
+          <rect x="244" y="90" width="84" height="48" rx="8" fill="#185fa5"/>
+          <rect x="336" y="90" width="84" height="48" rx="8" fill="#4a8cc2"/>
+          <rect x="244" y="148" width="84" height="48" rx="8" fill="#7fb2e0"/>
+          <rect x="336" y="148" width="84" height="48" rx="8" fill="#b5d4f4"/>
+          <rect x="244" y="206" width="84" height="48" rx="8" fill="#d7e8f7"/>
+          <rect x="336" y="206" width="84" height="48" rx="8" fill="#eef4fb"/>
+          <text x="330" y="126" text-anchor="middle" style="font-size:10.5px;fill:#fff">刚写的</text>
+          <text x="330" y="184" text-anchor="middle" style="font-size:10.5px;fill:#fff">变淡了</text>
+          <text x="330" y="242" text-anchor="middle" style="font-size:10.5px;fill:#0c447c">快忘了</text>
+        </g>
+
+        <g>
+          <rect x="470" y="56" width="170" height="56" rx="10" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="486" y="78" style="font-size:12.5px;fill:#0c447c">① 读到新词，写进本子</text>
+          <text x="486" y="98" style="font-size:11.5px;fill:#185fa5">（更新的只是相关那一格）</text>
+          <rect x="470" y="122" width="170" height="56" rx="10" fill="#f7f8fa" stroke="#d3d1c7" stroke-width="0.5"/>
+          <text x="486" y="144" style="font-size:12.5px;fill:#5f5e5a">② 旧笔记随时间变淡</text>
+          <text x="486" y="164" style="font-size:11.5px;fill:#6b7280">（越久远越模糊）</text>
+          <rect x="470" y="188" width="170" height="56" rx="10" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+          <text x="486" y="210" style="font-size:12.5px;fill:#085041">③ 本子就这么多格</text>
+          <text x="486" y="230" style="font-size:11.5px;fill:#0f6e56">文章再长，大小不变</text>
+        </g>
+
+        <text x="340" y="282" text-anchor="middle" style="font-size:12px;fill:#6b7280">笔记本 = 一个固定大小的「记忆矩阵」。读 1 万字还是 100 万字，它都是同一块大小——这是 K3 能看长文还不爆内存的关键</text>
+        <defs>
+          <marker id="d3c" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#185fa5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+      </svg>
+      <div class="figcap"><b>图 3 · KDA 的「固定大小笔记本」：</b>左边是正在读的文章，中间是笔记本 S——几行几列是固定的。读到新词时，① 把重点写进相关格子；② 旧笔记按「遗忘曲线」变淡；③ 笔记本大小从头到尾不变。KV Cache 是「每词一张卡、越记越厚」，KDA 是「一本固定大小的本、边读边更新」——这就是两种思路的本质区别。</div>
+    </div>
+
+    <div class="analogy">
+      <span class="lbl">打个比方</span><br>
+      KV Cache 像<b>录音笔</b>：原原本本记下每个人说的每句话，时间越长录音越长。KDA 像<b>会议纪要本</b>：永远只有那几页，听到新重点就更新，旧内容越翻越淡。录音笔一字不漏但撑不长，纪要本永远装得下但会「漏细节」——K3 正是靠「纪要本」撑起了 100 万字。
+    </div>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>KDA 的递归更新是 <code>S_t = (I − β_t k_t k_tᵀ)·Diag(α_t)·S_{t−1} + β_t k_t v_tᵀ</code>：<b>Diag(α_t)</b> 是逐通道衰减（遗忘），<b>β_t</b> 是写入强度（Delta 规则），S 的尺寸 d_k×d_v 与序列长度无关——所以是 O(1) 状态、O(L) 计算（分块后）。这正是「固定大小笔记本」的数学长相。</div>
+  </section>
+
+  <!-- ================= 4 遗忘 ================= -->
+  <section id="s4">
+    <h2><span class="no">4</span>遗忘不是缺点，是设计：记忆曲线与「隐式座位号」</h2>
+
+    <p class="lead-para">你可能觉得「旧笔记变淡」是坏毛病——不，在 K3 里，<b>遗忘恰恰是它最聪明的设计</b>。原因有二：</p>
+
+    <p>第一，<b>近的比远的更重要</b>。聊到第 50 句时，第 3 句的细节已经没那么关键了；把「记忆力」匀给刚说的话，性价比更高。就像你复习考试：昨天讲的比上个月讲的重要。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 262" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>遗忘曲线：越久远越模糊，但有下限不会完全消失</title>
+        <desc>清晰度随距离衰减，接近下限但不完全归零</desc>
+        <text x="40" y="28" style="font-size:13px;font-weight:600;fill:#1f2329">记忆清晰度：越久远越模糊，但不会彻底忘光</text>
+        <line x1="60" y1="56" x2="60" y2="196" stroke="#9aa0a6" stroke-width="1.2"/>
+        <line x1="60" y1="196" x2="620" y2="196" stroke="#9aa0a6" stroke-width="1.2"/>
+        <text x="60" y="214" text-anchor="middle" style="font-size:11px;fill:#9aa0a6">现在（近）</text>
+        <text x="620" y="214" text-anchor="middle" style="font-size:11px;fill:#9aa0a6">很久以前（远）</text>
+        <line x1="60" y1="172" x2="620" y2="172" stroke="#ba7517" stroke-width="1" stroke-dasharray="5 4"/>
+        <text x="622" y="176" style="font-size:10.5px;fill:#854f0b">下限</text>
+        <path d="M60 58 C 150 66, 210 96, 280 122 S 470 162, 600 168" fill="none" stroke="#185fa5" stroke-width="2.5"/>
+        <circle cx="96" cy="66" r="4" fill="#185fa5"/>
+        <text x="112" y="62" style="font-size:11.5px;fill:#0c447c">刚才的话：很清楚</text>
+        <circle cx="540" cy="166" r="4" fill="#185fa5"/>
+        <text x="390" y="152" style="font-size:11.5px;fill:#0c447c">开头的话：很模糊，但还记得</text>
+        <text x="340" y="240" text-anchor="middle" style="font-size:12px;fill:#6b7280">这条「遗忘曲线」同时就是位置信息：离现在越远的词，在笔记里的痕迹越淡——顺序就这样被记下来了</text>
+      </svg>
+      <div class="figcap"><b>图 4 · 遗忘曲线（衰减）：</b>横轴 = 距离现在多远，纵轴 = 记忆清晰度。刚看过的词清楚，早先的词模糊，但<b>不会完全归零</b>（K3 给遗忘设了个下限，防止旧信息彻底丢失）。这条曲线还暗中帮了大忙——见下面第 2 点。</div>
+    </div>
+
+    <p>第二，<b>遗忘本身就编码了「顺序」</b>。回想 Day 2 的难题：AI 怎么知道「猫追狗」和「狗追猫」的区别？绝大多数模型要给每个词发「座位号」（位置编码）。K3 却不用——因为它的遗忘曲线就是天然的座位号：<b>越靠后的词越清晰、越靠前的词越模糊，顺序信息就藏在清晰度里</b>。这一招让它省掉了位置编码那一大块内存，还让上下文窗口想拉多长拉多长（不用改座位号规则）。</p>
+
+    <div class="callout coral">
+      <span class="ct">记住这个词</span>
+      <b>NoPE（No Position Encoding，无位置编码）</b>：K3 不给词发显式座位号，靠 KDA 的遗忘机制「隐式」记住顺序。好处是省内存、窗口可无限外推——这也是 K3 能直接冲到 100 万 token 的原因之一。
+    </div>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>KDA 的每步保留因子 <code>α ∈ (0,1)</code> 使第 t 步写入的信息在第 T 步时的残留 ≈ α 的连乘积，即指数衰减。K3 还给对数衰减设了下界（<code>g_min = −5</code>），保证 16-token 块内累积衰减落在 BF16 动态范围内，从而能用稠密 Tensor Core 矩阵乘法。这个「有下界的遗忘」在数学上等价于带近因偏置的位置编码——NoPE 的严格依据。</div>
+  </section>
+
+  <!-- ================= 5 MLA ================= -->
+  <section id="s5">
+    <h2><span class="no">5</span>另一种省法：不记原话，记摘要（MLA）</h2>
+
+    <p class="lead-para">KDA 是「固定大小笔记本」。K3 还有第二招省内存——用在它那 1/4 的「全记录式」注意力（MLA）上：<b>把每个人的「名片+发言」压缩成一小段摘要再存</b>。就像听讲座不抄全稿，只写三行要点。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 246" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>MLA：把每个词的 K/V 压缩成低维摘要存储</title>
+        <desc>传统方式每词存一张完整卡片；MLA 每词压成一个小摘要，用的时候再展开</desc>
+        <text x="40" y="28" style="font-size:13px;font-weight:600;fill:#1f2329">MLA 的省法：不记原话，记「摘要」</text>
+
+        <g>
+          <rect x="40" y="48" width="280" height="128" rx="12" fill="#f7f8fa" stroke="#d3d1c7" stroke-width="0.5"/>
+          <text x="180" y="68" text-anchor="middle" style="font-size:12.5px;font-weight:600;fill:#5f5e5a">传统 K/V：每人一张完整卡片</text>
+          <rect x="52" y="82" width="64" height="80" rx="6" fill="#fff" stroke="#185fa5" stroke-width="0.6"/>
+          <line x1="60" y1="98" x2="108" y2="98" stroke="#b5d4f4" stroke-width="1.4"/>
+          <line x1="60" y1="110" x2="108" y2="110" stroke="#b5d4f4" stroke-width="1.4"/>
+          <line x1="60" y1="122" x2="108" y2="122" stroke="#b5d4f4" stroke-width="1.4"/>
+          <line x1="60" y1="134" x2="108" y2="134" stroke="#b5d4f4" stroke-width="1.4"/>
+          <line x1="60" y1="146" x2="108" y2="146" stroke="#b5d4f4" stroke-width="1.4"/>
+          <rect x="132" y="82" width="64" height="80" rx="6" fill="#fff" stroke="#185fa5" stroke-width="0.6"/>
+          <line x1="140" y1="98" x2="188" y2="98" stroke="#b5d4f4" stroke-width="1.4"/>
+          <line x1="140" y1="110" x2="188" y2="110" stroke="#b5d4f4" stroke-width="1.4"/>
+          <line x1="140" y1="122" x2="188" y2="122" stroke="#b5d4f4" stroke-width="1.4"/>
+          <line x1="140" y1="134" x2="188" y2="134" stroke="#b5d4f4" stroke-width="1.4"/>
+          <line x1="140" y1="146" x2="188" y2="146" stroke="#b5d4f4" stroke-width="1.4"/>
+          <rect x="212" y="82" width="64" height="80" rx="6" fill="#fff" stroke="#185fa5" stroke-width="0.6"/>
+          <line x1="220" y1="98" x2="268" y2="98" stroke="#b5d4f4" stroke-width="1.4"/>
+          <line x1="220" y1="110" x2="268" y2="110" stroke="#b5d4f4" stroke-width="1.4"/>
+          <line x1="220" y1="122" x2="268" y2="122" stroke="#b5d4f4" stroke-width="1.4"/>
+          <line x1="220" y1="134" x2="268" y2="134" stroke="#b5d4f4" stroke-width="1.4"/>
+          <line x1="220" y1="146" x2="268" y2="146" stroke="#b5d4f4" stroke-width="1.4"/>
+          <text x="180" y="196" text-anchor="middle" style="font-size:12px;fill:#5f5e5a">每个词一大张 → 越记越占地方</text>
+        </g>
+
+        <g>
+          <rect x="360" y="48" width="280" height="128" rx="12" fill="#e1f5ee" stroke="#9fd6c2" stroke-width="0.5"/>
+          <text x="500" y="68" text-anchor="middle" style="font-size:12.5px;font-weight:600;fill:#085041">MLA：每词压成一个小摘要</text>
+          <rect x="410" y="90" width="36" height="28" rx="5" fill="#0f6e56"/>
+          <rect x="470" y="90" width="36" height="28" rx="5" fill="#0f6e56"/>
+          <rect x="530" y="90" width="36" height="28" rx="5" fill="#0f6e56"/>
+          <text x="428" y="106" text-anchor="middle" style="font-size:10px;fill:#fff">摘要</text>
+          <text x="488" y="106" text-anchor="middle" style="font-size:10px;fill:#fff">摘要</text>
+          <text x="548" y="106" text-anchor="middle" style="font-size:10px;fill:#fff">摘要</text>
+          <text x="500" y="150" text-anchor="middle" style="font-size:12px;fill:#0f6e56">用的时候再「展开」成完整名片</text>
+          <text x="500" y="196" text-anchor="middle" style="font-size:12px;fill:#085041">一小段 → 100 万字也装得下</text>
+        </g>
+
+        <text x="340" y="228" text-anchor="middle" style="font-size:12px;fill:#6b7280">摘要 = 把完整 K/V 压缩成的「潜向量」。压缩了但不丢全局——所以 K3 用它做「全记录式」那一层</text>
+      </svg>
+      <div class="figcap"><b>图 5 · MLA 的「摘要式存储」：</b>传统方式每个词存一张完整卡片（左），MLA 把每个词的 K/V 压成一小段摘要（右，深色小方块），需要时再展开。压缩有损失但损失可控，换来的是缓存大幅瘦身。K3 的注意力是「双轨」：大部分层用 KDA 记笔记，隔几层用 MLA 做「全记录」——MLA 也压缩，KDA 也省地方，两头都占。</div>
+    </div>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>MLA 用低维投影 <code>c_t = W_c x_t</code> 压缩每个 token 的 K/V，缓存存 c_t 而非完整的逐头 K/V，注意力计算时再通过升投影重构。K/V 缓存从「每头一份」降为「每 token 一份潜向量」，显存占用显著下降。K3 还给它加了依赖输入的全秩输出门（Gated MLA）。</div>
+  </section>
+
+  <!-- ================= 6 长上下文 ================= -->
+  <section id="s6">
+    <h2><span class="no">6</span>100 万不是一天练成的：窗口一点点拉长</h2>
+
+    <p class="lead-para">有了 KDA 的固定笔记本和 MLA 的摘要，内存问题解决了。但还有最后一关：<b>100 万 token 的「长文本理解力」，模型一开始是没有的</b>——得靠训练喂出来。K3 的做法是「渐进式」：像长跑一样分段提速，不让某一阶段被长文拖垮。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 248" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>渐进式上下文扩展：8K→64K→256K→1M 四阶段</title>
+        <desc>上下文窗口随训练推进从 8K 逐步扩展到 64K、256K、100 万</desc>
+        <text x="40" y="26" style="font-size:13px;font-weight:600;fill:#1f2329">上下文窗口：四步拉长，而不是一步到位</text>
+
+        <text x="40" y="58" style="font-size:12px;fill:#6b7280">预训练早期</text>
+        <rect x="40" y="68" width="80" height="26" rx="6" fill="#d7e8f7" stroke="#185fa5" stroke-width="0.8"/>
+        <text x="132" y="81" dominant-baseline="central" style="font-size:12.5px;font-weight:600;fill:#0c447c">8K</text>
+
+        <text x="40" y="106" style="font-size:12px;fill:#6b7280">预训练后期</text>
+        <rect x="40" y="116" width="170" height="26" rx="6" fill="#b5d4f4" stroke="#185fa5" stroke-width="0.8"/>
+        <text x="222" y="129" dominant-baseline="central" style="font-size:12.5px;font-weight:600;fill:#0c447c">64K</text>
+
+        <text x="40" y="154" style="font-size:12px;fill:#6b7280">收尾（cooldown）</text>
+        <rect x="40" y="164" width="270" height="26" rx="6" fill="#4a8cc2" stroke="#185fa5" stroke-width="0.8"/>
+        <text x="322" y="177" dominant-baseline="central" style="font-size:12.5px;font-weight:600;fill:#fff">256K</text>
+
+        <text x="40" y="202" style="font-size:12px;font-weight:600;fill:#0c447c">最终目标</text>
+        <rect x="40" y="212" width="400" height="26" rx="6" fill="#185fa5"/>
+        <text x="452" y="225" dominant-baseline="central" style="font-size:13px;font-weight:600;fill:#185fa5">1,000,000（100 万）</text>
+      </svg>
+      <div class="figcap"><b>图 6 · 渐进式上下文扩展：</b>窗口从预训练早期的 8K 起步 → 预训练后期 64K → 收尾阶段 256K → 最终 100 万。长文本计算又贵又慢，K3 把「烧钱的长序列训练」压缩在总预算的一小段里，其余时间专心学短文本——先学会读短文，再逐步挑战长文。</div>
+    </div>
+
+    <p>还有个配套细节：<b>光长不够，还要「会读」</b>。长文档里废话很多，K3 的团队会专门合成一些「必须看完整 100 万字才能答对」的训练题，逼着模型真的学会利用超长上下文——防止它「假装读了开头就瞎猜」。</p>
+
+    <div class="callout">
+      <b>今天的核心记忆点：</b><br>
+      ① 注意力要两两打分 → 窗口越长越贵（O(L²)）；<br>
+      ② KV Cache 便签本 → 省掉重复劳动，但越记越厚；<br>
+      ③ KDA 固定笔记本 → 大小不变，边读边写、旧笔记变淡；<br>
+      ④ 遗忘 = 位置信息（NoPE）→ 不用发座位号，窗口随便拉长；<br>
+      ⑤ MLA 摘要存储 → 全记录那一层也瘦身；<br>
+      ⑥ 渐进式扩展 → 8K → 64K → 256K → 100 万。
+    </div>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>长上下文训练的关键权衡：把 8K 训练翻到 1M，计算量不是线性增长而是二次增长，所以 K3 采用「课程式」策略——大部分算力花在短序列，cooldown 阶段才上长序列（256K→1M），并用合成长程依赖数据防注意力退化。KDA 的 O(1) 状态 + 分块并行，让这个课程在工程上可负担。</div>
+  </section>
+
+  <!-- ================= K3 映射 ================= -->
+  <section id="k3">
+    <h2><span class="no">7</span>映射到 K3：原文里的「记笔记」长什么样</h2>
+    <p class="lead-para">今天讲的每一件事，都能在 K3 报告里找到对应的原文。选三段最核心的，逐词翻译给你看：</p>
+
+    <div class="k3box">
+      <div class="kt">K3 原文（§2.1.1 KDA 第一段）</div>
+      <div class="k3quote">「KDA 在 delta 规则递归的基础上扩展了逐通道遗忘门……KDA 在 delta 规则更新之前施加逐通道衰减。」</div>
+      <p style="margin:12px 0 4px;"><b>逐词翻译：</b></p>
+      <ul>
+        <li style="margin:6px 0;"><b>delta 规则递归</b>：写笔记时「只更新相关那部分」——新词来了，改动笔记本里跟它相关的格子，不是全部重写。</li>
+        <li style="margin:6px 0;"><b>逐通道遗忘门</b>：图 4 那条遗忘曲线——每个「记忆通道」按自己的节奏变淡。</li>
+        <li style="margin:6px 0;"><b>施加在更新之前</b>：先让旧笔记淡一点，再把新内容写进去——顺序很关键，保证「旧的重一点、新的鲜一点」。</li>
+      </ul>
+    </div>
+
+    <div class="k3box">
+      <div class="kt">K3 原文（§3.4 长上下文扩展 · 位置编码）</div>
+      <div class="k3quote">「Kimi K3 不使用显式位置嵌入（NoPE），而是通过 KDA 的循环门控与衰减机制隐式编码位置信息。因此，模型无需对位置编码做任何修改……即可直接外推至 100 万 token 的上下文。」</div>
+      <p style="margin:12px 0 4px;"><b>逐词翻译：</b></p>
+      <ul>
+        <li style="margin:6px 0;"><b>NoPE + 隐式编码位置</b>：不另买「座位号」，把顺序藏在遗忘曲线里（图 4 的彩蛋）。</li>
+        <li style="margin:6px 0;"><b>无需修改即可外推</b>：别的模型拉到超长上下文，常常要改座位号规则（RoPE 重缩放、插值），K3 完全不用——这是它能轻松冲到 100 万的直接原因。</li>
+      </ul>
+    </div>
+
+    <div class="k3box">
+      <div class="kt">K3 原文（§5.1 基础设施 · 为什么值得这么干）</div>
+      <div class="k3quote">「KDA 用固定大小的循环状态 S 取代 softmax 注意力中不断增长的键值缓存。」</div>
+      <p style="margin:12px 0 4px;"><b>逐词翻译：</b>一句话把今天讲完：「固定大小的循环状态 S」= 图 3 的固定笔记本；「不断增长的键值缓存」= 图 2 越记越厚的便签本。KDA 的存在意义，就是拿「固定大小」换掉「不断增长」。</p>
+    </div>
+
+    <div class="numgrid">
+      <div class="numcard"><div class="n">1M</div><div class="l">上下文窗口<br>100 万 token</div></div>
+      <div class="numcard"><div class="n">3:1</div><div class="l">每 4 层注意力：<br>3 层 KDA + 1 层 MLA</div></div>
+      <div class="numcard"><div class="n">NoPE</div><div class="l">无显式位置编码<br>遗忘曲线当座位号</div></div>
+      <div class="numcard"><div class="n">8K→1M</div><div class="l">窗口四步渐进拉长<br>8K→64K→256K→100万</div></div>
+    </div>
+
+    <div class="callout coral" style="margin-top:16px;">
+      <span class="ct">一句话总结今天的 K3 印象</span>
+      K3 的长上下文不是靠蛮力堆出来的，是靠「记账」记出来的：<b>KV Cache 解决重复劳动，KDA 固定笔记本解决越记越厚，遗忘曲线顺手解决顺序，MLA 压缩解决全记录层的开销，渐进式训练把 100 万慢慢教出来</b>。明天我们去看另一座大山：2.8 万亿个数字，凭什么每次只动 1040 亿？
+    </div>
+  </section>
+
+  <!-- ================= 自测题 ================= -->
+  <section id="quiz">
+    <h2><span class="no">8</span>自测题（先自己答，再点开看解析）</h2>
+
+    <details>
+      <summary><span class="qmark">Q1</span>为什么上下文窗口越长，AI 越慢越贵？</summary>
+      <div class="ans">因为注意力要「<b>两两打分</b>」：每个词都要和窗口里其他所有词打一次分。打分次数 ≈ 词数 × 词数：4 个词 16 次，8 个词 64 次，16 个词 256 次——<b>词数翻一倍，次数翻四倍</b>。100 万个词就是 100 万 × 100 万次，天文数字。</div>
+    </details>
+
+    <details>
+      <summary><span class="qmark">Q2</span>「便签本」KV Cache 解决什么问题？它自己有什么新问题？</summary>
+      <div class="ans">解决「<b>重复劳动</b>」：AI 一个字一个字往外蹦，如果没有便签本，每蹦一个字都要把前面所有内容重听一遍。有了便签本，第一次听时把每个词的 K（名片）和 V（发言）记下来，之后直接查。<b>新问题</b>：便签本越记越厚（每词一张卡片），上下文一长，内存就爆了。</div>
+    </details>
+
+    <details>
+      <summary><span class="qmark">Q3</span>KDA 和 KV Cache 的本质区别是什么？</summary>
+      <div class="ans">KV Cache 像<b>录音笔</b>：每个词一张完整卡片，越记越多、大小随文章变长。KDA 像<b>固定大小的会议纪要本</b>：永远就那么多格，读到新词只更新相关格子，旧笔记按遗忘曲线变淡。<b>笔记本大小与文章长度无关</b>——这就是 KDA 能看 100 万字还不爆内存的根本原因。</div>
+    </details>
+
+    <details>
+      <summary><span class="qmark">Q4</span>「遗忘」为什么反而是 K3 的优点？</summary>
+      <div class="ans">两个原因：① <b>近的比远的更重要</b>，把记忆力匀给刚说的话性价比更高；② <b>遗忘曲线本身编码了顺序</b>——越靠后的词越清晰、越靠前的词越模糊，位置信息藏在清晰度里。这让 K3 不用显式发「座位号」（NoPE），省内存，而且上下文窗口想拉多长拉多长。</div>
+    </details>
+
+    <details>
+      <summary><span class="qmark">Q5</span>K3 的 100 万上下文是怎么「练」出来的？</summary>
+      <div class="ans">不是一步到位，而是<b>渐进式拉长</b>：预训练早期 8K → 预训练后期 64K → 收尾阶段 256K → 最终 100 万。长序列计算又贵又慢，所以只在总训练预算的一小段里做。同时还会<b>专门合成「必须读完整 100 万字才能答对」的题目</b>，逼模型真正学会利用超长上下文，防止它「读了开头就瞎猜」。</div>
+    </details>
+  </section>
+
+  <!-- ================= 明日预告 ================= -->
+  <div class="next">
+    <div class="nt">
+      <div>明日预告 · Day 4</div>
+      <b>2.8 万亿个数字，为什么每次只动 1040 亿？</b>
+      <div style="margin-top:4px; font-size:13px;">把大脑拆成 896 个专家小组 · 每个字为什么只问 16 个 · 怎么让专家不吵架、不偷懒 · 为什么「越大越划算」</div>
+    </div>
+    <a href="day-04.html">开始 Day 4 →</a>
+  </div>
+
+  <div class="foot">
+    <a href="index.html">返回课程首页</a> · 本课程基于《Kimi K3 技术报告》编写，概念图均为原创示意
+  </div>
+
+</div>
+</body>
+</html>

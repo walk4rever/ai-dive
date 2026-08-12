@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 4 · MoE：为什么 2.8T 只用 1040 亿 — K3 七天课</title>
+<style>
+  :root{
+    --bg:#ffffff; --card:#f7f8fa; --card2:#eef1f6; --ink:#1f2329; --muted:#6b7280;
+    --line:#e5e7eb; --blue:#185fa5; --blue-bg:#e6f1fb; --blue-ink:#0c447c;
+    --coral:#993c1d; --coral-bg:#faece7; --coral-ink:#712b13;
+    --teal:#0f6e56; --teal-bg:#e1f5ee; --teal-ink:#085041;
+    --amber:#854f0b; --amber-bg:#faeeda;
+    --mono:"SF Mono",Menlo,Consolas,monospace;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; line-height:1.8; font-size:15.5px;}
+  .wrap{max-width:860px; margin:0 auto; padding:0 24px 80px;}
+
+  .topnav{position:sticky; top:0; z-index:10; background:rgba(255,255,255,.94); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
+  .topnav-inner{max-width:860px; margin:0 auto; padding:10px 24px; display:flex; align-items:center; gap:12px; font-size:13px;}
+  .brand{font-weight:500; color:var(--ink);}
+  .brand .d{color:var(--blue);}
+  .spacer{flex:1;}
+  .topnav a{color:var(--muted); text-decoration:none; padding:4px 10px; border-radius:8px; transition:.15s;}
+  .topnav a:hover{background:var(--card2); color:var(--ink);}
+  .progress{height:3px; background:var(--line);}
+  .progress i{display:block; height:100%; width:57.14%; background:var(--blue); border-radius:0 3px 3px 0;}
+
+  .hero{margin:36px 0 28px;}
+  .daychip{display:inline-flex; align-items:center; gap:8px; background:var(--blue-bg); color:var(--blue-ink); border:1px solid #b5d4f4; padding:5px 14px; border-radius:999px; font-size:13px; font-weight:500;}
+  .hero h1{font-size:28px; font-weight:600; margin:16px 0 8px; letter-spacing:.3px;}
+  .hero .sub{color:var(--muted); font-size:15px;}
+  .goals{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:26px;}
+  .goal{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px;}
+  .goal .gq{font-size:12px; color:var(--blue); font-weight:500; margin-bottom:6px;}
+  .goal .gt{font-size:14px;}
+
+  section{margin-top:52px;}
+  h2{font-size:22px; font-weight:600; margin-bottom:6px; display:flex; align-items:center; gap:10px;}
+  h2 .no{background:var(--blue); color:#fff; width:30px; height:30px; border-radius:9px; display:inline-flex; align-items:center; justify-content:center; font-size:15px; flex:none;}
+  h3{font-size:17px; font-weight:600; margin:32px 0 10px;}
+  p{margin:10px 0;}
+  .lead-para{color:#374151;}
+  ul{padding-left:22px; margin:10px 0;}
+  ul li{margin:6px 0;}
+
+  .anchor{width:100%; border-collapse:collapse; margin-top:14px; font-size:14.5px;}
+  .anchor th,.anchor td{border:1px solid var(--line); padding:11px 14px; text-align:left; vertical-align:top;}
+  .anchor th{background:var(--card2); font-weight:500; width:170px;}
+  .anchor tr td:first-child{color:var(--muted);}
+  .anchor td b{color:var(--blue-ink);}
+
+  .fig{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:18px; margin:18px 0;}
+  .fig svg{display:block; width:100%; height:auto;}
+  .figcap{font-size:13.5px; color:var(--muted); margin-top:12px; padding-top:10px; border-top:1px dashed var(--line);}
+  .figcap b{color:var(--ink);}
+
+  .analogy{background:var(--teal-bg); border-left:4px solid var(--teal); border-radius:0 10px 10px 0; padding:14px 18px; margin:16px 0; font-size:14.5px;}
+  .analogy .lbl{font-size:12px; font-weight:500; color:var(--teal); letter-spacing:1px;}
+  .callout{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px 20px; margin:16px 0; font-size:14.5px;}
+  .callout.coral{background:var(--coral-bg); border-color:#f5c4b3;}
+  .callout .ct{display:block; font-size:12px; font-weight:500; color:var(--coral); margin-bottom:6px; letter-spacing:1px;}
+
+  .pro{margin:14px 0; padding:9px 14px; background:var(--card2); border:1px dashed var(--line); border-radius:10px; font-size:12.5px; color:var(--muted); line-height:1.7;}
+  .pro .pl{font-weight:600; color:var(--blue-ink); margin-right:4px;}
+  .pro code{font-family:var(--mono); font-size:12px; background:rgba(255,255,255,.8); padding:1px 5px; border-radius:5px; color:var(--blue-ink);}
+
+  .k3box{background:var(--coral-bg); border:1px solid #f5c4b3; border-radius:var(--radius); padding:18px 22px; margin-top:14px;}
+  .k3box .kt{font-size:13px; font-weight:500; color:var(--coral); letter-spacing:1px; margin-bottom:10px;}
+  .k3quote{font-family:var(--mono); font-size:13.5px; background:rgba(255,255,255,.7); border:1px dashed #e0b0a0; border-radius:8px; padding:10px 14px; margin:10px 0; color:#5c3a2a; line-height:1.8;}
+  .numgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:16px;}
+  .numcard{background:#fff; border:1px solid #f0d5cb; border-radius:12px; padding:16px 10px; text-align:center;}
+  .numcard .n{font-size:22px; font-weight:600; color:var(--coral-ink); font-family:var(--mono);}
+  .numcard .l{font-size:12.5px; color:#8a5a44; margin-top:4px; line-height:1.6;}
+
+  details{border:1px solid var(--line); border-radius:12px; margin:12px 0; background:#fff; overflow:hidden;}
+  summary{cursor:pointer; padding:14px 18px; font-size:14.5px; list-style:none; display:flex; gap:10px; align-items:baseline;}
+  summary::-webkit-details-marker{display:none;}
+  summary .qmark{color:var(--blue); font-weight:600; flex:none;}
+  summary:hover{background:var(--card);}
+  details[open] summary{border-bottom:1px solid var(--line); background:var(--card);}
+  .ans{padding:14px 18px; font-size:14px; color:#374151;}
+  .ans b{color:var(--blue-ink);}
+
+  .next{margin-top:56px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:20px 24px; display:flex; align-items:center; gap:16px;}
+  .next .nt{font-size:13px; color:var(--muted);}
+  .next .nt b{color:var(--ink); font-size:15px;}
+  .next a{margin-left:auto; background:var(--blue); color:#fff; text-decoration:none; padding:9px 20px; border-radius:10px; font-size:14px; flex:none;}
+  .next a:hover{background:#13497e;}
+  .foot{margin-top:40px; text-align:center; font-size:12.5px; color:var(--muted);}
+  .foot a{color:var(--muted); text-decoration:none; border-bottom:1px dashed var(--line);}
+
+  @media (max-width:720px){
+    .goals{grid-template-columns:1fr;}
+    .numgrid{grid-template-columns:repeat(2,1fr);}
+    .topnav-inner{padding:10px 14px;}
+    .hero h1{font-size:23px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="topnav-inner">
+    <span class="brand">K3 七天课 <span class="d">· Day 4 / 7</span></span>
+    <span class="spacer"></span>
+    <a href="index.html">课程首页</a>
+    <a href="#quiz">自测题</a>
+    <a href="#k3">映射 K3</a>
+  </div>
+  <div class="progress"><i></i></div>
+</div>
+
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <span class="daychip">Day 4 · 2.8 万亿，为什么每次只用 1040 亿？（MoE）</span>
+    <h1>把大脑拆成 896 个专家，每次只叫 16 个</h1>
+    <p class="sub">Day 1 留下一个坑：K3 有 <b>2.8 万亿</b>个数字，但每次「接龙」只动 <b>1040 亿</b>——剩下的去哪了？今天的答案叫 <b>MoE（混合专家）</b>：把大脑拆成 896 个专家小组，路由器按需点名，每次只叫 16 个干活。省钱、省电，还越拆越聪明。</p>
+    <div class="goals">
+      <div class="goal"><div class="gq">学完你能回答</div><div class="gt">2.8T 总参数和 104B 激活参数是什么关系？</div></div>
+      <div class="goal"><div class="gq">学完你能回答</div><div class="gt">896 个专家、每 token 激活 16 个，怎么做到不吵架？</div></div>
+      <div class="goal"><div class="gq">学完你能回答</div><div class="gt">「规模定律」为什么说越大越划算？</div></div>
+    </div>
+  </div>
+
+  <!-- ================= 知识锚点 ================= -->
+  <section id="anchor">
+    <h2><span class="no">0</span>起点：这些你早就会了</h2>
+    <p class="lead-para">今天讲的是「<b>分工</b>」的智慧。你在学校、在公司见到的那些分工场景，就是 MoE 的雏形：</p>
+    <table class="anchor">
+      <tr><th>你已经会的</th><th>AI 世界里对应的东西</th></tr>
+      <tr><td>医院分科室：内科外科各管一摊，挂号台帮你分诊</td><td><b>MoE（混合专家）</b>：896 个「专家」各管一类知识，路由器负责分诊</td></tr>
+      <tr><td>挂号台问两句就知道该挂哪个科</td><td><b>路由器（Router）</b>：看一眼 token，决定叫醒哪 16 个专家</td></tr>
+      <tr><td>全班做作业，老师只改收上来的那几本</td><td><b>Top-16 激活</b>：每次只算被点名的专家，其余在休息</td></tr>
+      <tr><td>热门科室挤爆、冷门科室没人去</td><td><b>负载不均</b>：专家也会「忙的忙死、闲的闲死」，需要调节</td></tr>
+      <tr><td>图书馆藏书 280 万册，一次只借几十本</td><td><b>总参数 vs 激活参数</b>：2.8T 全存着，104B 每次算</td></tr>
+      <tr><td>人越多、越细分，反而越高效（分工红利）</td><td><b>规模定律</b>：模型越大，单位成本的「聪明程度」越高</td></tr>
+    </table>
+    <p style="font-size:13.5px; color:var(--muted); margin-top:10px;">核心就一句：<b>「存得下」和「算得起」是两回事——MoE 就是让 2.8T 的脑子存得下、又算得起的办法。</b></p>
+  </section>
+
+  <!-- ================= 1 问题引入 ================= -->
+  <section id="s1">
+    <h2><span class="no">1</span>问题：2.8T 个数字，为什么不能全算？</h2>
+
+    <p class="lead-para">K3 一共存着 <b>2.8 万亿</b>个数字（这就是「总参数」）。如果每接一个字，这 2.8T 个数字全都要算一遍——不是不能，是<b>贵到离谱</b>：算得慢、耗电大、一次请求就要花很多钱。可 2.8T 又不能删，删了知识就少了。</p>
+
+    <p>聪明人都会想到一件事：<b>能不能每次只算一部分？</b>就像图书馆藏书 280 万册，你查「苹果为什么甜」时，根本不用翻农业、化学、历史全部书架——只翻「植物学 + 食品科学」那几架就够了。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 252" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>总参数 2.8T vs 激活参数 104B</title>
+        <desc>总参数像一整面墙的书，每次接龙只读其中一小摞（104B），其余原封不动地存着</desc>
+        <text x="40" y="28" style="font-size:13px;font-weight:600;fill:#1f2329">2.8T 是「家底」，104B 是「每次真的花出去的」</text>
+
+        <g>
+          <rect x="40" y="52" width="280" height="180" rx="12" fill="#f7f8fa" stroke="#d3d1c7" stroke-width="0.5"/>
+          <text x="180" y="74" text-anchor="middle" style="font-size:13px;font-weight:600;fill:#0c447c">总参数 2.8T：全部存着</text>
+          <g>
+            <rect x="56" y="92" width="248" height="14" rx="3" fill="#d7e8f7"/>
+            <rect x="56" y="112" width="248" height="14" rx="3" fill="#d7e8f7"/>
+            <rect x="56" y="132" width="248" height="14" rx="3" fill="#d7e8f7"/>
+            <rect x="56" y="152" width="248" height="14" rx="3" fill="#d7e8f7"/>
+            <rect x="56" y="172" width="248" height="14" rx="3" fill="#d7e8f7"/>
+            <rect x="56" y="192" width="248" height="14" rx="3" fill="#d7e8f7"/>
+          </g>
+          <text x="180" y="220" text-anchor="middle" style="font-size:11.5px;fill:#6b7280">= 一整个「知识图书馆」，平时全锁在书架上</text>
+        </g>
+
+        <g>
+          <rect x="360" y="52" width="280" height="180" rx="12" fill="#f7f8fa" stroke="#d3d1c7" stroke-width="0.5"/>
+          <text x="500" y="74" text-anchor="middle" style="font-size:13px;font-weight:600;fill:#085041">激活参数 104B：每次真算</text>
+          <rect x="390" y="112" width="220" height="52" rx="8" fill="#e1f5ee" stroke="#0f6e56" stroke-width="1"/>
+          <text x="500" y="134" text-anchor="middle" style="font-size:13.5px;font-weight:600;fill:#085041">104B ≈ 2.8T ÷ 27</text>
+          <text x="500" y="154" text-anchor="middle" style="font-size:11.5px;fill:#0f6e56">每次接龙只翻这一小摞书</text>
+          <text x="500" y="196" text-anchor="middle" style="font-size:12px;fill:#085041">同样的「聪明」，成本只有 1/27</text>
+          <text x="500" y="216" text-anchor="middle" style="font-size:11.5px;fill:#6b7280">（那 96% 的专家也不是白存——它们让 K3 懂得更多）</text>
+        </g>
+
+        <text x="340" y="244" text-anchor="middle" style="font-size:12px;fill:#6b7280">「总参数」决定知识面，「激活参数」决定每次花多少钱——两者解耦，是 MoE 的全部秘密</text>
+      </svg>
+      <div class="figcap"><b>图 1 · 总参数 vs 激活参数：</b>左边是 K3 的「全部家底」2.8T 个数字，像图书馆的全部藏书，锁在书架上（存着，不占计算）。右边是每次接龙「真的翻开读」的部分——只有 104B，约等于总参数的 1/27。这就是为什么 K3「又大又便宜」：<b>大在知识面，便宜在每次只算一小部分</b>。</div>
+    </div>
+
+    <div class="callout">
+      <b>记住这两个词，后面会一直用：</b><br>
+      <b>总参数（2.8T）</b>：模型里存的所有数字——决定「懂多少」；<br>
+      <b>激活参数（104B）</b>：处理一个字时真的参与计算的数字——决定「每次花多少钱」。
+    </div>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>传统 Dense 模型总参数 = 激活参数，算一次前向的 FLOPs 与参数规模成正比。MoE（Mixture-of-Experts）把 FFN 层换成多个专家，每个 token 只经过 Top-k 专家，于是 <b>激活参数 ≪ 总参数</b>，推理成本与激活参数挂钩、知识容量与总参数挂钩——这就是「稀疏激活」的本质。</div>
+  </section>
+
+  <!-- ================= 2 MoE 核心 ================= -->
+  <section id="s2">
+    <h2><span class="no">2</span>核心：896 个专家 + 一个路由器</h2>
+
+    <p class="lead-para">MoE 的想法一句话：<b>把一层大脑，拆成 896 个小专家，每个专家专精一类「活」；每个字进来，路由器看一眼，挑最对口的 16 个专家来算</b>。</p>
+
+    <p>K3 的细节是：896 个「路由专家」（被点名的）+ 2 个「共享专家」（每次都参与的，管通用技能，相当于全科医生）。也就是说，每个字实际动用了 <b>16 个路由专家 + 2 个共享专家</b>。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 268" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>MoE：路由器把 token 分发给 Top-16 个专家</title>
+        <desc>一串 token 经过路由器，路由器选出 16 个最相关的专家（高亮），其余专家在休息；2 个共享专家总是参与</desc>
+        <text x="40" y="26" style="font-size:13px;font-weight:600;fill:#1f2329">每个 token：路由器点名 → 16 个路由专家 + 2 个共享专家干活</text>
+
+        <g>
+          <rect x="40" y="48" width="70" height="34" rx="6" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="75" y="65" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#0c447c">苹</text>
+          <rect x="40" y="90" width="70" height="34" rx="6" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="75" y="107" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#0c447c">果</text>
+          <rect x="40" y="132" width="70" height="34" rx="6" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="75" y="149" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#0c447c">很</text>
+          <rect x="40" y="174" width="70" height="34" rx="6" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="75" y="191" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#0c447c">甜</text>
+        </g>
+
+        <rect x="140" y="108" width="110" height="48" rx="10" fill="#faeeda" stroke="#ba7517" stroke-width="1"/>
+        <text x="195" y="128" text-anchor="middle" style="font-size:13px;font-weight:600;fill:#854f0b">路由器</text>
+        <text x="195" y="146" text-anchor="middle" style="font-size:10.5px;fill:#854f0b">点名 Top-16</text>
+
+        <g>
+          <rect x="290" y="48" width="350" height="52" rx="10" fill="#f7f8fa" stroke="#d3d1c7" stroke-width="0.5"/>
+          <text x="465" y="66" text-anchor="middle" style="font-size:11.5px;fill:#5f5e5a">896 个路由专家（每个圆点 = 1 个）</text>
+          <g>
+            <circle cx="310" cy="86" r="5" fill="#185fa5"/>
+            <circle cx="330" cy="86" r="5" fill="#185fa5"/>
+            <circle cx="350" cy="86" r="5" fill="#9aa0a6"/>
+            <circle cx="370" cy="86" r="5" fill="#9aa0a6"/>
+            <circle cx="390" cy="86" r="5" fill="#185fa5"/>
+            <circle cx="410" cy="86" r="5" fill="#9aa0a6"/>
+            <circle cx="430" cy="86" r="5" fill="#9aa0a6"/>
+            <circle cx="450" cy="86" r="5" fill="#185fa5"/>
+            <circle cx="470" cy="86" r="5" fill="#9aa0a6"/>
+            <circle cx="490" cy="86" r="5" fill="#9aa0a6"/>
+            <circle cx="510" cy="86" r="5" fill="#185fa5"/>
+            <circle cx="530" cy="86" r="5" fill="#9aa0a6"/>
+            <circle cx="550" cy="86" r="5" fill="#9aa0a6"/>
+            <circle cx="570" cy="86" r="5" fill="#185fa5"/>
+            <circle cx="590" cy="86" r="5" fill="#9aa0a6"/>
+            <circle cx="610" cy="86" r="5" fill="#9aa0a6"/>
+          </g>
+          <text x="310" y="92" style="font-size:10.5px;fill:#185fa5">●</text>
+        </g>
+
+        <g>
+          <rect x="290" y="112" width="350" height="44" rx="10" fill="#f7f8fa" stroke="#d3d1c7" stroke-width="0.5"/>
+          <text x="465" y="130" text-anchor="middle" style="font-size:11.5px;fill:#5f5e5a">被点名的 16 个专家：只有它们在算</text>
+          <g>
+            <rect x="306" y="140" width="22" height="12" rx="3" fill="#185fa5"/>
+            <rect x="332" y="140" width="22" height="12" rx="3" fill="#185fa5"/>
+            <rect x="358" y="140" width="22" height="12" rx="3" fill="#185fa5"/>
+            <rect x="384" y="140" width="22" height="12" rx="3" fill="#185fa5"/>
+            <rect x="410" y="140" width="22" height="12" rx="3" fill="#185fa5"/>
+            <rect x="436" y="140" width="22" height="12" rx="3" fill="#185fa5"/>
+            <rect x="462" y="140" width="22" height="12" rx="3" fill="#185fa5"/>
+            <rect x="488" y="140" width="22" height="12" rx="3" fill="#185fa5"/>
+            <rect x="514" y="140" width="22" height="12" rx="3" fill="#185fa5"/>
+            <rect x="540" y="140" width="22" height="12" rx="3" fill="#185fa5"/>
+            <rect x="566" y="140" width="22" height="12" rx="3" fill="#185fa5"/>
+            <rect x="592" y="140" width="22" height="12" rx="3" fill="#185fa5"/>
+          </g>
+          <text x="622" y="134" style="font-size:10.5px;fill:#9aa0a6">…</text>
+          <text x="622" y="148" style="font-size:10.5px;fill:#9aa0a6">…</text>
+        </g>
+
+        <g>
+          <rect x="290" y="168" width="350" height="44" rx="10" fill="#e1f5ee" stroke="#9fd6c2" stroke-width="0.5"/>
+          <text x="465" y="184" text-anchor="middle" style="font-size:11.5px;fill:#085041">2 个共享专家：每次都在（全科医生）</text>
+          <rect x="420" y="194" width="40" height="12" rx="3" fill="#0f6e56"/>
+          <rect x="470" y="194" width="40" height="12" rx="3" fill="#0f6e56"/>
+        </g>
+
+        <g>
+          <path d="M110 64 L140 118" stroke="#888780" stroke-width="1.2" fill="none" marker-end="url(#d4a)"/>
+          <path d="M110 106 L140 122" stroke="#888780" stroke-width="1.2" fill="none"/>
+          <path d="M110 148 L140 128" stroke="#888780" stroke-width="1.2" fill="none"/>
+          <path d="M110 190 L140 134" stroke="#888780" stroke-width="1.2" fill="none"/>
+          <path d="M250 118 L306 86" stroke="#888780" stroke-width="1.2" fill="none"/>
+          <path d="M250 122 L306 152" stroke="#888780" stroke-width="1.2" fill="none"/>
+        </g>
+
+        <text x="340" y="240" text-anchor="middle" style="font-size:12px;fill:#6b7280">路由器会给每个专家打「相关分」，只把 token 派给分数最高的 16 个 → 96% 的专家这轮在休息</text>
+        <defs>
+          <marker id="d4a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+      </svg>
+      <div class="figcap"><b>图 2 · MoE 的一天：</b>左边是正在处理的 token（苹果/很/甜……），中间的路由器给 896 个专家打分，选出最对口的 16 个（第二行高亮块），再加上 2 个「全科医生」共享专家，一起处理这个字。没被点名的 880 个专家原地待命——它们不参与计算，所以不花钱。</div>
+    </div>
+
+    <div class="analogy">
+      <span class="lbl">打个比方</span><br>
+      像一家有 896 个专科医生的医院。你挂号（token）进来，分诊台（路由器）看一眼症状，只叫对口的那 16 个专科医生 + 2 个全科医生来会诊，其余 878 个医生继续休息。要是每个病人都把 896 个医生全叫来——医院立刻瘫痪，收费还上天。
+    </div>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>K3 的 MoE 层采用 DeepSeekMoE 式组织：<b>2 个全宽度共享专家（N_s=2）+ 896 个路由专家</b>，每个 token 经路由器（Sigmoid 打分）选 Top-16。路由专家在低维潜空间（ℓ）中运算，而不是完整的 d 维——这叫 <b>LatentMoE</b>，是 K3 能把专家数堆到 896 的关键（Day 6 深读）。</div>
+  </section>
+
+  <!-- ================= 3 专家难题 ================= -->
+  <section id="s3">
+    <h2><span class="no">3</span>专家的两个坏毛病：偷懒和不均衡 → QB 来治</h2>
+
+    <p class="lead-para">思路很美好，但真把 896 个专家放一起，会出两个麻烦——都是「人」的问题：</p>
+
+    <ul>
+      <li><b>偷懒（坍缩）</b>：如果路由器自己长歪了，可能总点那两三个专家，其他专家永远学不到东西，等于白训练。</li>
+      <li><b>不均衡（忙闲不均）</b>：就算每个专家都被用，用多用少也不一样——热门的忙死、冷门的闲死，训练时有的卡算到冒烟、有的卡在摸鱼。</li>
+    </ul>
+
+    <p>K3 的解决办法叫 <b>QB（Quantile Balancing，分位数平衡）</b>。思路很朴素：<b>给每个专家发一个「偏置分」（加分/减分），冷门的加分让路由器更愿意点它，热门的减分让路由器少点它——最后让每个专家接到的活一样多</b>。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 268" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>QB 负载均衡：从 (4,3,1,0) 到 (2,2,2,2)</title>
+        <desc>4 个专家负载 4/3/1/0 不均衡，QB 调整偏置后变成 2/2/2/2 均衡</desc>
+        <text x="40" y="26" style="font-size:13px;font-weight:600;fill:#1f2329">负载均衡：让每个专家接到一样多的活</text>
+
+        <g>
+          <rect x="40" y="50" width="280" height="168" rx="12" fill="#f7f8fa" stroke="#d3d1c7" stroke-width="0.5"/>
+          <text x="180" y="72" text-anchor="middle" style="font-size:12.5px;font-weight:600;fill:#712b13">调整前：忙的忙死，闲的闲死</text>
+          <rect x="60" y="168" width="46" height="40" rx="6" fill="#993c1d"/>
+          <rect x="118" y="148" width="46" height="60" rx="6" fill="#e07a5f"/>
+          <rect x="176" y="188" width="46" height="20" rx="6" fill="#d3d1c7"/>
+          <rect x="234" y="198" width="46" height="10" rx="6" fill="#f1efe8" stroke="#d3d1c7" stroke-width="0.5"/>
+          <text x="83" y="128" text-anchor="middle" style="font-size:12px;fill:#993c1d">4 个</text>
+          <text x="141" y="128" text-anchor="middle" style="font-size:12px;fill:#993c1d">3 个</text>
+          <text x="199" y="128" text-anchor="middle" style="font-size:12px;fill:#6b7280">1 个</text>
+          <text x="257" y="128" text-anchor="middle" style="font-size:12px;fill:#6b7280">0 个</text>
+          <text x="180" y="204" text-anchor="middle" style="font-size:11px;fill:#712b13">专家 1 忙到冒烟　专家 4 全程摸鱼</text>
+        </g>
+
+        <path d="M330 134 L348 134" stroke="#185fa5" stroke-width="2.5" fill="none" marker-end="url(#d4b)"/>
+        <text x="339" y="150" text-anchor="middle" style="font-size:11px;fill:#185fa5">QB 调节</text>
+
+        <g>
+          <rect x="360" y="50" width="280" height="168" rx="12" fill="#f7f8fa" stroke="#d3d1c7" stroke-width="0.5"/>
+          <text x="500" y="72" text-anchor="middle" style="font-size:12.5px;font-weight:600;fill:#085041">调整后：人人均等，其乐融融</text>
+          <rect x="380" y="158" width="46" height="50" rx="6" fill="#0f6e56"/>
+          <rect x="438" y="158" width="46" height="50" rx="6" fill="#0f6e56"/>
+          <rect x="496" y="158" width="46" height="50" rx="6" fill="#0f6e56"/>
+          <rect x="554" y="158" width="46" height="50" rx="6" fill="#0f6e56"/>
+          <text x="403" y="138" text-anchor="middle" style="font-size:12px;fill:#0f6e56">2</text>
+          <text x="461" y="138" text-anchor="middle" style="font-size:12px;fill:#0f6e56">2</text>
+          <text x="519" y="138" text-anchor="middle" style="font-size:12px;fill:#0f6e56">2</text>
+          <text x="577" y="138" text-anchor="middle" style="font-size:12px;fill:#0f6e56">2</text>
+          <text x="500" y="204" text-anchor="middle" style="font-size:11px;fill:#085041">四个专家各接 2 个活，谁也不闲着</text>
+        </g>
+
+        <text x="340" y="240" text-anchor="middle" style="font-size:12px;fill:#6b7280">做法：给冷门专家「加分」、给热门专家「减分」，分数加在路由器打分上，让 Top-16 的名单变得更公平</text>
+        <defs>
+          <marker id="d4b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#185fa5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+      </svg>
+      <div class="figcap"><b>图 3 · QB 分位数平衡：</b>左边：4 个专家收到的活是 4、3、1、0 个——专家 1 忙到冒烟、专家 4 全程摸鱼，训练时有的卡算到爆、有的卡闲着。QB 给每个专家配一个「偏置分」，把流量重新分配（中间箭头），右边变成 2、2、2、2——人人均等。这个偏置是拿「分数的分位数」算出来的，所以叫「分位数平衡」。</div>
+    </div>
+
+    <div class="callout">
+      <b>为什么「均衡」这么重要？</b>因为 896 个专家是<b>分放在几百张显卡</b>上训练的（明天 Day 5 讲）。如果不均衡：负载高的卡成为瓶颈，其他卡干等；而且没被用到的专家等于「没上课」，学不到东西，白占参数。QB 保证了「每个专家都练到、每张卡都不闲着」。
+    </div>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>QB 是<b>无辅助损失路由</b>：不加额外的均衡损失项，而是给路由器分数加专家专属偏置 <code>b_j</code>（只影响 Top-k 选择，不影响混合权重与梯度）。偏置取「边际 s_{i,j} − α_i 的目标分位数」——保证每个专家恰好拿到 q = mk/n 个 token。大规模下用直方图估计分位数，一次 all-reduce 搞定，通信量只有自然方案的 1%。</div>
+  </section>
+
+  <!-- ================= 4 稀疏度 ================= -->
+  <section id="s4">
+    <h2><span class="no">4</span>稀疏度 56：96% 的专家在休息，为什么还更强？</h2>
+
+    <p class="lead-para">896 个专家里只叫 16 个，这个「16/896 = 1/56」的比值，行话叫<b>稀疏度 56</b>。换句话说：<b>处理每个字，96% 以上的专家在睡觉</b>。</p>
+
+    <p>有人会问：既然只算 16 个，那另外 880 个是不是白存了？恰恰相反——<b>它们让 K3 的「知识覆盖面」大了几十倍</b>。打个比方：一个人脑子里存着 896 门课的知识（虽然每门课只在上课时翻对应那本），那他的「见识」当然比只存 16 门课的模型广。专家越多，每个专家可以越「专」——一个专家只管德语动词变位，练得越精。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 240" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>稀疏度 56：56 个格子只有 1 格被激活</title>
+        <desc>8x7=56 个格子代表 56 个专家，只有 1 个高亮在算，其余 55 个休息</desc>
+        <text x="40" y="28" style="font-size:13px;font-weight:600;fill:#1f2329">稀疏度 56：每 56 个专家里，只有 1 个在算</text>
+        <g>
+          <rect x="60" y="56" width="40" height="34" rx="5" fill="#185fa5"/>
+          <rect x="104" y="56" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="148" y="56" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="192" y="56" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="236" y="56" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="280" y="56" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="324" y="56" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="368" y="56" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="60" y="96" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="104" y="96" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="148" y="96" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="192" y="96" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="236" y="96" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="280" y="96" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="324" y="96" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="368" y="96" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="60" y="136" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="104" y="136" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="148" y="136" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="192" y="136" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="236" y="136" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="280" y="136" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="324" y="136" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="368" y="136" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="60" y="176" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="104" y="176" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="148" y="176" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="192" y="176" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="236" y="176" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="280" y="176" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="324" y="176" width="40" height="34" rx="5" fill="#d7e8f7"/>
+          <rect x="368" y="176" width="40" height="34" rx="5" fill="#d7e8f7"/>
+        </g>
+        <text x="80" y="76" text-anchor="middle" style="font-size:11px;fill:#fff">算</text>
+        <text x="420" y="90" style="font-size:12.5px;fill:#0c447c">这一格在算（被点名的专家）</text>
+        <text x="420" y="118" style="font-size:12.5px;fill:#6b7280">这 55 格在休息（这次没被点名）</text>
+        <text x="420" y="146" style="font-size:12.5px;fill:#6b7280">但下次可能轮到它们——</text>
+        <text x="420" y="168" style="font-size:12.5px;fill:#6b7280">所以每个专家都「练过」</text>
+        <text x="420" y="190" style="font-size:12.5px;fill:#6b7280">K3：896 专家 / 16 激活 = 稀疏度 56</text>
+        <text x="340" y="228" text-anchor="middle" style="font-size:12px;fill:#6b7280">格子越多 → 知识面越广；每次只算 1/56 → 单次成本不涨——「大而省」的秘密全在这</text>
+      </svg>
+      <div class="figcap"><b>图 4 · 稀疏度 56 的直觉：</b>8 行 × 7 列 = 56 个专家，这一轮只有深蓝色那一格在算，其余 55 格休息。但下次来的 token 可能点的是别的格子——所以每个专家在训练中都被点过、都练过。格子越多，知识的「抽屉」越多，K3 懂得就越多。</div>
+    </div>
+
+    <div class="analogy">
+      <span class="lbl">打个比方</span><br>
+      896 个专家就像 896 个抽屉的知识库。普通模型只有 16 个抽屉（Dense），K3 有 896 个抽屉——查资料时只开最对口的 16 个，但 896 个抽屉里都存着东西。抽屉越多，能装的知识越细、越全。
+    </div>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>极端稀疏度（1/56）会放大两类失效：① 路由分支（降投影 → 专家 FFN → 升投影几乎连续 4 个矩阵乘）在 2.8T 规模下<b>激活值爆炸</b>；② 近 10³ 个专家的负载均衡超出旧方法（定步长偏置）的舒适区。K3 的应对：<b>归一化 LatentMoE（RMSNorm）+ SiTU-GLU（有界激活）+ QB</b>——三件套，Day 6 逐个拆。</div>
+  </section>
+
+  <!-- ================= 5 规模定律 ================= -->
+  <section id="s5">
+    <h2><span class="no">5</span>规模定律：为什么「越大越划算」？</h2>
+
+    <p class="lead-para">你可能会想：既然每次只算 104B，那干脆把 2.8T 砍成 104B 的「小模型」不就行了？——答案是<b>不行</b>。这就引出了 AI 领域最著名的经验规律：<b>规模定律（Scaling Law）</b>。</p>
+
+    <p>它的内容一句话：<b>模型越大 + 数据越多，模型的「聪明程度」涨得比花的钱快</b>——也就是说，同样的成本，造一个大模型比造几个小模型更划算。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 246" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>规模定律：同样算力下 K3 比 K2 损失更低（2.5× 效率）</title>
+        <desc>横轴训练算力，纵轴损失；K3 曲线整体低于 K2，同样算力损失更低</desc>
+        <text x="40" y="28" style="font-size:13px;font-weight:600;fill:#1f2329">规模定律：同样烧钱，K3 比 K2 学到更多</text>
+        <line x1="70" y1="46" x2="70" y2="190" stroke="#9aa0a6" stroke-width="1.2"/>
+        <line x1="70" y1="190" x2="610" y2="190" stroke="#9aa0a6" stroke-width="1.2"/>
+        <text x="70" y="208" text-anchor="middle" style="font-size:11px;fill:#9aa0a6">训练算力 →</text>
+        <text x="40" y="118" text-anchor="middle" style="font-size:11px;fill:#9aa0a6" transform="rotate(-90 40 118)">损失（越低越聪明）→</text>
+        <path d="M110 170 C 200 150, 320 118, 580 74" fill="none" stroke="#185fa5" stroke-width="2.5"/>
+        <text x="560" y="66" style="font-size:12.5px;font-weight:600;fill:#185fa5">K3（新架构）</text>
+        <path d="M130 176 C 240 162, 380 140, 590 108" fill="none" stroke="#9aa0a6" stroke-width="2" stroke-dasharray="6 4"/>
+        <text x="470" y="128" style="font-size:12.5px;font-weight:600;fill:#6b7280">K2（上一代）</text>
+        <line x1="330" y1="190" x2="330" y2="118" stroke="#ba7517" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="340" y="112" style="font-size:11.5px;fill:#854f0b">同一笔算力 → K3 损失更低</text>
+        <text x="340" y="230" text-anchor="middle" style="font-size:12px;fill:#6b7280">报告原文：这些改进合计带来相较 K2 约 2.5× 的整体「规模效率」提升——同样的钱，多学 2.5 倍</text>
+      </svg>
+      <div class="figcap"><b>图 5 · 规模定律曲线（示意）：</b>横轴是训练花的算力，纵轴是「损失」（越低越聪明）。曲线整体向下：烧的钱越多，模型越聪明。关键在于 K3 的新曲线（蓝实线）比 K2（灰虚线）<b>更低</b>——同一笔算力，K3 的损失明显更低，这就是报告说的「<b>2.5× 规模效率</b>」：同样的钱，多学到 2.5 倍的东西。</div>
+    </div>
+
+    <p>K3 的 2.5× 从哪来？不是单靠 MoE，而是 <b>KDA（Day 3）+ 混合注意力 + Stable LatentMoE（今天）+ 数据与训练配方</b> 的合力。报告为此专门重做了一轮「规模定律研究」，重新调了学习率、批量大小等旋钮——因为架构改了，最优训练区间也变了。</p>
+
+    <div class="callout">
+      <b>为什么「越大越划算」？直觉版本：</b>小模型学「苹果是水果」要用掉 100% 的脑容量；大模型学同样的知识只用 1% 的脑容量，剩下的 99% 还能学别的。<b>知识的「公共部分」（语言规律、常识）在更大的模型里被摊薄了</b>——所以大模型的「每分钱聪明度」反而更高。
+    </div>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>经典 Chinchilla 式规模定律：最优模型尺寸随数据量以近似 <b>参数 ∝ 数据^(约1/2)</b> 的比例共同增长。K3 的规模定律研究在留出 OOD 验证集上重调了 batch size、学习率、token/参数比（TPP）与模型形状，确认余弦调度在其最优超参下优于 WSD。2.5× 规模效率 = 在固定算力预算下达到更低的验证损失。</div>
+  </section>
+
+  <!-- ================= 6 MoonEP ================= -->
+  <section id="s6">
+    <h2><span class="no">6</span>训练时的难题：896 个专家怎么放上几百张显卡？（MoonEP）</h2>
+
+    <p class="lead-para">MoE 省的是「每次计算」，但训练时有个基建难题：<b>2.8T 参数、896 个专家，任何一张显卡都装不下</b>，必须拆开放到几百上千张卡上。卡与卡之间怎么配合？这就叫<b>专家并行（EP）</b>。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 252" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>MoonEP：896 个专家分布到多张 GPU 卡上</title>
+        <desc>专家分散在多张卡，token 需要 all-to-all 通信找专家，MoonEP 保证每张卡负载完美均衡</desc>
+        <text x="40" y="28" style="font-size:13px;font-weight:600;fill:#1f2329">训练：专家分放在很多张卡上，token 要「跨卡串门」</text>
+
+        <g>
+          <rect x="60" y="48" width="120" height="30" rx="6" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="120" y="63" text-anchor="middle" dominant-baseline="central" style="font-size:11.5px;fill:#0c447c">卡 1（专家 1~224）</text>
+          <rect x="220" y="48" width="120" height="30" rx="6" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="280" y="63" text-anchor="middle" dominant-baseline="central" style="font-size:11.5px;fill:#0c447c">卡 2（专家 225~448）</text>
+          <rect x="380" y="48" width="120" height="30" rx="6" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="440" y="63" text-anchor="middle" dominant-baseline="central" style="font-size:11.5px;fill:#0c447c">卡 3（专家 449~672）</text>
+          <rect x="540" y="48" width="120" height="30" rx="6" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="600" y="63" text-anchor="middle" dominant-baseline="central" style="font-size:11.5px;fill:#0c447c">卡 4（专家 673~896）</text>
+        </g>
+
+        <path d="M120 78 L120 104" stroke="#888780" stroke-width="1.2" fill="none" marker-end="url(#d4c)"/>
+        <path d="M280 78 L280 104" stroke="#888780" stroke-width="1.2" fill="none" marker-end="url(#d4c)"/>
+        <path d="M440 78 L440 104" stroke="#888780" stroke-width="1.2" fill="none" marker-end="url(#d4c)"/>
+        <path d="M600 78 L600 104" stroke="#888780" stroke-width="1.2" fill="none" marker-end="url(#d4c)"/>
+
+        <g>
+          <rect x="60" y="106" width="120" height="56" rx="8" fill="#fff" stroke="#0f6e56" stroke-width="1"/>
+          <text x="120" y="126" text-anchor="middle" style="font-size:11px;fill:#085041">token 要问的专家</text>
+          <text x="120" y="146" text-anchor="middle" style="font-size:11.5px;fill:#0f6e56">可能在别的卡上</text>
+        </g>
+        <g>
+          <rect x="220" y="106" width="120" height="56" rx="8" fill="#fff" stroke="#0f6e56" stroke-width="1"/>
+          <text x="280" y="126" text-anchor="middle" style="font-size:11px;fill:#085041">token 要问的专家</text>
+          <text x="280" y="146" text-anchor="middle" style="font-size:11px;fill:#0f6e56">→ 跨卡传送（all-to-all）</text>
+        </g>
+        <g>
+          <rect x="380" y="106" width="120" height="56" rx="8" fill="#fff" stroke="#0f6e56" stroke-width="1"/>
+          <text x="440" y="126" text-anchor="middle" style="font-size:11px;fill:#085041">token 要问的专家</text>
+          <text x="440" y="146" text-anchor="middle" style="font-size:11px;fill:#0f6e56">→ 跨卡传送（all-to-all）</text>
+        </g>
+        <g>
+          <rect x="540" y="106" width="120" height="56" rx="8" fill="#fff" stroke="#0f6e56" stroke-width="1"/>
+          <text x="600" y="126" text-anchor="middle" style="font-size:11px;fill:#085041">token 要问的专家</text>
+          <text x="600" y="146" text-anchor="middle" style="font-size:11px;fill:#0f6e56">可能在别的卡上</text>
+        </g>
+
+        <path d="M120 162 L120 182" stroke="#888780" stroke-width="1.2" fill="none"/>
+        <path d="M280 162 L280 182" stroke="#888780" stroke-width="1.2" fill="none"/>
+        <path d="M440 162 L440 182" stroke="#888780" stroke-width="1.2" fill="none"/>
+        <path d="M600 162 L600 182" stroke="#888780" stroke-width="1.2" fill="none"/>
+
+        <rect x="60" y="184" width="600" height="34" rx="8" fill="#e1f5ee" stroke="#9fd6c2" stroke-width="0.5"/>
+        <text x="360" y="201" text-anchor="middle" style="font-size:12px;fill:#085041">MoonEP：把专家分布安排得「完美均衡」，每张卡接到的活一模一样多，通信也提前算好形状（零拷贝）</text>
+        <text x="340" y="234" text-anchor="middle" style="font-size:12px;fill:#6b7280">如果负载不均，卡 1 忙到冒烟时卡 4 在摸鱼 → 整批训练被最慢的卡拖住。QB（§3）+ MoonEP 一起保证不拖后腿</text>
+        <defs>
+          <marker id="d4c" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+      </svg>
+      <div class="figcap"><b>图 6 · 专家并行与 MoonEP（简化示意）：</b>896 个专家分放在许多张卡上。一个 token 被路由器点名的 16 个专家可能分布在不同的卡上，数据要「跨卡串门」（all-to-all 通信）。MoonEP 的价值：① 让每张卡接到的活<b>完美均衡</b>（配合 QB）；② 通信形状静态可知，能用零拷贝手段；③ 共享专家每张卡都复制一份，随叫随到。这样几百张卡才能同时高效干活。</div>
+    </div>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>MoE 训练的两大通信挑战：<b>dispatch</b>（token 发给专家所在 rank）与 <b>combine</b>（专家结果聚合回来）。MoonEP 以静态计算形状与零拷贝通信实现完美均衡的专家执行；共享专家在各 EP rank 复制，all-to-all 与计算重叠以隐藏延迟。负载不均会拖慢整体（木桶效应），这也是 QB 存在的系统层面理由。</div>
+  </section>
+
+  <!-- ================= K3 映射 ================= -->
+  <section id="k3">
+    <h2><span class="no">7</span>映射到 K3：原文里怎么说 MoE 的？</h2>
+    <p class="lead-para">今天的四个关键词（896 专家、16 激活、QB、2.5×）都能在报告里找到原话：</p>
+
+    <div class="k3box">
+      <div class="kt">K3 原文（§2.3 Stable LatentMoE）</div>
+      <div class="k3quote">「这使 Kimi K3 能够将通道混合扩展到 896 个路由专家、每个 token 激活 16 个专家，对应稀疏度为 56。」</div>
+      <p style="margin:12px 0 4px;"><b>逐词翻译：</b>「通道混合」= 一层里 896 路专家并行处理；「每个 token 激活 16 个」= 每个字只叫 16 个专家；「稀疏度 56」= 16/896 = 1/56，其余专家这轮休息。一句话：K3 的知识抽屉有 896 个，每次只开 16 个。</p>
+    </div>
+
+    <div class="k3box">
+      <div class="kt">K3 原文（§2.3.3 Quantile Balancing）</div>
+      <div class="k3quote">「负载均衡通过向用于 Top-k 选择的路由器分数加入专家专属偏置 b_j 来实现……（QB）根据与目标负载匹配的路由器分数分位数来设定每个专家的偏置。」</div>
+      <p style="margin:12px 0 4px;"><b>逐词翻译：</b>给每个专家加一个「偏置分」（冷门加分、热门减分）；偏置的大小，是拿「路由器分数排到第百分之多少的位置」（分位数）算出来的——保证每个专家正好接满「目标负载」q 个 token。不吵架、不偷懒。</p>
+    </div>
+
+    <div class="k3box">
+      <div class="kt">K3 原文（§3.2 规模定律）</div>
+      <div class="k3quote">「这些改进合计带来了相较 Kimi K2 约 2.5× 的整体规模效率提升。」</div>
+      <p style="margin:12px 0 4px;"><b>逐词翻译：</b>「这些改进」= KDA + 混合注意力 + Stable LatentMoE + 数据和训练配方（不是任何单一技术）；「2.5× 规模效率」= 同样的算力预算，K3 的最终聪明程度明显高于 K2——图 5 里那条更低的曲线。</p>
+    </div>
+
+    <div class="numgrid">
+      <div class="numcard"><div class="n">896</div><div class="l">路由专家数<br>（外加 2 个共享专家）</div></div>
+      <div class="numcard"><div class="n">16</div><div class="l">每个 token 激活<br>16 个路由专家</div></div>
+      <div class="numcard"><div class="n">56</div><div class="l">稀疏度 = 896/16<br>≈96% 专家在休息</div></div>
+      <div class="numcard"><div class="n">2.5×</div><div class="l">规模效率提升<br>（相对 Kimi K2）</div></div>
+    </div>
+
+    <div class="callout coral" style="margin-top:16px;">
+      <span class="ct">一句话总结今天的 K3 印象</span>
+      2.8T 是 K3 的「家底」（知识面），104B 是它每次真花的「钱」（激活成本）。靠 <b>896 专家 + 路由器点名 16 个</b>，K3 做到了又大又省；靠 <b>QB</b> 治住专家偷懒和不均衡；靠 <b>规模定律</b> 说明「越大越划算」——2.5× 效率，就是 K3 的「每一分钱都花得更值」。明天去看：这么大的模型，是怎么一步步「教」出来的？
+    </div>
+  </section>
+
+  <!-- ================= 自测题 ================= -->
+  <section id="quiz">
+    <h2><span class="no">8</span>自测题（先自己答，再点开看解析）</h2>
+
+    <details>
+      <summary><span class="qmark">Q1</span>总参数 2.8T 和激活参数 104B 有什么区别？为什么要这么设计？</summary>
+      <div class="ans"><b>总参数</b> = 模型里存的所有数字，决定知识面（懂得多）；<b>激活参数</b> = 处理每个字时真的参与计算的数字，决定每次成本。如果每次都要算全部 2.8T，又慢又贵。MoE 的设计让「存得下」和「算得起」解耦：<b>全部存着（知识全），每次只算 104B（成本低）</b>——104B 大约是 2.8T 的 1/27。</div>
+    </details>
+
+    <details>
+      <summary><span class="qmark">Q2</span>MoE 里的「路由器」是干什么的？「Top-16」是什么意思？</summary>
+      <div class="ans">路由器就像<b>分诊台</b>：每个 token 进来，它给 896 个专家各打一个「相关分」，然后把 token 派给<b>分数最高的 16 个</b>（Top-16）去算。再加上 2 个「全科医生」共享专家（每次都在）。没被点名的专家原地休息，不参与计算、不花钱。</div>
+    </details>
+
+    <details>
+      <summary><span class="qmark">Q3</span>专家会有哪两个「坏毛病」？QB 是怎么治的？</summary>
+      <div class="ans">① <b>偷懒（坍缩）</b>：路由器只点少数专家，其他专家永远学不到东西；② <b>不均衡</b>：热门专家忙死、冷门专家闲死，训练时有的卡冒烟、有的卡摸鱼。QB 的治法：<b>给每个专家配一个「偏置分」</b>——冷门的加分（更容易被点到）、热门的减分，偏置大小按「分数分位数」算，最后让每个专家的负载一模一样（例如 4,3,1,0 → 2,2,2,2）。</div>
+    </details>
+
+    <details>
+      <summary><span class="qmark">Q4</span>稀疏度 56 是什么意思？为什么 96% 的专家在休息，模型反而更强？</summary>
+      <div class="ans">稀疏度 56 = 896 个专家里只激活 16 个（16/896 = 1/56），约 96% 的专家在休息。模型反而更强，是因为<b>专家总数决定知识覆盖面</b>：896 个「知识抽屉」比 16 个抽屉装得多，每个专家还能更专（一个专家只钻研一个小领域）。休息只是「这次没轮到」，训练中每个专家都被点过名、都练过。</div>
+    </details>
+
+    <details>
+      <summary><span class="qmark">Q5</span>「2.5× 规模效率提升」是什么意思？它来自哪一项技术？</summary>
+      <div class="ans">意思是：<b>花同样的训练算力，K3 学到的比 K2 多 2.5 倍</b>（损失曲线更低）。它<b>不是</b>任何单一技术的功劳，而是 <b>KDA + 混合注意力 + Stable LatentMoE + 数据与训练配方</b> 的合力。因为架构改了，K3 团队还专门重做了一轮规模定律研究，重新调了学习率、批量大小等超参数。</div>
+    </details>
+  </section>
+
+  <!-- ================= 明日预告 ================= -->
+  <div class="next">
+    <div class="nt">
+      <div>明日预告 · Day 5</div>
+      <b>训练一台 K3：从几百万本书到会聊天</b>
+      <div style="margin-top:4px; font-size:13px;">预训练=海量阅读 · 教它做事（SFT）· 奖励机制（RL）· 9 个专家怎么合并成 1 个（MOPD）</div>
+    </div>
+    <a href="day-05.html">开始 Day 5 →</a>
+  </div>
+
+  <div class="foot">
+    <a href="index.html">返回课程首页</a> · 本课程基于《Kimi K3 技术报告》编写，概念图均为原创示意
+  </div>
+
+</div>
+</body>
+</html>

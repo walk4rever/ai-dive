@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 2 · 注意力机制：全班一起开「讨论会」 — K3 七天课</title>
+<style>
+  :root{
+    --bg:#ffffff; --card:#f7f8fa; --card2:#eef1f6; --ink:#1f2329; --muted:#6b7280;
+    --line:#e5e7eb; --blue:#185fa5; --blue-bg:#e6f1fb; --blue-ink:#0c447c;
+    --coral:#993c1d; --coral-bg:#faece7; --coral-ink:#712b13;
+    --teal:#0f6e56; --teal-bg:#e1f5ee; --teal-ink:#085041;
+    --amber:#854f0b; --amber-bg:#faeeda;
+    --mono:"SF Mono",Menlo,Consolas,monospace;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; line-height:1.8; font-size:15.5px;}
+  .wrap{max-width:860px; margin:0 auto; padding:0 24px 80px;}
+
+  /* ---------- 顶部导航 ---------- */
+  .topnav{position:sticky; top:0; z-index:10; background:rgba(255,255,255,.94); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
+  .topnav-inner{max-width:860px; margin:0 auto; padding:10px 24px; display:flex; align-items:center; gap:12px; font-size:13px;}
+  .brand{font-weight:500; color:var(--ink);}
+  .brand .d{color:var(--blue);}
+  .spacer{flex:1;}
+  .topnav a{color:var(--muted); text-decoration:none; padding:4px 10px; border-radius:8px; transition:.15s;}
+  .topnav a:hover{background:var(--card2); color:var(--ink);}
+  .progress{height:3px; background:var(--line);}
+  .progress i{display:block; height:100%; width:28.57%; background:var(--blue); border-radius:0 3px 3px 0;}
+
+  /* ---------- Hero ---------- */
+  .hero{margin:36px 0 28px;}
+  .daychip{display:inline-flex; align-items:center; gap:8px; background:var(--blue-bg); color:var(--blue-ink); border:1px solid #b5d4f4; padding:5px 14px; border-radius:999px; font-size:13px; font-weight:500;}
+  .hero h1{font-size:28px; font-weight:600; margin:16px 0 8px; letter-spacing:.3px;}
+  .hero .sub{color:var(--muted); font-size:15px;}
+  .goals{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:26px;}
+  .goal{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px;}
+  .goal .gq{font-size:12px; color:var(--blue); font-weight:500; margin-bottom:6px;}
+  .goal .gt{font-size:14px;}
+
+  /* ---------- 章节 ---------- */
+  section{margin-top:52px;}
+  h2{font-size:22px; font-weight:600; margin-bottom:6px; display:flex; align-items:center; gap:10px;}
+  h2 .no{background:var(--blue); color:#fff; width:30px; height:30px; border-radius:9px; display:inline-flex; align-items:center; justify-content:center; font-size:15px; flex:none;}
+  h3{font-size:17px; font-weight:600; margin:32px 0 10px;}
+  p{margin:10px 0;}
+  .lead-para{color:#374151;}
+
+  /* ---------- 锚点表 ---------- */
+  .anchor{width:100%; border-collapse:collapse; margin-top:14px; font-size:14.5px;}
+  .anchor th,.anchor td{border:1px solid var(--line); padding:11px 14px; text-align:left; vertical-align:top;}
+  .anchor th{background:var(--card2); font-weight:500; width:160px;}
+  .anchor tr td:first-child{color:var(--muted);}
+  .anchor td b{color:var(--blue-ink);}
+
+  /* ---------- 图解容器 ---------- */
+  .fig{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:18px; margin:18px 0;}
+  .fig svg{display:block; width:100%; height:auto;}
+  .figcap{font-size:13.5px; color:var(--muted); margin-top:12px; padding-top:10px; border-top:1px dashed var(--line);}
+  .figcap b{color:var(--ink);}
+
+  /* ---------- 类比 / 小结框 ---------- */
+  .analogy{background:var(--teal-bg); border-left:4px solid var(--teal); border-radius:0 10px 10px 0; padding:14px 18px; margin:16px 0; font-size:14.5px;}
+  .analogy .lbl{font-size:12px; font-weight:500; color:var(--teal); letter-spacing:1px;}
+  .callout{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px 20px; margin:16px 0; font-size:14.5px;}
+  .callout.coral{background:var(--coral-bg); border-color:#f5c4b3;}
+  .callout .ct{display:block; font-size:12px; font-weight:500; color:var(--coral); margin-bottom:6px; letter-spacing:1px;}
+
+  /* ---------- 进阶小注（给懂编程/数学的你，可跳过） ---------- */
+  .pro{margin:14px 0; padding:9px 14px; background:var(--card2); border:1px dashed var(--line); border-radius:10px; font-size:12.5px; color:var(--muted); line-height:1.7;}
+  .pro .pl{font-weight:600; color:var(--blue-ink); margin-right:4px;}
+  .pro code{font-family:var(--mono); font-size:12px; background:rgba(255,255,255,.8); padding:1px 5px; border-radius:5px; color:var(--blue-ink);}
+
+  /* ---------- K3 映射 ---------- */
+  .k3box{background:var(--coral-bg); border:1px solid #f5c4b3; border-radius:var(--radius); padding:18px 22px; margin-top:14px;}
+  .k3box .kt{font-size:13px; font-weight:500; color:var(--coral); letter-spacing:1px; margin-bottom:10px;}
+  .k3quote{font-family:var(--mono); font-size:13.5px; background:rgba(255,255,255,.7); border:1px dashed #e0b0a0; border-radius:8px; padding:10px 14px; margin:10px 0; color:#5c3a2a; line-height:1.8;}
+  .numgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:16px;}
+  .numcard{background:#fff; border:1px solid #f0d5cb; border-radius:12px; padding:16px 10px; text-align:center;}
+  .numcard .n{font-size:22px; font-weight:600; color:var(--coral-ink); font-family:var(--mono);}
+  .numcard .l{font-size:12.5px; color:#8a5a44; margin-top:4px; line-height:1.6;}
+
+  /* ---------- 自测题 ---------- */
+  details{border:1px solid var(--line); border-radius:12px; margin:12px 0; background:#fff; overflow:hidden;}
+  summary{cursor:pointer; padding:14px 18px; font-size:14.5px; list-style:none; display:flex; gap:10px; align-items:baseline;}
+  summary::-webkit-details-marker{display:none;}
+  summary .qmark{color:var(--blue); font-weight:600; flex:none;}
+  summary:hover{background:var(--card);}
+  details[open] summary{border-bottom:1px solid var(--line); background:var(--card);}
+  .ans{padding:14px 18px; font-size:14px; color:#374151;}
+  .ans b{color:var(--blue-ink);}
+
+  /* ---------- 底部 ---------- */
+  .next{margin-top:56px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:20px 24px; display:flex; align-items:center; gap:16px;}
+  .next .nt{font-size:13px; color:var(--muted);}
+  .next .nt b{color:var(--ink); font-size:15px;}
+  .next a{margin-left:auto; background:var(--blue); color:#fff; text-decoration:none; padding:9px 20px; border-radius:10px; font-size:14px; flex:none;}
+  .next a:hover{background:#13497e;}
+  .foot{margin-top:40px; text-align:center; font-size:12.5px; color:var(--muted);}
+  .foot a{color:var(--muted); text-decoration:none; border-bottom:1px dashed var(--line);}
+
+  @media (max-width:720px){
+    .goals{grid-template-columns:1fr;}
+    .numgrid{grid-template-columns:repeat(2,1fr);}
+    .topnav-inner{padding:10px 14px;}
+    .hero h1{font-size:23px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="topnav-inner">
+    <span class="brand">K3 七天课 <span class="d">· Day 2 / 7</span></span>
+    <span class="spacer"></span>
+    <a href="index.html">课程首页</a>
+    <a href="#quiz">自测题</a>
+    <a href="#k3">映射 K3</a>
+  </div>
+  <div class="progress"><i></i></div>
+</div>
+
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <span class="daychip">Day 2 · 注意力机制：全班一起开「讨论会」</span>
+    <h1>AI 是怎么「看完整段话」再开口的？</h1>
+    <p class="sub">昨天学会了：AI 每说一个字，都在做「接龙」。但这里有个大问题——<b>它接龙的时候，怎么知道该看前面的哪个词？</b>今天这一篇，就是 AI 大脑里最重要的一台机器：<b>注意力</b>。</p>
+    <div class="goals">
+      <div class="goal"><div class="gq">学完你能回答</div><div class="gt">为什么 AI 不能只看上一个词就接龙？</div></div>
+      <div class="goal"><div class="gq">学完你能回答</div><div class="gt">「注意力」到底在算什么账？</div></div>
+      <div class="goal"><div class="gq">学完你能回答</div><div class="gt">为什么词的顺序很重要？K3 怎么处理？</div></div>
+    </div>
+  </div>
+
+  <!-- ================= 知识锚点 ================= -->
+  <section id="anchor">
+    <h2><span class="no">0</span>起点：这些你早就会了</h2>
+    <p class="lead-para">今天要讲的「注意力」，说穿了就是一件你每天都在做的事：<b>听人说话时，抓重点</b>。先看对照表——没有一项超出高中课堂：</p>
+    <table class="anchor">
+      <tr><th>你已经会的</th><th>AI 世界里对应的东西</th></tr>
+      <tr><td>全班讨论：发言前先听听别人怎么说</td><td><b>注意力</b>：每个词「发言」前，先听一遍其他所有词，按相关程度取重点</td></tr>
+      <tr><td>上课提问：你问一个问题，觉得某个同学答得最对</td><td><b>Q / K / V</b>：提问（谁答最相关）→ 亮名片（每个词的身份）→ 听内容（按相关度取重点）</td></tr>
+      <tr><td>语文课：这句话里的「它」指的是谁？要回头看前一句</td><td><b>指代</b>：AI 填「很甜」的空，线索可能藏在 5 个词之前——必须能「回头看」</td></tr>
+      <tr><td>广播体操：每个人站在固定位置，号一喊就有队形</td><td><b>位置信息</b>：同样的词换顺序意思就变，AI 必须知道谁在第几号位</td></tr>
+      <tr><td>一场班会开不完，要从纪律、卫生、学习几个角度分别讨论</td><td><b>多头注意力</b>：不只开一场会，而是好几场「分会」同时开，最后汇总</td></tr>
+      <tr><td>开会时一边听一边记笔记，重点记下来，不用抄全文</td><td><b>KDA（K3 的独门笔记法）</b>：Day 3 的主角，今天先混个脸熟</td></tr>
+    </table>
+    <p style="font-size:13.5px; color:var(--muted); margin-top:10px;">看到没？注意力一点都不神秘——它就是「抓重点」。今天剩下的时间，把「抓重点」这件事讲具体。</p>
+  </section>
+
+  <!-- ================= 1 问题引入 ================= -->
+  <section id="s1">
+    <h2><span class="no">1</span>问题：AI 接龙时，只看上一个词够吗？</h2>
+
+    <p class="lead-para">先做个实验。读这句话：</p>
+    <div class="callout" style="text-align:center; font-size:16.5px;">「小明把苹果递给小红，因为<b>＿</b>很甜。」</div>
+    <p>这个空，该填什么？正常人会填「苹果」。可你注意一下：<b>「苹果」在空位前面 5 个词远的地方</b>，紧挨着空位的词反而是「小红」。</p>
+    <p>如果 AI 真的只看上一个词就接龙，它会填「小红」——「小红很甜」？说不通。要填对，AI 必须有能力<b>「回头看」整句话，在 5 个词之外找到那个真正相关的词</b>。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 252" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>指代问题：答案线索在 5 个词之前</title>
+        <desc>句子「小明把苹果递给小红，因为＿很甜」，空位要填的词是前面第 3 个位置的苹果</desc>
+        <text x="40" y="28" style="font-size:13px;font-weight:600;fill:#1f2329">AI 要填的空，线索却在前面 5 个词</text>
+        <g>
+          <rect x="40" y="56" width="64" height="44" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="72" y="78" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:#0c447c">小明</text>
+          <rect x="112" y="56" width="64" height="44" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="144" y="78" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:#0c447c">把</text>
+          <rect x="184" y="56" width="64" height="44" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="1.5"/>
+          <text x="216" y="78" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:#0c447c">苹果</text>
+          <rect x="256" y="56" width="64" height="44" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="288" y="78" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:#0c447c">递给</text>
+          <rect x="328" y="56" width="64" height="44" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="360" y="78" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:#0c447c">小红</text>
+          <rect x="400" y="56" width="40" height="44" rx="8" fill="#f1efe8" stroke="#888780" stroke-width="0.5"/>
+          <text x="420" y="78" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:#6b7280">，</text>
+          <rect x="448" y="56" width="64" height="44" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="480" y="78" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:#0c447c">因为</text>
+          <rect x="520" y="56" width="64" height="44" rx="8" fill="#faeeda" stroke="#ba7517" stroke-width="1.5"/>
+          <text x="552" y="78" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:#854f0b">＿</text>
+        </g>
+        <path d="M552 116 L216 116" stroke="#ba7517" stroke-width="2" fill="none" marker-end="url(#d1a)" stroke-dasharray="6 4"/>
+        <text x="384" y="140" text-anchor="middle" style="font-size:12px;fill:#854f0b">线索在这里——隔了 5 个词！</text>
+        <g>
+          <rect x="40" y="176" width="280" height="56" rx="10" fill="#f7f8fa" stroke="#d3d1c7" stroke-width="0.5"/>
+          <text x="56" y="196" style="font-size:12.5px;font-weight:600;fill:#6b7280">只看上一个词</text>
+          <text x="56" y="216" style="font-size:13.5px;fill:#5f5e5a">→ 会填「小红」——说不通 ❌</text>
+          <rect x="360" y="176" width="280" height="56" rx="10" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+          <text x="376" y="196" style="font-size:12.5px;font-weight:600;fill:#0f6e56">看完整句话</text>
+          <text x="376" y="216" style="font-size:13.5px;fill:#085041">→ 会填「苹果」——对了 ✅</text>
+        </g>
+        <defs>
+          <marker id="d1a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#ba7517" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+      </svg>
+      <div class="figcap"><b>图 1 · 为什么要「回头看」：</b>「＿很甜」的答案线索「苹果」在 5 个词之外。只看上一个词，AI 会填出「小红很甜」这种病句。所以 AI 必须能<b>同时看见整句话</b>，并且知道哪个词跟自己最相关——这就是注意力的用武之地。</div>
+    </div>
+
+    <div class="analogy">
+      <span class="lbl">打个比方</span><br>
+      就像老师提问时，你脑子里会快速过一遍刚学的整段课文，找到跟问题最相关的那一句——你不会只看课本最后一行就作答。AI 的「整段课文」，就叫它的<b>上下文</b>；「找到最相关的那一句」，就是注意力。
+    </div>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>这就是自回归模型的「条件」范围问题。早期 N-gram 模型只条件于最近 k 个词，指代长距离时无能为力；Transformer 让每个位置对<b>全部历史位置</b>做注意力，一举解决长距离依赖。注意力的输出仍是一个与输入等长的序列，不会破坏「逐字接龙」的框架。</div>
+  </section>
+
+  <!-- ================= 2 注意力直觉 ================= -->
+  <section id="s2">
+    <h2><span class="no">2</span>核心直觉：每个词发言前，先「听全班怎么说」</h2>
+
+    <p class="lead-para">那注意力具体怎么「回头看」？把它想象成一场<b>全班讨论会</b>：句子里的每一个词，都是一位同学。轮到谁发言时，它先不急着说，而是<b>听一遍所有同学的话，掂量掂量谁跟自己的话题最相关</b>，然后按相关程度，把大家的话「加权汇总」到自己心里，再决定自己说什么。</p>
+
+    <p>拿上句里的「递给」举例。它要发言，得先搞清楚一个问题：<b>谁递给谁？</b>于是它听全班说——结果发现：「小明」跟「发出动作」最相关（0.45），「苹果」跟「被递的东西」很相关（0.35），「把」「小红」关系不大（各 0.10）。它心里就有了数。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 262" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>注意力：中心词听取所有其他词并按相关度加权</title>
+        <desc>「递给」听全班：小明 0.45、苹果 0.35、把 0.10、小红 0.10，权重合计约 100%</desc>
+        <text x="40" y="28" style="font-size:13px;font-weight:600;fill:#1f2329">每个词发言前，先「听」全班，按相关度取重点</text>
+        <g>
+          <rect x="40" y="50" width="120" height="40" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="100" y="70" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:#0c447c">小明</text>
+          <rect x="190" y="50" width="120" height="40" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="250" y="70" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:#0c447c">把</text>
+          <rect x="340" y="50" width="120" height="40" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="400" y="70" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:#0c447c">苹果</text>
+          <rect x="490" y="50" width="120" height="40" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="550" y="70" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:#0c447c">小红</text>
+          <rect x="250" y="164" width="180" height="48" rx="10" fill="#faeeda" stroke="#ba7517" stroke-width="1"/>
+          <text x="340" y="188" text-anchor="middle" dominant-baseline="central" style="font-size:15px;font-weight:600;fill:#854f0b">递给</text>
+        </g>
+        <g>
+          <path d="M340 164 L100 90" stroke="#185fa5" stroke-width="4" fill="none"/>
+          <text x="196" y="118" style="font-size:12px;fill:#185fa5">0.45</text>
+          <path d="M340 164 L250 90" stroke="#9aa0a6" stroke-width="1.2" fill="none"/>
+          <text x="294" y="118" style="font-size:12px;fill:#6b7280">0.10</text>
+          <path d="M340 164 L400 90" stroke="#185fa5" stroke-width="3" fill="none"/>
+          <text x="362" y="118" style="font-size:12px;fill:#185fa5">0.35</text>
+          <path d="M340 164 L550 90" stroke="#9aa0a6" stroke-width="1.2" fill="none"/>
+          <text x="508" y="118" style="font-size:12px;fill:#6b7280">0.10</text>
+        </g>
+        <text x="40" y="238" style="font-size:12px;fill:#6b7280">权重 = 相关度：小明 0.45 + 苹果 0.35 + 把 0.10 + 小红 0.10 ≈ 100%</text>
+      </svg>
+      <div class="figcap"><b>图 2 · 注意力的「加权汇总」：</b>「递给」把全班的话按相关度加权——线越粗，权重越高。相关度最高的是「小明」（谁的动作）和「苹果」（被递的东西）。这些权重不是人定的，是 AI 在训练里自己学出来的。</div>
+    </div>
+
+    <div class="callout">
+      <b>三个要记住的点：</b><br>
+      ① 每个词都要<b>给其他所有词打分</b>（相关度），分数合计 = 100%；<br>
+      ② 打高分词的「内容」在最终理解里占的份量大——这就是<b>加权汇总</b>；<br>
+      ③ 「谁和谁相关」是 AI <b>从海量文章里自己学出来的</b>，没有任何人手工标注。
+    </div>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>注意力的数学就是 <code>Attention(Q,K,V) = softmax(QKᵀ/√d_k)V</code>：Q 与所有 K 做内积得到原始分，除以 √d_k 稳定方差，softmax 归一化成权重（即图 2 里的百分比），再对 V 加权求和。「听全班」= 对整行历史位置做这个运算。</div>
+  </section>
+
+  <!-- ================= 3 QKV 三步 ================= -->
+  <section id="s3">
+    <h2><span class="no">3</span>一次「听讲」的完整流程：提问、亮名片、听发言</h2>
+
+    <p class="lead-para">加权汇总具体是怎么做到的？把它拆成四步，每一步你都在课堂上见过：</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 300" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>注意力四步：提问、亮名片、比对打分、听发言</title>
+        <desc>Q 当前词提问；K 每个词亮出身份标签；Q 与 K 比对打分；按分数对 V 加权汇总</desc>
+        <text x="40" y="28" style="font-size:13px;font-weight:600;fill:#1f2329">一个词要「听明白」，走四步</text>
+        <g>
+          <rect x="40" y="52" width="580" height="46" rx="10" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="58" y="75" dominant-baseline="central" style="font-size:13.5px;fill:#0c447c"><tspan font-weight="600">① 提问（Q）</tspan>　「递给」心里冒出一个问题：谁在发出动作？</text>
+          <path d="M330 98 L330 112" stroke="#888780" stroke-width="1.5" fill="none" marker-end="url(#d3a)"/>
+          <rect x="40" y="114" width="580" height="46" rx="10" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+          <text x="58" y="137" dominant-baseline="central" style="font-size:13.5px;fill:#085041"><tspan font-weight="600">② 亮名片（K）</tspan>　每个词举起「身份标签」：小明 = 人名，苹果 = 物品……</text>
+          <path d="M330 160 L330 174" stroke="#888780" stroke-width="1.5" fill="none" marker-end="url(#d3a)"/>
+          <rect x="40" y="176" width="580" height="46" rx="10" fill="#faeeda" stroke="#ba7517" stroke-width="0.5"/>
+          <text x="58" y="199" dominant-baseline="central" style="font-size:13.5px;fill:#854f0b"><tspan font-weight="600">③ 比对打分</tspan>　拿「问题」跟每张名片比对：越相关，分越高</text>
+          <path d="M330 222 L330 236" stroke="#888780" stroke-width="1.5" fill="none" marker-end="url(#d3a)"/>
+          <rect x="40" y="238" width="580" height="46" rx="10" fill="#faece7" stroke="#993c1d" stroke-width="0.5"/>
+          <text x="58" y="261" dominant-baseline="central" style="font-size:13.5px;fill:#712b13"><tspan font-weight="600">④ 听发言（V）</tspan>　按分数高低听每个人的「内容」，加权汇总 → 得出答案</text>
+        </g>
+        <defs>
+          <marker id="d3a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+      </svg>
+      <div class="figcap"><b>图 3 · 一次「听讲」的四步：</b>提问 → 亮名片 → 比对打分 → 按分听发言。注意看：<b>「提问」和「名片」是用来算分的，真正被汇总的是「发言内容」</b>——分数只是个「音量旋钮」，决定谁的话被放大、谁的话被压低。</div>
+    </div>
+
+    <div class="analogy">
+      <span class="lbl">打个比方</span><br>
+      就像辩论赛：正方二辩先听清<b>辩题</b>（提问），再看<b>每位辩手立的是什么论点</b>（名片），判断「谁的论点和我的反驳最相关」（打分），最后把最相关辩手的话记下来用（听发言）。一场辩论下来，你不会记住所有人的话，只会重点记住相关的那几句。
+    </div>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>Q、K、V 分别是三个可学习的投影矩阵 <code>W_q, W_k, W_v</code> 对隐藏状态做线性变换得到（Query / Key / Value）。「名片」K 决定了「被谁关注」，「提问」Q 决定了「关注谁」，V 才是真正被加权的内容。三者各司其职，是注意力里最该记住的结构。</div>
+  </section>
+
+  <!-- ================= 4 顺序 ================= -->
+  <section id="s4">
+    <h2><span class="no">4</span>顺序很重要：AI 也得知道「谁在第几号位」</h2>
+
+    <p class="lead-para">注意力的打分只看「词和词的相关度」——但有个坑：<b>它分不清「猫追狗」和「狗追猫」</b>。这两个句子用的词一模一样，只是顺序反了，意思却完全相反。如果 AI 只把句子当成「一袋子词」，它就永远分不清谁在追谁。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 244" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>顺序很重要：猫追狗 vs 狗追猫</title>
+        <desc>同样的词不同顺序意思相反，AI 需要位置信息才能区分</desc>
+        <text x="40" y="28" style="font-size:13px;font-weight:600;fill:#1f2329">同样的词，顺序一变，意思就反了</text>
+        <g>
+          <text x="60" y="48" text-anchor="middle" style="font-size:11px;fill:#9aa0a6">①</text>
+          <text x="160" y="48" text-anchor="middle" style="font-size:11px;fill:#9aa0a6">②</text>
+          <text x="260" y="48" text-anchor="middle" style="font-size:11px;fill:#9aa0a6">③</text>
+          <rect x="40" y="56" width="80" height="40" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="80" y="76" text-anchor="middle" dominant-baseline="central" style="font-size:15px;fill:#0c447c">猫</text>
+          <rect x="140" y="56" width="80" height="40" rx="8" fill="#faeeda" stroke="#ba7517" stroke-width="0.5"/>
+          <text x="180" y="76" text-anchor="middle" dominant-baseline="central" style="font-size:15px;fill:#854f0b">追</text>
+          <rect x="240" y="56" width="80" height="40" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="280" y="76" text-anchor="middle" dominant-baseline="central" style="font-size:15px;fill:#0c447c">狗</text>
+          <text x="360" y="76" dominant-baseline="central" style="font-size:13px;fill:#185fa5">「猫」在 1 号位 → 猫在追</text>
+        </g>
+        <g>
+          <text x="60" y="142" text-anchor="middle" style="font-size:11px;fill:#9aa0a6">①</text>
+          <text x="160" y="142" text-anchor="middle" style="font-size:11px;fill:#9aa0a6">②</text>
+          <text x="260" y="142" text-anchor="middle" style="font-size:11px;fill:#9aa0a6">③</text>
+          <rect x="40" y="150" width="80" height="40" rx="8" fill="#faece7" stroke="#993c1d" stroke-width="0.5"/>
+          <text x="80" y="170" text-anchor="middle" dominant-baseline="central" style="font-size:15px;fill:#712b13">狗</text>
+          <rect x="140" y="150" width="80" height="40" rx="8" fill="#faeeda" stroke="#ba7517" stroke-width="0.5"/>
+          <text x="180" y="170" text-anchor="middle" dominant-baseline="central" style="font-size:15px;fill:#854f0b">追</text>
+          <rect x="240" y="150" width="80" height="40" rx="8" fill="#faece7" stroke="#993c1d" stroke-width="0.5"/>
+          <text x="280" y="170" text-anchor="middle" dominant-baseline="central" style="font-size:15px;fill:#712b13">猫</text>
+          <text x="360" y="170" dominant-baseline="central" style="font-size:13px;fill:#993c1d">「狗」在 1 号位 → 狗在追</text>
+        </g>
+        <rect x="40" y="204" width="600" height="30" rx="8" fill="#f7f8fa" stroke="#d3d1c7" stroke-width="0.5"/>
+        <text x="340" y="219" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#5f5e5a">如果只把它们当「一袋子词」，AI 分不清谁追谁 → 必须给每个词发「座位号」</text>
+      </svg>
+      <div class="figcap"><b>图 4 · 座位号（位置编码）：</b>「猫」和「狗」本身没变，变的只是座位号。AI 必须把「词义」和「位置」两样信息都算进去，才能分清谁在追谁。给每个词发座位号的技术，叫<b>位置编码</b>——几乎所有主流 AI 都用它。</div>
+    </div>
+
+    <p>但这里有个有意思的例外，提前剧透给你：<b>K3 不用显式座位号</b>。报告原文说，K3 靠它自己的「记笔记式注意力」（KDA）里的一个衰减机制，隐式地记住词的位置（报告 §4.1.1 用的术语叫 <b>NoPE</b>）。好处是：位置不用单独编码，上下文窗口想拉多长就拉多长——这正是 K3 能一口气记住 100 万 token 的秘密之一。今天先记住这个结论，机制 Day 3 讲透。</p>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>常见位置编码：绝对位置嵌入、以及旋转位置编码 <b>RoPE</b>（把位置信息乘进 Q/K 的旋转矩阵，主流模型标配）。K3 用 <b>NoPE</b>（No Position Encoding），靠 KDA 的循环门控与衰减隐式编码位置——这也是它上下文外推不用做 RoPE 重缩放（YaRN 等）的原因。</div>
+  </section>
+
+  <!-- ================= 5 多头 ================= -->
+  <section id="s5">
+    <h2><span class="no">5</span>一场会不够：好几场「分会」同时开</h2>
+
+    <p class="lead-para">一句话里要抓的「重点」其实不止一种。还是「小明把苹果递给小红」——这句话里，既有「谁的动作」这种语法问题，又有「苹果」和「递给」的语义搭配，还有整句话在讲什么的主题。一场讨论会顾不过来，所以 AI 的办法是：<b>同时开好几场会，每场各管一个角度，最后把几场的结果拼起来</b>。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 262" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>多头注意力：多场讨论会同时进行，各自关注不同角度</title>
+        <desc>语法会关注动作发出者，指代会关注代词指谁，主题会关注句子主题，最后结果拼接</desc>
+        <text x="40" y="28" style="font-size:13px;font-weight:600;fill:#1f2329">不是一场会，是好几场「分会」同时开</text>
+        <g>
+          <rect x="40" y="52" width="180" height="150" rx="12" fill="#f7f8fa" stroke="#d3d1c7" stroke-width="0.5"/>
+          <text x="130" y="76" text-anchor="middle" style="font-size:13px;font-weight:600;fill:#0c447c">语法会</text>
+          <text x="130" y="94" text-anchor="middle" style="font-size:11.5px;fill:#6b7280">谁的动作？</text>
+          <rect x="52" y="110" width="28" height="28" rx="6" fill="#d3d1c7"/>
+          <text x="66" y="124" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#fff">小明</text>
+          <rect x="90" y="110" width="28" height="28" rx="6" fill="#d3d1c7"/>
+          <text x="104" y="124" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#fff">把</text>
+          <rect x="128" y="110" width="28" height="28" rx="6" fill="#993c1d"/>
+          <text x="142" y="124" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#fff">苹果</text>
+          <rect x="166" y="110" width="28" height="28" rx="6" fill="#d3d1c7"/>
+          <text x="180" y="124" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#fff">递给</text>
+          <path d="M142 138 L66 156" stroke="#185fa5" stroke-width="2" fill="none" marker-end="url(#d5a)"/>
+          <path d="M142 138 L142 156" stroke="#185fa5" stroke-width="1.2" fill="none" marker-end="url(#d5a)"/>
+          <text x="56" y="172" style="font-size:11px;fill:#185fa5">关注：小明</text>
+
+          <rect x="250" y="52" width="180" height="150" rx="12" fill="#f7f8fa" stroke="#d3d1c7" stroke-width="0.5"/>
+          <text x="340" y="76" text-anchor="middle" style="font-size:13px;font-weight:600;fill:#0f6e56">指代会</text>
+          <text x="340" y="94" text-anchor="middle" style="font-size:11.5px;fill:#6b7280">「它」指谁？</text>
+          <rect x="262" y="110" width="28" height="28" rx="6" fill="#993c1d"/>
+          <text x="276" y="124" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#fff">它</text>
+          <rect x="300" y="110" width="28" height="28" rx="6" fill="#d3d1c7"/>
+          <text x="314" y="124" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#fff">跑</text>
+          <rect x="338" y="110" width="28" height="28" rx="6" fill="#d3d1c7"/>
+          <text x="352" y="124" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#fff">得</text>
+          <rect x="376" y="110" width="28" height="28" rx="6" fill="#d3d1c7"/>
+          <text x="390" y="124" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#fff">快</text>
+          <path d="M276 138 L362 156" stroke="#0f6e56" stroke-width="2" fill="none" marker-end="url(#d5b)"/>
+          <text x="266" y="172" style="font-size:11px;fill:#0f6e56">关注：往回找</text>
+
+          <rect x="460" y="52" width="180" height="150" rx="12" fill="#f7f8fa" stroke="#d3d1c7" stroke-width="0.5"/>
+          <text x="550" y="76" text-anchor="middle" style="font-size:13px;font-weight:600;fill:#712b13">主题会</text>
+          <text x="550" y="94" text-anchor="middle" style="font-size:11.5px;fill:#6b7280">整句讲什么？</text>
+          <rect x="472" y="110" width="28" height="28" rx="6" fill="#d3d1c7"/>
+          <text x="486" y="124" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#fff">他</text>
+          <rect x="510" y="110" width="28" height="28" rx="6" fill="#993c1d"/>
+          <text x="524" y="124" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#fff">在</text>
+          <rect x="548" y="110" width="28" height="28" rx="6" fill="#d3d1c7"/>
+          <text x="562" y="124" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#fff">看</text>
+          <rect x="586" y="110" width="28" height="28" rx="6" fill="#d3d1c7"/>
+          <text x="600" y="124" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#fff">书</text>
+          <path d="M524 138 L600 156" stroke="#993c1d" stroke-width="2" fill="none" marker-end="url(#d5c)"/>
+          <text x="520" y="172" style="font-size:11px;fill:#993c1d">关注：全局</text>
+        </g>
+        <text x="40" y="236" style="font-size:12px;fill:#6b7280">几场会的结论 → 拼在一起 → 每个词都得到「立体」的理解</text>
+        <defs>
+          <marker id="d5a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#185fa5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+          <marker id="d5b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#0f6e56" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+          <marker id="d5c" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#993c1d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+      </svg>
+      <div class="figcap"><b>图 5 · 多头注意力：</b>「语法会」盯动作发出者、「指代会」盯代词指谁、「主题会」盯整句主题……几场会<b>同时开、各管一摊</b>，最后把结果拼起来。一个词在 AI 里的「理解」，其实是好几场会结论的合体。</div>
+    </div>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>这就是 <b>Multi-Head Attention</b>：把隐藏状态投影成 h 组 Q/K/V（每组叫一个 head，维度 d/h），h 个头并行做注意力，输出拼接后再线性投影。不同头在训练中会自发分化出不同的「关注偏好」——有的管语法、有的管指代，与图 5 的三个比喻对应。</div>
+  </section>
+
+  <!-- ================= 6 上下文 ================= -->
+  <section id="s6">
+    <h2><span class="no">6</span>上下文：AI 一次能「听」多长的发言？</h2>
+
+    <p class="lead-para">注意力让每个词能「回头看」其他词——但能看多远？答案是：<b>看模型允许看多长，就叫多长</b>。这个「允许看多长」的长度，专业名词叫<b>上下文窗口（context window）</b>，通俗说就是 AI 的「听力范围」。</p>
+    <ul style="padding-left:22px; margin:10px 0;">
+      <li style="margin:6px 0;"><b>窗口内</b>：每个词都可以回头「听」窗口里的任何一个词——图 2 那种全班讨论，就是在这窗口里开的。</li>
+      <li style="margin:6px 0;"><b>窗口外</b>：再早之前的话，AI「听不见」，会彻底忘掉。窗口越大，AI 能记住的上下文越长。</li>
+    </ul>
+    <p>回想 Day 1 的数字：<b>K3 的上下文窗口是 100 万 token</b>——约等于《红楼梦》加《三国演义》的字量一口气读完还全记住。为什么别的模型窗口一大就慢、就贵，K3 却能做到 100 万？这就要说到「注意力是要花钱的」：<b>每个词都要跟窗口里所有词打分</b>，窗口越长，打分次数越多，内存和算力都跟着涨。K3 怎么把这笔账省下来——就是明天的主题。</p>
+
+    <div class="callout coral">
+      <span class="ct">今天最重要的一个词</span>
+      <b>上下文（context）</b>：AI 在接龙时能「回头看」的全部内容。它的长度上限 = 上下文窗口。你以后读任何 AI 文章看到「256K」「1M 上下文」这类说法，说的就是 AI 一次能听多长的发言——K3 是 100 万 token。
+    </div>
+
+    <div class="pro"><span class="pl">进阶小注 ·</span>朴素全量注意力的时间复杂度是 O(L²)（L = 序列长度），空间上要存 L 个位置的 K/V。这就是「窗口越大越贵」的数学来源。如何把 O(L²) 打下来、把 K/V 缓存省下来，是 KDA、KV Cache 这些设计的出发点——Day 3 的主角。</div>
+  </section>
+
+  <!-- ================= K3 映射 ================= -->
+  <section id="k3">
+    <h2><span class="no">7</span>映射到 K3：它的注意力是「双轨」的</h2>
+    <p class="lead-para">注意力是 AI 的「看」。K3 在这件事上玩了个花样：<b>它有两套「看」的机制，混着用</b>——因为两套各有各的脾气，一套省地方但记不全，一套记得全但费地方。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 232" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>K3 混合注意力：3 层 KDA + 1 层 MLA 循环</title>
+        <desc>K3 骨干每 4 层一个循环：3 层 KDA（线性注意力，记笔记式）+ 1 层 Gated MLA（全局注意力，全记录式）</desc>
+        <text x="40" y="28" style="font-size:13px;font-weight:600;fill:#1f2329">K3 的注意力：两套机制「混着用」</text>
+        <g>
+          <rect x="40" y="64" width="70" height="44" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="75" y="86" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#0c447c">KDA</text>
+          <rect x="116" y="64" width="70" height="44" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="151" y="86" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#0c447c">KDA</text>
+          <rect x="192" y="64" width="70" height="44" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="227" y="86" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#0c447c">KDA</text>
+          <rect x="268" y="64" width="70" height="44" rx="8" fill="#faece7" stroke="#993c1d" stroke-width="0.5"/>
+          <text x="303" y="86" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#712b13">MLA</text>
+          <rect x="344" y="64" width="70" height="44" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="379" y="86" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#0c447c">KDA</text>
+          <rect x="420" y="64" width="70" height="44" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="455" y="86" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#0c447c">KDA</text>
+          <rect x="496" y="64" width="70" height="44" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="531" y="86" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#0c447c">KDA</text>
+          <rect x="572" y="64" width="70" height="44" rx="8" fill="#faece7" stroke="#993c1d" stroke-width="0.5"/>
+          <text x="607" y="86" text-anchor="middle" dominant-baseline="central" style="font-size:12px;fill:#712b13">MLA</text>
+        </g>
+        <text x="40" y="132" style="font-size:12.5px;fill:#6b7280">每 4 层一个循环：3 层 KDA（记笔记）+ 1 层 MLA（全记录），全网络重复</text>
+        <g>
+          <rect x="40" y="152" width="290" height="56" rx="10" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+          <text x="56" y="172" style="font-size:12.5px;font-weight:600;fill:#0c447c">KDA · 记笔记式</text>
+          <text x="56" y="192" style="font-size:12px;fill:#185fa5">边读边把重点写进「小本子」，省地方</text>
+          <rect x="350" y="152" width="290" height="56" rx="10" fill="#faece7" stroke="#993c1d" stroke-width="0.5"/>
+          <text x="366" y="172" style="font-size:12.5px;font-weight:600;fill:#712b13">MLA · 全记录式</text>
+          <text x="366" y="192" style="font-size:12px;fill:#993c1d">把前面所有话都记下来，记得全但费地方</text>
+        </g>
+      </svg>
+      <div class="figcap"><b>图 6 · K3 的双轨注意力：</b>蓝色 = KDA（记笔记式，Day 3 的主角），珊瑚色 = MLA（全记录式，今天讲的经典注意力）。K3 用 <b>3:1</b> 的比例混合——大部分层用省地方的 KDA，隔几层插一层 MLA 来「查漏补缺」。</div>
+    </div>
+
+    <div class="k3box">
+      <div class="kt">K3 原文（§2.1 混合注意力）</div>
+      <div class="k3quote">「Kimi K3 采用线性注意力与全局注意力的逐层混合，将 KDA 与 Gated MLA 结合。每个块包含 3 个 KDA 层，其后接 1 个 Gated MLA 层，混合比例为 3:1。」</div>
+      <p style="margin:12px 0 4px;"><b>逐词翻译（今天你已经能读懂大半了）：</b></p>
+      <ul style="padding-left:22px;">
+        <li style="margin:6px 0;"><b>线性注意力 / KDA</b>：今天的「全班讨论」+ 昨天剧透的「记笔记」——一边听一边把重点压缩进一个小本子，不用抄下每个人的原话。省地方、省算力，适合铺满大多数层。</li>
+        <li style="margin:6px 0;"><b>全局注意力 / Gated MLA</b>：就是今天讲的经典注意力——每个词跟窗口里所有词挨个打分。记得全，但费地方，所以只占少数层。</li>
+        <li style="margin:6px 0;"><b>3 : 1</b>：每 4 层里，3 层记笔记（KDA）+ 1 层全记录（MLA）。一个省钱一个保底，搭配起来：<b>又省又能看 100 万 token</b>。</li>
+      </ul>
+    </div>
+
+    <div class="numgrid">
+      <div class="numcard"><div class="n">3 : 1</div><div class="l">每 4 层注意力里<br>3 层 KDA + 1 层 MLA</div></div>
+      <div class="numcard"><div class="n">2 种</div><div class="l">两套「看」的机制<br>混着用、互相补</div></div>
+      <div class="numcard"><div class="n">1M</div><div class="l">上下文窗口 100 万<br>token（听力范围）</div></div>
+      <div class="numcard"><div class="n">NoPE</div><div class="l">不显式发「座位号」<br>靠 KDA 隐式记住位置</div></div>
+    </div>
+
+    <p style="margin-top:16px;"><b>为什么混着用能省钱？</b>打个比方：开会记纪要，聪明的做法是——<b>大部分时间只记重点（KDA）</b>，但每隔几轮，让速记员把全场原话完整录一遍（MLA）校对一下有没有漏掉关键细节。全程只抄原话会累死，全程只记重点又怕漏——3:1 混搭，两边的好处都拿到了。</p>
+
+    <div class="callout coral" style="margin-top:16px;">
+      <span class="ct">一句话总结今天的 K3 印象</span>
+      注意力 = AI 的「抓重点」。K3 把「抓重点」升级成了双轨制：大部分层用记笔记式的 KDA（省地方），隔几层插一层全记录式的 MLA（保底），比例 3:1——这正是它「又省又能记住 100 万字」的地基。KDA 怎么记笔记、为什么省地方，就是明天的课。
+    </div>
+  </section>
+
+  <!-- ================= 自测题 ================= -->
+  <section id="quiz">
+    <h2><span class="no">8</span>自测题（先自己答，再点开看解析）</h2>
+
+    <details>
+      <summary><span class="qmark">Q1</span>为什么 AI 接龙时不能只看上一个词？</summary>
+      <div class="ans">因为答案的线索常常藏在<b>很远的词</b>那里。「小明把苹果递给小红，因为＿很甜」——只看上一个词会填「小红」（小红很甜？说不通），必须「回头看」到 5 个词之外的「苹果」才能填对。所以 AI 要能同时看见整句话，并对每个词「抓重点」。</div>
+    </details>
+
+    <details>
+      <summary><span class="qmark">Q2</span>「注意力权重」是什么？它加起来等于多少？</summary>
+      <div class="ans">注意力权重 = 当前词和其他每个词的<b>相关度打分</b>，所有分数的总和约等于 <b>100%</b>。打高分词的「内容」在最终理解里占的份量大（加权汇总）。这些分数不是人标的，是 AI 从海量文章里自己学出来的。</div>
+    </details>
+
+    <details>
+      <summary><span class="qmark">Q3</span>用「提问 / 名片 / 发言」打比方，说说 Q、K、V 各自干什么？</summary>
+      <div class="ans"><b>Q（提问）</b>：当前词心里的问题——「谁跟我相关？」<b>K（名片）</b>：每个词亮出的身份标签——「我是谁」。把<b>问题和名片比对</b>就得到相关度分数。<b>V（发言）</b>：每个词要说的实际内容——按分数加权汇总，得出当前词的新理解。记住：Q 和 K 用来算分，V 才是真正被汇总的内容。</div>
+    </details>
+
+    <details>
+      <summary><span class="qmark">Q4</span>为什么词的顺序很重要？K3 是怎么处理顺序的？</summary>
+      <div class="ans">「猫追狗」和「狗追猫」用词完全相同，顺序一换意思就反了——如果 AI 只把它们当「一袋子词」就分不清谁在追谁，所以必须知道每个词的位置。主流 AI 用「座位号」（位置编码），<b>K3 是个例外</b>：它不显式发座位号（NoPE），而是靠 KDA 里的衰减机制隐式记住位置，好处是不用为位置编码费内存、上下文想拉多长拉多长。</div>
+    </details>
+
+    <details>
+      <summary><span class="qmark">Q5</span>K3 的「3:1 混合注意力」是什么意思？为什么要混？</summary>
+      <div class="ans">K3 每 4 层注意力里，<b>3 层是 KDA（记笔记式，省地方）+ 1 层是 MLA（全记录式，记得全）</b>，全网络重复。KDA 负责省钱省算力（这是它能看 100 万 token 的关键），MLA 负责「保底」，每隔几层完整回顾一遍，防止只记重点漏掉关键细节。一个省钱一个保底，3:1 混搭两边好处都拿到。</div>
+    </details>
+  </section>
+
+  <!-- ================= 明日预告 ================= -->
+  <div class="next">
+    <div class="nt">
+      <div>明日预告 · Day 3</div>
+      <b>Kimi 的看家本领：一口气记住 100 万字</b>
+      <div style="margin-top:4px; font-size:13px;">为什么「记得越多越慢越贵」？「便签本」KV Cache 是什么？KDA 怎么做到不抄全文、只记重点？</div>
+    </div>
+    <a href="day-03.html">开始 Day 3 →</a>
+  </div>
+
+  <div class="foot">
+    <a href="index.html">返回课程首页</a> · 本课程基于《Kimi K3 技术报告》编写，概念图均为原创示意
+  </div>
+
+</div>
+</body>
+</html>
