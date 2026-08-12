@@ -64,6 +64,21 @@ CREATE TABLE IF NOT EXISTS ai_pulse_distributions (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- AI Pulse decks table (出品 metadata; HTML content lives on R2 or in public/decks/)
+CREATE TABLE IF NOT EXISTS ai_pulse_decks (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug text UNIQUE NOT NULL,
+  href text NOT NULL,
+  title text NOT NULL,
+  kicker text NOT NULL,
+  description text NOT NULL,
+  meta text NOT NULL,
+  date date NOT NULL,
+  status text NOT NULL DEFAULT 'published' CHECK (status IN ('draft', 'published')),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
 -- AI Pulse subscribers table
 CREATE TABLE IF NOT EXISTS ai_pulse_subscribers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -146,6 +161,10 @@ CREATE TRIGGER ai_pulse_signals_updated_at
   BEFORE UPDATE ON ai_pulse_signals
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
+CREATE TRIGGER ai_pulse_decks_updated_at
+  BEFORE UPDATE ON ai_pulse_decks
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
 -- RLS
 ALTER TABLE ai_pulse_stories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_pulse_topics ENABLE ROW LEVEL SECURITY;
@@ -156,12 +175,16 @@ ALTER TABLE ai_pulse_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_pulse_agents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_pulse_user_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_pulse_wechat_tokens ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_pulse_decks ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Public read published ai_pulse_stories" ON ai_pulse_stories
   FOR SELECT USING (status = 'published');
 
 CREATE POLICY "Public read ai_pulse_signals" ON ai_pulse_signals
   FOR SELECT USING (true);
+
+CREATE POLICY "Public read published ai_pulse_decks" ON ai_pulse_decks
+  FOR SELECT USING (status = 'published');
 
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_stories_status_published_at ON ai_pulse_stories (status, published_at DESC);
@@ -175,16 +198,19 @@ CREATE INDEX IF NOT EXISTS idx_ai_pulse_signals_signal_date ON ai_pulse_signals 
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_distributions_story_id ON ai_pulse_distributions (story_id);
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_subscribers_email ON ai_pulse_subscribers (email);
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_subscribers_status ON ai_pulse_subscribers (status);
+CREATE INDEX IF NOT EXISTS idx_ai_pulse_decks_status_date ON ai_pulse_decks (status, date DESC);
 
 -- Grants
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, service_role;
 GRANT SELECT ON ai_pulse_stories TO anon, authenticated;
 GRANT SELECT ON ai_pulse_signals TO anon, authenticated;
+GRANT SELECT ON ai_pulse_decks TO anon, authenticated;
 GRANT ALL ON ai_pulse_subscribers TO service_role;
 GRANT ALL ON ai_pulse_topics TO service_role;
 GRANT ALL ON ai_pulse_distributions TO service_role;
 GRANT ALL ON ai_pulse_email_sends TO service_role;
+GRANT ALL ON ai_pulse_decks TO service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO postgres, service_role;
 GRANT ALL ON ALL ROUTINES IN SCHEMA public TO postgres, service_role;
 

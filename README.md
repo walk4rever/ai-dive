@@ -107,6 +107,19 @@ node scripts/upload-html-embed.mjs <html-file> <slug> [--height=2400]
 
 输出可以直接粘贴进文章 markdown。`height` 只是 JS 跑起来之前的初始猜测——嵌入页面里会自动注入一段上报真实高度的脚本，父页面收到后会把 iframe 撑到实际内容高度，不需要手动量准。R2 对象走 `immutable` 缓存，脚本每次运行都会在 URL 后面加 `?v=` 参数防止改完内容后还读到旧缓存。
 
+### 4c. 导入出品（/decks，可选）
+
+`/decks` 的元数据存在 `ai_pulse_decks` 表里（见 `supabase/migrations/20260812_create_decks.sql`），HTML 内容一律传到 R2——外部 agent 跑一条命令即可上线新条目，不需要改代码或部署：
+
+```bash
+node scripts/import-deck.mjs <html-file-or-dir> \
+  --slug=<slug> --title="..." --kicker="..." --description="..." \
+  --meta="..." --date=2026-08-12 \
+  [--entry=index.html] [--status=draft] [--dry-run]
+```
+
+输入可以是单个 HTML 文件，也可以是一个目录（比如 index.html + 多篇 day-0X.html 组成的系列课程）；目录会按相对路径整体上传到 R2，`--entry` 指定作为 `/decks` 列表点击目标的入口文件（默认 `index.html`），页内的相对链接和相对资源引用保持不变。
+
 ### 5. 启动开发服务器
 
 ```bash
@@ -124,6 +137,7 @@ npm run test
 npm run test:coverage
 npm run build
 npm run import:post -- "/path/to/article.md"
+npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=... --description=... --meta=... --date=2026-08-12
 ```
 
 ## 当前页面路由
@@ -136,7 +150,7 @@ npm run import:post -- "/path/to/article.md"
 - `/latest`：最新内容列表
 - `/archive`：内容归档
 - `/series`：专题列表
-- `/decks`：出品（幻灯片 / 报告 / 交互式解读，静态资源列表见 `src/app/decks/page.tsx`）
+- `/decks`：出品（幻灯片 / 报告 / 交互式解读，元数据存于 `ai_pulse_decks` 表，导入见上文 4c）
 - `/admin`：管理员内容后台
 - `/admin/new`：管理员新建文章
 - `/admin/edit/[slug]`：管理员文章元数据编辑

@@ -14,6 +14,7 @@ The main application is a Next.js 16 App Router project. Pages, layouts, and API
 - `npm run build`: perform the production Next.js and TypeScript build.
 - `npm run import:post -- "/path/article.md"`: import one Markdown article.
 - `node scripts/upload-html-embed.mjs <html-file> <slug>`: upload a self-contained interactive HTML page to R2 for use with the `::embed{src="..." height="..."}` markdown directive (renders as a sandboxed iframe; see README).
+- `node scripts/import-deck.mjs <html-file-or-dir> --slug=... --title=... --kicker=... --description=... --meta=... --date=...`: import one `/decks` entry (single HTML file or a directory of one) — uploads to R2 and upserts `ai_pulse_decks`; no deploy needed (see README).
 
 Before handing off changes, run `npm run lint`, `npm test`, and `npm run build`.
 

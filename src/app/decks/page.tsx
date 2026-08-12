@@ -1,5 +1,9 @@
 import Link from 'next/link'
 import { ListPageHeader } from '@/components/ListPageHeader'
+import { createClient } from '@/lib/supabase/server'
+import { getSupabaseEnv } from '@/lib/supabase/env'
+
+export const revalidate = 60
 
 export const metadata = {
   title: '出品 | AI-DIVE',
@@ -16,42 +20,19 @@ interface Deck {
   date: string
 }
 
-const decks: Deck[] = [
-  {
-    slug: 'agent-harness',
-    href: '/decks/agent-harness.html',
-    title: 'Harness 工程：从黑箱到可见',
-    kicker: 'HARNESS 系列 · 43 页',
-    description:
-      '基于《Harness 系列》六篇整理的技术演讲：五个维度、三套实践，附 Uber 与 Ramp 两个完整企业案例。',
-    meta: '43 slides · 60 min',
-    date: '2026.04',
-  },
-  {
-    slug: 'anthropic-founders-playbook',
-    href: '/decks/anthropic-founders-playbook.html',
-    title: "The Founder's Playbook：AI-Native 创业指南",
-    kicker: 'Anthropic · 35 页',
-    description:
-      'Anthropic 2026 年官方创始人手册完整精读。覆盖 Idea → MVP → Launch → Scale 四阶段，详解 Claude / Claude Code / Claude Cowork 的实战用法与案例。',
-    meta: '35 slides · 25 min',
-    date: '2026.05',
-  },
-  {
-    slug: 'k3-course',
-    href: '/decks/k3-course/index.html',
-    title: 'K3 七天课：从零读懂 47 页技术报告',
-    kicker: 'K3 七天课 · 7 篇',
-    description:
-      '不假设你懂编程、懂数学、懂 AI——只假设你有高中水平。每天先用比喻和图解讲清一个概念，再回到 Kimi K3 技术报告对应章节，七天读完一份 47 页的技术报告。',
-    meta: '7 天课程 · 30+ 图解 · 25 道自测题',
-    date: '2026.08',
-  },
-]
+export default async function DecksPage() {
+  const { hasPublicEnv } = getSupabaseEnv()
+  if (!hasPublicEnv) return <p className="text-sm text-[var(--muted)]">配置未完成。</p>
 
-const sortedDecks = [...decks].sort((a, b) => b.date.localeCompare(a.date))
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('ai_pulse_decks')
+    .select('slug, href, title, kicker, description, meta, date')
+    .eq('status', 'published')
+    .order('date', { ascending: false })
 
-export default function DecksPage() {
+  const decks = (data ?? []).map((deck) => ({ ...deck, date: deck.date.slice(0, 7).replace('-', '.') })) as Deck[]
+
   return (
     <div className="mx-auto max-w-4xl px-6 py-16">
       <ListPageHeader
@@ -61,7 +42,7 @@ export default function DecksPage() {
         count={decks.length}
       />
       <ul className="flex flex-col gap-10">
-        {sortedDecks.map((deck) => (
+        {decks.map((deck) => (
           <li key={deck.slug}>
             <Link
               href={deck.href}
