@@ -31,7 +31,7 @@ export default async function DecksPage() {
     .eq('status', 'published')
     .order('date', { ascending: false })
 
-  const decks = (data ?? []).map((deck) => ({ ...deck, date: deck.date.slice(0, 7).replace('-', '.') })) as Deck[]
+  const decks = (data ?? []).map((deck) => ({ ...deck, date: deck.date.replaceAll('-', '.') })) as Deck[]
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-16">
