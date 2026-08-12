@@ -136,6 +136,7 @@ npm run import:post -- "/path/to/article.md"
 - `/latest`：最新内容列表
 - `/archive`：内容归档
 - `/series`：专题列表
+- `/decks`：出品（幻灯片 / 报告 / 交互式解读，静态资源列表见 `src/app/decks/page.tsx`）
 - `/admin`：管理员内容后台
 - `/admin/new`：管理员新建文章
 - `/admin/edit/[slug]`：管理员文章元数据编辑

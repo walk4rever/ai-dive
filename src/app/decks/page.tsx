@@ -2,8 +2,8 @@ import Link from 'next/link'
 import { ListPageHeader } from '@/components/ListPageHeader'
 
 export const metadata = {
-  title: '演讲 Decks | AI-DIVE',
-  description: '基于 AI-DIVE系列整理的技术演讲幻灯片。',
+  title: '出品 Decks | AI-DIVE',
+  description: 'AI-DIVE 出品的深度制作：幻灯片、报告、交互式解读。',
 }
 
 interface Deck {
@@ -44,8 +44,8 @@ export default function DecksPage() {
     <div className="mx-auto max-w-4xl px-6 py-16">
       <ListPageHeader
         kicker="Decks"
-        title="演讲"
-        description="将深度思考浓缩为极具传播力的视觉脉络；提供可宣讲、可阅读、可分享的高质量幻灯片，加速前沿知识的流动。"
+        title="出品"
+        description="将深度思考浓缩为极具传播力的视觉产品——幻灯片、报告、交互式解读，加速前沿知识的流动。"
         count={decks.length}
       />
       <ul className="flex flex-col gap-10">
