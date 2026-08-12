@@ -49,6 +49,8 @@ const decks: Deck[] = [
   },
 ]
 
+const sortedDecks = [...decks].sort((a, b) => b.date.localeCompare(a.date))
+
 export default function DecksPage() {
   return (
     <div className="mx-auto max-w-4xl px-6 py-16">
@@ -59,7 +61,7 @@ export default function DecksPage() {
         count={decks.length}
       />
       <ul className="flex flex-col gap-10">
-        {decks.map((deck) => (
+        {sortedDecks.map((deck) => (
           <li key={deck.slug}>
             <Link
               href={deck.href}
