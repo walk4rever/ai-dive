@@ -109,7 +109,7 @@ node scripts/upload-html-embed.mjs <html-file> <slug> [--height=2400]
 
 ### 4c. 导入出品（/decks，可选）
 
-`/decks` 的元数据存在 `ai_pulse_decks` 表里（见 `supabase/migrations/20260812_create_decks.sql`），HTML 内容一律传到 R2——外部 agent 跑一条命令即可上线新条目，不需要改代码或部署：
+`/decks` 的元数据存在 `ai_pulse_decks` 表里（见 `supabase/migrations/20260812_create_decks.sql`），HTML 内容一律传到 R2——外部 agent 跑一条命令即可上线新条目，不需要改代码或部署。数据库里存的 `href` 是同源路径（如 `/decks/<slug>/<entry>`），不是 R2 原始域名；`next.config.ts` 的 `rewrites()` 把 `/decks/:slug/:path*` 服务端转发到 R2，访客地址栏不会看到 R2 的域名：
 
 ```bash
 node scripts/import-deck.mjs <html-file-or-dir> \

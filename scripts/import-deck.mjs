@@ -7,6 +7,10 @@
  * to Cloudflare R2, then upserts its metadata into the ai_pulse_decks table.
  * No git commit or deploy needed; the new deck appears on /decks on next request.
  *
+ * The stored href is a same-origin path (`/decks/<slug>/<entry>`), not the raw
+ * R2 URL — next.config.ts rewrites `/decks/:slug/:path*` to R2 server-side, so
+ * the R2 bucket domain never appears in the visitor's address bar.
+ *
  * Usage:
  *   node scripts/import-deck.mjs <html-file-or-dir> \
  *     --slug=<slug> --title="..." --kicker="..." --description="..." \
@@ -155,7 +159,7 @@ async function main() {
   }
 
   const cacheBust = Date.now().toString(36)
-  const href = `${CLOUDFLARE_R2_PUBLIC_URL}/${prefix}/${entryRel}?v=${cacheBust}`
+  const href = `/${prefix}/${entryRel}?v=${cacheBust}`
 
   const supabase = createClient(NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
   const { error } = await supabase
