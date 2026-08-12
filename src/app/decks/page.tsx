@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ListPageHeader } from '@/components/ListPageHeader'
 
 export const metadata = {
-  title: '出品 Decks | AI-DIVE',
+  title: '出品 | AI-DIVE',
   description: 'AI-DIVE 出品的深度制作：幻灯片、报告、交互式解读。',
 }
 
