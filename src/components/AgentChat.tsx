@@ -184,12 +184,12 @@ export function AgentChat() {
             rows={2}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+              if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault()
                 sendMessage(input)
               }
             }}
-            placeholder="粘贴论文链接、GitHub URL，或直接描述技术问题… （⌘Enter 发送）"
+            placeholder="粘贴论文链接、GitHub URL，或直接描述技术问题… （Enter 发送，Shift+Enter 换行）"
             className="flex-1 resize-none outline-none text-[0.9rem] leading-relaxed transition-all"
             style={{
               height: '52px',

@@ -326,12 +326,12 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
                   rows={1}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                       e.preventDefault()
                       sendMessage(input)
                     }
                   }}
-                  placeholder="针对这篇文章提问…（⌘Enter 发送）"
+                  placeholder="针对这篇文章提问…（Enter 发送，Shift+Enter 换行）"
                   className="flex-1 resize-none overflow-y-auto rounded-[10px] px-3 py-2 text-[0.85rem] leading-relaxed outline-none"
                   style={{ minHeight: '36px', maxHeight: '160px', border: '1px solid var(--border)', background: '#ffffff', color: '#141413' }}
                 />
