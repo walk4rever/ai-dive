@@ -2,15 +2,20 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { isLoggedIn } from '@/lib/auth/client'
 
 export function NavUser() {
+  const pathname = usePathname()
   const [loggedIn, setLoggedIn] = useState(false)
 
+  // Login navigates client-side (no remount), so re-check on every route
+  // change instead of just once on mount — otherwise this stays stuck on
+  // "登录" after a successful login until the next full page load.
   useEffect(() => {
-    const token = localStorage.getItem('user_token')
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (token) setLoggedIn(true)
-  }, [])
+    setLoggedIn(isLoggedIn())
+  }, [pathname])
 
   if (loggedIn) {
     return (

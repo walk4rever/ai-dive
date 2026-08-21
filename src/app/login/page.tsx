@@ -45,6 +45,9 @@ export default function LoginPage() {
           <h1 className="font-serif text-3xl md:text-4xl font-medium leading-[1.15] tracking-tight">
             欢迎回来
           </h1>
+          <p className="mt-4 text-[var(--muted)] leading-relaxed">
+            登录后解锁探索 Agent、AI解读等更多 AI+ 功能
+          </p>
         </div>
 
         <div className="bg-[var(--background)] rounded-2xl p-8 shadow-[0_0_0_1px_var(--border-subtle),0_4px_24px_rgba(20,20,19,0.04)]">
