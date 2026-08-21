@@ -15,6 +15,7 @@ Powered by [Air7.fun](https://air7.fun)
 - 邮件订阅页
 - 双重确认订阅流程
 - 登录、注册和用户文章管理
+- `/agent`、`/decks`、文章 AI解读 面板的登录门禁：未登录点击自动跳转 `/login?next=...`，登录成功后自动返回原页面 / 重新打开 AI解读面板
 - 管理后台：编辑文章元数据、发布状态、精选状态和专题编排
 - Newsletter 批量发送、退订处理和发送记录
 - R2 文件上传（包括大文件 presigned upload）
@@ -150,12 +151,12 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=... 
 - `/latest`：最新内容列表
 - `/archive`：内容归档
 - `/series`：专题列表
-- `/decks`：出品（幻灯片 / 报告 / 交互式解读，元数据存于 `ai_pulse_decks` 表，导入见上文 4c）
+- `/decks`：出品（幻灯片 / 报告 / 交互式解读，元数据存于 `ai_pulse_decks` 表，导入见上文 4c；需登录）
 - `/admin`：管理员内容后台
 - `/admin/new`：管理员新建文章
 - `/admin/edit/[slug]`：管理员文章元数据编辑
 - `/my/posts`：用户文章列表
-- `/agent`：Agent 入口
+- `/agent`：Agent 入口（需登录）
 - `/docs`：API 文档
 - `/subscribe`：订阅页
 - `/subscribe/confirmed`：确认结果页

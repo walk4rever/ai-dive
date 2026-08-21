@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { sanitizeNext } from '@/lib/auth/client'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -28,7 +29,8 @@ export default function LoginPage() {
       localStorage.setItem('user_token', data.token)
       localStorage.setItem('user_email', data.email)
       localStorage.setItem('user_role', data.role)
-      router.push('/dashboard')
+      const next = sanitizeNext(new URLSearchParams(window.location.search).get('next'))
+      router.push(next ?? '/dashboard')
     } else {
       setStatus('error')
       setMessage(data.error || '登录失败，请稍后重试。')

@@ -5,6 +5,12 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { ComponentPropsWithoutRef } from 'react'
 import { useAgentChat, TOOL_META } from '@/hooks/useAgentChat'
+import { isLoggedIn, loginHref } from '@/lib/auth/client'
+
+// Query param the "AI解读" trigger appends to the login redirect so the
+// panel can reopen itself once the reader is back on this article.
+const REOPEN_PARAM = 'open'
+const REOPEN_VALUE = 'chat'
 
 const mdComponents = {
   a: (props: ComponentPropsWithoutRef<'a'>) => {
@@ -182,12 +188,30 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
   // starts at scrollTop 0 regardless of how far the reader had scrolled.
   // Capture how far down they were before that switch so it can be replayed
   // as the new box's scrollTop, instead of the view snapping to the top.
-  function openPanel() {
+  function openPanel(): boolean {
+    if (!isLoggedIn()) {
+      const returnTo = `${window.location.pathname}?${REOPEN_PARAM}=${REOPEN_VALUE}`
+      window.location.href = loginHref(returnTo)
+      return false
+    }
     pendingArticleScrollRef.current = articleRef.current
       ? Math.max(0, -articleRef.current.getBoundingClientRect().top)
       : null
     setOpen(true)
+    return true
   }
+
+  // Reopen the panel automatically if we sent the reader to /login from here
+  // and they're back with the reopen marker in the URL.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get(REOPEN_PARAM) !== REOPEN_VALUE || !isLoggedIn()) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    openPanel()
+    const url = new URL(window.location.href)
+    url.searchParams.delete(REOPEN_PARAM)
+    window.history.replaceState(null, '', `${url.pathname}${url.search}`)
+  }, [])
 
   // The reverse of openPanel(): while docked, the article's reading position
   // lives in its own scroll box (articleRef.current.scrollTop), which the
@@ -200,9 +224,9 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
 
   function askAboutQuote() {
     if (!quoteButton) return
+    if (!openPanel()) return
     const quoted = quoteButton.text.length > 400 ? quoteButton.text.slice(0, 400) + '…' : quoteButton.text
     setInput(`关于这段：「${quoted}」\n\n`)
-    openPanel()
     setQuoteButton(null)
     window.getSelection()?.removeAllRanges()
     requestAnimationFrame(() => inputRef.current?.focus())

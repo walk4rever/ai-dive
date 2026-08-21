@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { AgentChat } from '@/components/AgentChat'
+import { AuthGate } from '@/components/AuthGate'
 
 export const metadata: Metadata = {
   title: '探索 | AI-DIVE',
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
 export default function AgentPage() {
   return (
     <div className="agent-screen">
-      <AgentChat />
+      <AuthGate>
+        <AgentChat />
+      </AuthGate>
     </div>
   )
 }

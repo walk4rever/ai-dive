@@ -356,6 +356,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - HTML 消毒（`rehype-sanitize` + `rehype-raw`）
 - 数据库迁移体系（`supabase/migrations/`，非单一 `schema.sql`）
 - 基础 CI（GitHub Actions，push/PR 到 `main` 时跑 `lint`）
+- 登录门禁（`/agent`、`/decks`、文章 AI解读 面板）：未登录用户点击后跳转 `/login?next=...`，登录成功后自动返回原页面（AI解读面板会带着 `?open=chat` 标记自动重新打开）
 
 ### 7.2 当前明确未实现
 
@@ -365,6 +366,8 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - 邮件模板管理（当前硬编码单一模板）
 - 运营指标面板（订阅数、确认率、打开率、点击率）
 - 真正的付费访问控制（`is_premium` 目前只对所有访客展示付费墙占位，不校验访客的订阅/付费状态）
+- 会员/付费分级：登录门禁目前只区分"已登录/未登录"，不区分付费等级；具体如何对会员收费待后续设计
+- 服务端登录校验：登录门禁是纯前端检查（`localStorage` token），`/agent`、`/decks` 页面数据与 `/api/agent` 接口本身未做服务端鉴权
 - 作者页
 - 精选创作者工作流
 - 搜索、标签页、相关文章推荐
