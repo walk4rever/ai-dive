@@ -120,7 +120,7 @@ export function AgentChat() {
                 </div>
               ) : (
                 <div key={i} className="flex">
-                  <div style={{ maxWidth: '80%' }}>
+                  <div style={{ maxWidth: '95%' }}>
                     {(msg.toolCalls ?? []).length > 0 && (
                       <div className="flex flex-col gap-1 mb-2">
                         {(msg.toolCalls ?? []).map((tc, j) => (
