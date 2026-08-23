@@ -1,6 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { MAX_IMAGES_PER_MESSAGE, type ImageAttachment } from '@/lib/image-attachment'
+
+export type { ImageAttachment }
 
 export interface ToolCall {
   id: string
@@ -14,6 +17,7 @@ export interface AgentMessage {
   text: string
   toolCalls?: ToolCall[]
   error?: boolean
+  images?: ImageAttachment[]
 }
 
 export const TOOL_META: Record<string, { icon: string; label: string }> = {
@@ -42,8 +46,17 @@ export function useAgentChat({ sessionStorageKey, articleSlug }: UseAgentChatOpt
   const [messages, setMessages] = useState<AgentMessage[]>([])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
+  const [pendingImages, setPendingImages] = useState<ImageAttachment[]>([])
   const abortRef = useRef<AbortController | null>(null)
   const sessionIdRef = useRef('')
+
+  function addImage(image: ImageAttachment) {
+    setPendingImages((prev) => (prev.length >= MAX_IMAGES_PER_MESSAGE ? prev : [...prev, image]))
+  }
+
+  function removeImage(index: number) {
+    setPendingImages((prev) => prev.filter((_, i) => i !== index))
+  }
 
   useEffect(() => {
     let id = sessionStorage.getItem(sessionStorageKey)
@@ -56,13 +69,15 @@ export function useAgentChat({ sessionStorageKey, articleSlug }: UseAgentChatOpt
 
   async function sendMessage(text: string) {
     const trimmed = text.trim()
-    if (!trimmed || streaming) return
+    const images = pendingImages
+    if ((!trimmed && images.length === 0) || streaming) return
 
     const assistantIndex = messages.length + 1
     setInput('')
+    setPendingImages([])
     setMessages((prev) => [
       ...prev,
-      { role: 'user', text: trimmed },
+      { role: 'user', text: trimmed, images: images.length ? images : undefined },
       { role: 'assistant', text: '', toolCalls: [] },
     ])
     setStreaming(true)
@@ -74,7 +89,12 @@ export function useAgentChat({ sessionStorageKey, articleSlug }: UseAgentChatOpt
       const res = await fetch('/api/agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: trimmed, userId: sessionIdRef.current, articleSlug }),
+        body: JSON.stringify({
+          message: trimmed,
+          userId: sessionIdRef.current,
+          articleSlug,
+          images: images.length ? images : undefined,
+        }),
         signal: ctrl.signal,
       })
 
@@ -160,5 +180,5 @@ export function useAgentChat({ sessionStorageKey, articleSlug }: UseAgentChatOpt
     abortRef.current?.abort()
   }
 
-  return { messages, input, setInput, streaming, sendMessage, abort }
+  return { messages, input, setInput, streaming, sendMessage, abort, pendingImages, addImage, removeImage }
 }

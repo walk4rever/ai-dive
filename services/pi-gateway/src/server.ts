@@ -2,20 +2,34 @@ import express from "express";
 import { requireSecret } from "./auth.js";
 import { getSession } from "./session-manager.js";
 import { streamPrompt } from "./stream.js";
+import { validateImageAttachments } from "./image-attachment.js";
 
 const PORT = Number(process.env.PORT ?? 3458);
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
 
 app.post("/chat", requireSecret, async (req, res) => {
-  const { message, userId, articleSlug } = req.body as { message?: string; userId?: string; articleSlug?: string };
+  const { message, userId, articleSlug, images: rawImages } = req.body as {
+    message?: string;
+    userId?: string;
+    articleSlug?: string;
+    images?: unknown;
+  };
 
   if (!message || typeof message !== "string" || message.trim() === "") {
     res.status(400).json({ error: "message is required" });
+    return;
+  }
+
+  let images;
+  try {
+    images = validateImageAttachments(rawImages);
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : "invalid images" });
     return;
   }
 
@@ -37,7 +51,7 @@ app.post("/chat", requireSecret, async (req, res) => {
     if (session.isStreaming) session.abort();
   });
 
-  await streamPrompt(session, message.trim(), res);
+  await streamPrompt(session, message.trim(), res, images);
 });
 
 app.listen(PORT, () => {

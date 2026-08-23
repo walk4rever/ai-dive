@@ -16,6 +16,7 @@ Powered by [Air7.fun](https://air7.fun)
 - 双重确认订阅流程
 - 登录、注册和用户文章管理
 - `/agent`、`/decks`、文章 AI解读 面板的登录门禁：未登录点击自动跳转 `/login?next=...`，登录成功后自动返回原页面 / 重新打开 AI解读面板
+- `/agent` 与文章 AI解读 面板支持粘贴图片提问（DeepSeek vision，client 端降采样为 1280px JPEG，单条消息最多 4 张，点击缩略图可查看大图）
 - 管理后台：编辑文章元数据、发布状态、精选状态和专题编排
 - Newsletter 批量发送、退订处理和发送记录
 - R2 文件上传（包括大文件 presigned upload）

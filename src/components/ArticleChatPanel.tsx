@@ -3,9 +3,10 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentPropsWithoutRef, ClipboardEvent } from 'react'
 import { useAgentChat, TOOL_META } from '@/hooks/useAgentChat'
 import { isLoggedIn, loginHref } from '@/lib/auth/client'
+import { handleClipboardImages, MessageImages, PendingImageChips, useImageLightbox } from '@/components/AgentChatImages'
 
 // Query param the "AI解读" trigger appends to the login redirect so the
 // panel can reopen itself once the reader is back on this article.
@@ -80,10 +81,16 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
   const isDesktop = useIsDesktop()
   const docked = open && isDesktop
 
-  const { messages, input, setInput, streaming, sendMessage, abort } = useAgentChat({
-    sessionStorageKey: `ai_dive_article_chat:${slug}`,
-    articleSlug: slug,
-  })
+  const { messages, input, setInput, streaming, sendMessage, abort, pendingImages, addImage, removeImage } =
+    useAgentChat({
+      sessionStorageKey: `ai_dive_article_chat:${slug}`,
+      articleSlug: slug,
+    })
+  const lightbox = useImageLightbox()
+
+  function onPaste(e: ClipboardEvent<HTMLTextAreaElement>) {
+    void handleClipboardImages(e, addImage)
+  }
 
   // Scroll only the message list itself, not scrollIntoView() — that walks up
   // and scrolls every ancestor scroll container needed to reveal the target,
@@ -289,13 +296,16 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
                 <div className="flex flex-col gap-4">
                   {messages.map((msg, i) =>
                     msg.role === 'user' ? (
-                      <div key={i} className="flex flex-row-reverse">
-                        <p
-                          className="max-w-[85%] whitespace-pre-wrap px-3.5 py-2 text-[0.83rem] leading-[1.8]"
-                          style={{ background: 'var(--accent)', color: '#faf9f5', borderRadius: '12px 12px 3px 12px' }}
-                        >
-                          {msg.text}
-                        </p>
+                      <div key={i} className="flex flex-col items-end">
+                        {msg.images && <MessageImages images={msg.images} onOpen={lightbox.open} />}
+                        {msg.text && (
+                          <p
+                            className="max-w-[85%] whitespace-pre-wrap px-3.5 py-2 text-[0.83rem] leading-[1.8]"
+                            style={{ background: 'var(--accent)', color: '#faf9f5', borderRadius: '12px 12px 3px 12px' }}
+                          >
+                            {msg.text}
+                          </p>
+                        )}
                       </div>
                     ) : (
                       <div key={i} className="flex">
@@ -342,6 +352,7 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
             </div>
 
             <div className="flex-shrink-0 px-5 py-3.5" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+              <PendingImageChips images={pendingImages} onRemove={removeImage} />
               <div className="flex items-end gap-2">
                 <textarea
                   ref={inputRef}
@@ -349,6 +360,7 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
                   disabled={streaming}
                   rows={1}
                   onChange={(e) => setInput(e.target.value)}
+                  onPaste={onPaste}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                       e.preventDefault()
@@ -362,7 +374,7 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
                 <button
                   type="button"
                   onClick={() => (streaming ? abort() : sendMessage(input))}
-                  disabled={!streaming && !input.trim()}
+                  disabled={!streaming && !input.trim() && pendingImages.length === 0}
                   className="flex-shrink-0 rounded-[10px] px-3 py-2 text-sm font-medium disabled:opacity-40"
                   style={{ background: streaming ? '#30302e' : 'var(--accent)', color: '#faf9f5' }}
                 >
@@ -397,6 +409,8 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
           AI解读
         </button>
       )}
+
+      {lightbox.node}
     </>
   )
 }

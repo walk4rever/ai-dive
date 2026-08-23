@@ -357,6 +357,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - 数据库迁移体系（`supabase/migrations/`，非单一 `schema.sql`）
 - 基础 CI（GitHub Actions，push/PR 到 `main` 时跑 `lint`）
 - 登录门禁（`/agent`、`/decks`、文章 AI解读 面板）：未登录用户点击后跳转 `/login?next=...`，登录成功后自动返回原页面（AI解读面板会带着 `?open=chat` 标记自动重新打开）
+- Agent 对话图片输入（`/agent`、文章 AI解读 面板）：粘贴图片时，`pi-gateway` 仅为携带图片的这一回合切换到 DeepSeek vision 模型（`deepseek-v4-flash-vision-exp`），回复完成后切回默认文本模型；图片仅以 base64 内联传输，不落库持久化
 
 ### 7.2 当前明确未实现
 

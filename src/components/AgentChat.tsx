@@ -3,8 +3,9 @@
 import { useEffect, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentPropsWithoutRef, ClipboardEvent } from 'react'
 import { useAgentChat, TOOL_META } from '@/hooks/useAgentChat'
+import { handleClipboardImages, MessageImages, PendingImageChips, useImageLightbox } from '@/components/AgentChatImages'
 
 const mdComponents = {
   a: (props: ComponentPropsWithoutRef<'a'>) => {
@@ -35,13 +36,19 @@ const StopIcon = () => (
 export function AgentChat() {
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  const { messages, input, setInput, streaming, sendMessage, abort } = useAgentChat({
-    sessionStorageKey: 'ai_dive_agent_session_id',
-  })
+  const { messages, input, setInput, streaming, sendMessage, abort, pendingImages, addImage, removeImage } =
+    useAgentChat({
+      sessionStorageKey: 'ai_dive_agent_session_id',
+    })
+  const lightbox = useImageLightbox()
 
   useEffect(() => {
     requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }))
   }, [messages])
+
+  function onPaste(e: ClipboardEvent<HTMLTextAreaElement>) {
+    void handleClipboardImages(e, addImage)
+  }
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -96,14 +103,17 @@ export function AgentChat() {
               msg.role === 'user' ? (
                 <div key={i} className="flex flex-row-reverse">
                   <div style={{ maxWidth: '80%' }}>
-                    <p className="text-[0.84rem] leading-[1.85] px-4 py-2.5 whitespace-pre-wrap"
-                      style={{
-                        background: 'var(--accent)',
-                        color: '#faf9f5',
-                        borderRadius: '12px 12px 3px 12px',
-                      }}>
-                      {msg.text}
-                    </p>
+                    {msg.images && <MessageImages images={msg.images} onOpen={lightbox.open} />}
+                    {msg.text && (
+                      <p className="text-[0.84rem] leading-[1.85] px-4 py-2.5 whitespace-pre-wrap"
+                        style={{
+                          background: 'var(--accent)',
+                          color: '#faf9f5',
+                          borderRadius: '12px 12px 3px 12px',
+                        }}>
+                        {msg.text}
+                      </p>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -177,12 +187,16 @@ export function AgentChat() {
 
       {/* Input bar */}
       <div className="flex-shrink-0 px-6 py-3.5" style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--surface)' }}>
+        <div className="mx-auto" style={{ maxWidth: '860px' }}>
+          <PendingImageChips images={pendingImages} onRemove={removeImage} />
+        </div>
         <div className="flex items-end gap-2 mx-auto" style={{ maxWidth: '860px' }}>
           <textarea
             value={input}
             disabled={streaming}
             rows={2}
             onChange={e => setInput(e.target.value)}
+            onPaste={onPaste}
             onKeyDown={e => {
               if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault()
@@ -212,7 +226,7 @@ export function AgentChat() {
           <button
             type="button"
             onClick={() => { if (streaming) abort(); else sendMessage(input) }}
-            disabled={!streaming && !input.trim()}
+            disabled={!streaming && !input.trim() && pendingImages.length === 0}
             className="flex-shrink-0 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             style={{
               width: '40px',
@@ -235,6 +249,7 @@ export function AgentChat() {
           </a>
         </p>
       </div>
+      {lightbox.node}
     </div>
   )
 }

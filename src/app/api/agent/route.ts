@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { validateImageAttachments } from '@/lib/image-attachment'
 
 export const maxDuration = 90
 
@@ -33,13 +34,20 @@ export async function POST(req: Request) {
 
   const articleSlug = await resolveArticleSlug(body.articleSlug)
 
+  let images
+  try {
+    images = validateImageAttachments(body.images)
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'invalid images' }, { status: 400 })
+  }
+
   const upstream = await fetch(`${GATEWAY_URL}/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-Agent-Secret': AGENT_SECRET,
     },
-    body: JSON.stringify({ message: body.message, userId: body.userId, articleSlug }),
+    body: JSON.stringify({ message: body.message, userId: body.userId, articleSlug, images }),
     signal: AbortSignal.timeout(85_000),
   })
 
