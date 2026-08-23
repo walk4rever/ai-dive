@@ -8,9 +8,46 @@ import { analyzeGithubTool } from "./tools/analyze-github.js";
 import { searchAiDiveTool } from "./tools/search-ai-dive.js";
 import { getArticleContentTool } from "./tools/get-article-content.js";
 import { pool } from "./db.js";
+import type { HistoryTurn } from "./history.js";
 
 const GATEWAY_DIR = dirname(dirname(fileURLToPath(import.meta.url)));
 const PI_AGENT_DIR = process.env.PI_AGENT_DIR ?? join(homedir(), ".pi", "agent");
+
+// Display-only fields required by AssistantMessage's type but not sent to the real
+// LLM on replay — seeded history is appended via SessionManager.appendMessage(),
+// which never triggers a completion call. Mirrors the provider/model actually
+// configured in .pi-agent/models.json.
+const SEED_API = "openai-completions";
+const SEED_PROVIDER = "deepseek";
+const SEED_MODEL = "deepseek-v4-flash";
+
+type SessionMessage = Parameters<SessionManager["appendMessage"]>[0];
+
+function buildSeedMessages(history: HistoryTurn[]): SessionMessage[] {
+  return history.map((turn) => {
+    const timestamp = Date.now();
+    if (turn.role === "user") {
+      return { role: "user", content: turn.text, timestamp };
+    }
+    return {
+      role: "assistant",
+      content: [{ type: "text", text: turn.text }],
+      api: SEED_API,
+      provider: SEED_PROVIDER,
+      model: SEED_MODEL,
+      usage: {
+        input: 0,
+        output: 0,
+        cacheRead: 0,
+        cacheWrite: 0,
+        totalTokens: 0,
+        cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+      },
+      stopReason: "stop",
+      timestamp,
+    };
+  });
+}
 
 const sessions = new Map<string, AgentSession>();
 const lastUsed = new Map<string, number>();
@@ -68,13 +105,20 @@ async function buildArticleResourceLoader(articleSlug: string): Promise<DefaultR
   return loader;
 }
 
-async function makeSession(articleSlug?: string): Promise<AgentSession> {
+async function makeSession(articleSlug?: string, history?: HistoryTurn[]): Promise<AgentSession> {
   const resourceLoader = articleSlug ? await buildArticleResourceLoader(articleSlug) : undefined;
+
+  const sessionManager = SessionManager.inMemory();
+  if (history) {
+    for (const message of buildSeedMessages(history)) {
+      sessionManager.appendMessage(message);
+    }
+  }
 
   const { session } = await createAgentSession({
     cwd: GATEWAY_DIR,
     agentDir: PI_AGENT_DIR,
-    sessionManager: SessionManager.inMemory(),
+    sessionManager,
     noTools: "builtin",
     customTools: [analyzeArxivTool, analyzeGithubTool, searchAiDiveTool, getArticleContentTool],
     resourceLoader,
@@ -82,8 +126,12 @@ async function makeSession(articleSlug?: string): Promise<AgentSession> {
   return session;
 }
 
-export async function getSession(userId: string | undefined, articleSlug?: string): Promise<AgentSession> {
-  if (!userId) return makeSession(articleSlug);
+export async function getSession(
+  userId: string | undefined,
+  articleSlug?: string,
+  history?: HistoryTurn[],
+): Promise<AgentSession> {
+  if (!userId) return makeSession(articleSlug, history);
 
   const key = `${userId}:${articleSlug ?? "global"}`;
   const existing = sessions.get(key);
@@ -92,7 +140,10 @@ export async function getSession(userId: string | undefined, articleSlug?: strin
     return existing;
   }
 
-  const session = await makeSession(articleSlug);
+  // Only a freshly created (cold-start) session gets seeded with prior history —
+  // an already-warm session already remembers the conversation and must not be
+  // touched here.
+  const session = await makeSession(articleSlug, history);
   sessions.set(key, session);
   lastUsed.set(key, Date.now());
   return session;

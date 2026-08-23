@@ -103,7 +103,9 @@ export function AgentChat() {
               msg.role === 'user' ? (
                 <div key={i} className="flex flex-row-reverse">
                   <div style={{ maxWidth: '80%' }}>
-                    {msg.images && <MessageImages images={msg.images} onOpen={lightbox.open} />}
+                    {(msg.images || msg.imageUrls) && (
+                      <MessageImages images={msg.images} imageUrls={msg.imageUrls} onOpen={lightbox.open} />
+                    )}
                     {msg.text && (
                       <p className="text-[0.84rem] leading-[1.85] px-4 py-2.5 whitespace-pre-wrap"
                         style={{

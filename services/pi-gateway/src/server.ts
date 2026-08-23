@@ -3,6 +3,7 @@ import { requireSecret } from "./auth.js";
 import { getSession } from "./session-manager.js";
 import { streamPrompt } from "./stream.js";
 import { validateImageAttachments } from "./image-attachment.js";
+import { validateHistory } from "./history.js";
 
 const PORT = Number(process.env.PORT ?? 3458);
 const app = express();
@@ -13,11 +14,12 @@ app.get("/health", (_req, res) => {
 });
 
 app.post("/chat", requireSecret, async (req, res) => {
-  const { message, userId, articleSlug, images: rawImages } = req.body as {
+  const { message, userId, articleSlug, images: rawImages, history: rawHistory } = req.body as {
     message?: string;
     userId?: string;
     articleSlug?: string;
     images?: unknown;
+    history?: unknown;
   };
 
   if (!message || typeof message !== "string" || message.trim() === "") {
@@ -33,9 +35,21 @@ app.post("/chat", requireSecret, async (req, res) => {
     return;
   }
 
+  let history;
+  try {
+    history = validateHistory(rawHistory);
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : "invalid history" });
+    return;
+  }
+
   let session;
   try {
-    session = await getSession(userId, typeof articleSlug === "string" && articleSlug ? articleSlug : undefined);
+    session = await getSession(
+      userId,
+      typeof articleSlug === "string" && articleSlug ? articleSlug : undefined,
+      history,
+    );
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     res.status(500).json({ error: `Failed to create session: ${msg}` });

@@ -2,6 +2,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { randomUUID } from 'crypto'
 import path from 'path'
 import { lookup } from 'mime-types'
+import type { ImageAttachment } from './image-attachment'
 
 export const r2 = new S3Client({
   region: 'auto',
@@ -62,4 +63,30 @@ export async function uploadToR2(file: File, folder = 'posts'): Promise<UploadRe
 
   const publicUrl = process.env.CLOUDFLARE_R2_PUBLIC_URL!
   return { url: `${publicUrl}/${key}`, key }
+}
+
+// Separate key space from the site's own content (which lives under posts/...) so
+// anything stored "for a user" — chat images today, future user uploads/exports —
+// can be audited or cleaned up per-user without touching public content keys.
+export function buildUserObjectKey(userId: string, category: string, filename: string): string {
+  return `users/${userId}/${category}/${filename}`
+}
+
+/** Uploads a base64-encoded chat image attachment to R2 and returns its public URL. */
+export async function uploadBase64ToR2(userId: string, category: string, image: ImageAttachment): Promise<string> {
+  const ext = image.mimeType.split('/')[1] ?? 'bin'
+  const key = buildUserObjectKey(userId, category, `${randomUUID()}.${ext}`)
+  const buffer = Buffer.from(image.data, 'base64')
+
+  await r2.send(
+    new PutObjectCommand({
+      Bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME!,
+      Key: key,
+      Body: buffer,
+      ContentType: image.mimeType,
+      CacheControl: 'public, max-age=31536000, immutable',
+    })
+  )
+
+  return `${process.env.CLOUDFLARE_R2_PUBLIC_URL!}/${key}`
 }

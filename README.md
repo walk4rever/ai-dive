@@ -17,6 +17,7 @@ Powered by [Air7.fun](https://air7.fun)
 - 登录、注册和用户文章管理
 - `/agent`、`/decks`、文章 AI解读 面板的登录门禁：未登录点击自动跳转 `/login?next=...`，登录成功后自动返回原页面 / 重新打开 AI解读面板
 - `/agent` 与文章 AI解读 面板支持粘贴图片提问（DeepSeek vision，client 端降采样为 1280px JPEG，单条消息最多 4 张，点击缩略图可查看大图）
+- `/agent`、文章 AI解读 面板的会话持久化：登录用户对话写入 `ai_pulse_chat_turns`，刷新/换设备可续接最近 10 轮；图片存 R2；pi-gateway 冷启动时把历史回放进 `AgentSession`，模型能记住之前聊过什么
 - 管理后台：编辑文章元数据、发布状态、精选状态和专题编排
 - Newsletter 批量发送、退订处理和发送记录
 - R2 文件上传（包括大文件 presigned upload）
@@ -174,6 +175,8 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=... 
 - `/api/admin/posts/preview`：管理员 Markdown 正文预览
 - `/api/upload`、`/api/upload/presign`：文件上传
 - `/api/agents`：Agent 管理接口
+- `/api/agent`：探索/AI解读对话接口（POST，需登录，转发到 pi-gateway，SSE 流式返回）
+- `/api/agent-turns`：会话历史读写接口（GET 拉取最近 10 轮，POST 持久化一轮，均需登录）
 
 ## 当前确认流程
 

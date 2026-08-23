@@ -7,6 +7,11 @@ export function isLoggedIn(): boolean {
   return !!localStorage.getItem(TOKEN_KEY)
 }
 
+export function getToken(): string | null {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem(TOKEN_KEY)
+}
+
 // Only accept same-origin relative paths as a redirect target so `next`
 // (which arrives from a URL query string) can never send the user off-site.
 export function sanitizeNext(next: string | null): string | null {

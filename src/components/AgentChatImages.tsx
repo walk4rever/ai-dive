@@ -74,20 +74,25 @@ export function PendingImageChips({ images, onRemove }: PendingImageChipsProps) 
 }
 
 interface MessageImagesProps {
-  images: ImageAttachment[]
+  images?: ImageAttachment[]
+  imageUrls?: string[]
   onOpen: (src: string) => void
 }
 
-export function MessageImages({ images, onOpen }: MessageImagesProps) {
-  if (images.length === 0) return null
+// Merges two image sources into one rendered row: base64 attachments (the current,
+// just-sent turn) and R2 public URLs (turns reloaded from persisted history) — both
+// render fine as a plain <img src>, no proxy needed for the URL case.
+export function MessageImages({ images = [], imageUrls = [], onOpen }: MessageImagesProps) {
+  const sources = [...images.map(imageSrc), ...imageUrls]
+  if (sources.length === 0) return null
   return (
     <div className="flex gap-2 mb-2 flex-wrap justify-end">
-      {images.map((img, i) => (
+      {sources.map((src, i) => (
         <img
           key={i}
-          src={imageSrc(img)}
+          src={src}
           alt=""
-          onClick={() => onOpen(imageSrc(img))}
+          onClick={() => onOpen(src)}
           className="cursor-zoom-in object-cover"
           style={{ width: '96px', height: '96px', borderRadius: '10px', border: '1px solid var(--border)' }}
         />

@@ -357,7 +357,8 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - 数据库迁移体系（`supabase/migrations/`，非单一 `schema.sql`）
 - 基础 CI（GitHub Actions，push/PR 到 `main` 时跑 `lint`）
 - 登录门禁（`/agent`、`/decks`、文章 AI解读 面板）：未登录用户点击后跳转 `/login?next=...`，登录成功后自动返回原页面（AI解读面板会带着 `?open=chat` 标记自动重新打开）
-- Agent 对话图片输入（`/agent`、文章 AI解读 面板）：粘贴图片时，`pi-gateway` 仅为携带图片的这一回合切换到 DeepSeek vision 模型（`deepseek-v4-flash-vision-exp`），回复完成后切回默认文本模型；图片仅以 base64 内联传输，不落库持久化
+- Agent 对话图片输入（`/agent`、文章 AI解读 面板）：粘贴图片时，`pi-gateway` 仅为携带图片的这一回合切换到 DeepSeek vision 模型（`deepseek-v4-flash-vision-exp`），回复完成后切回默认文本模型
+- Agent 会话持久化（`/agent`、文章 AI解读 面板）：登录用户的每一轮对话写入 `ai_pulse_chat_turns`（按 `user_id` + `context_key` 归属，`context_key` 是文章 slug 或字面量 `global`），刷新页面/换设备会重新加载最近 10 轮；图片附件上传到 R2（`users/<userId>/chat/...`），`imageUrls` 随历史一起落库；`pi-gateway` 冷启动（同一 tab-scoped 匿名 session 30 分钟 TTL 过期后的下一次请求）时会用 `SessionManager.appendMessage()` 把这份历史原样灌回 `AgentSession`，让模型"记得"之前聊过什么——历史里的纯图片轮次回放时替换成文字占位符，不重新下载图片
 
 ### 7.2 当前明确未实现
 
@@ -368,7 +369,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - 运营指标面板（订阅数、确认率、打开率、点击率）
 - 真正的付费访问控制（`is_premium` 目前只对所有访客展示付费墙占位，不校验访客的订阅/付费状态）
 - 会员/付费分级：登录门禁目前只区分"已登录/未登录"，不区分付费等级；具体如何对会员收费待后续设计
-- 服务端登录校验：登录门禁是纯前端检查（`localStorage` token），`/agent`、`/decks` 页面数据与 `/api/agent` 接口本身未做服务端鉴权
+- 服务端登录校验：登录门禁大多是纯前端检查（`localStorage` token）；`/api/agent`、`/api/agent-turns` 已经补上服务端 `resolveSession` 校验，但 `/agent`、`/decks` 页面数据本身仍未做服务端鉴权
 - 作者页
 - 精选创作者工作流
 - 搜索、标签页、相关文章推荐

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { MAX_IMAGES_PER_MESSAGE, type ImageAttachment } from '@/lib/image-attachment'
+import { deriveContextKey } from '@/lib/agent-context'
+import { getToken } from '@/lib/auth/client'
 
 export type { ImageAttachment }
 
@@ -18,6 +20,7 @@ export interface AgentMessage {
   toolCalls?: ToolCall[]
   error?: boolean
   images?: ImageAttachment[]
+  imageUrls?: string[]
 }
 
 export const TOOL_META: Record<string, { icon: string; label: string }> = {
@@ -49,6 +52,7 @@ export function useAgentChat({ sessionStorageKey, articleSlug }: UseAgentChatOpt
   const [pendingImages, setPendingImages] = useState<ImageAttachment[]>([])
   const abortRef = useRef<AbortController | null>(null)
   const sessionIdRef = useRef('')
+  const contextKey = deriveContextKey(articleSlug)
 
   function addImage(image: ImageAttachment) {
     setPendingImages((prev) => (prev.length >= MAX_IMAGES_PER_MESSAGE ? prev : [...prev, image]))
@@ -56,6 +60,18 @@ export function useAgentChat({ sessionStorageKey, articleSlug }: UseAgentChatOpt
 
   function removeImage(index: number) {
     setPendingImages((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  function persistTurn(role: 'user' | 'assistant', text: string, images?: ImageAttachment[]) {
+    const token = getToken()
+    if (!token) return
+    fetch('/api/agent-turns', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ contextKey, role, text, images }),
+    }).catch(() => {
+      // Best-effort — a dropped persist just means this turn won't reload after refresh.
+    })
   }
 
   useEffect(() => {
@@ -66,6 +82,35 @@ export function useAgentChat({ sessionStorageKey, articleSlug }: UseAgentChatOpt
     }
     sessionIdRef.current = id
   }, [sessionStorageKey])
+
+  useEffect(() => {
+    const token = getToken()
+    if (!token) return
+
+    let cancelled = false
+    fetch(`/api/agent-turns?contextKey=${encodeURIComponent(contextKey)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { turns?: { role: 'user' | 'assistant'; text: string; imageUrls: string[] }[] } | null) => {
+        if (cancelled || !data?.turns?.length) return
+        const loaded: AgentMessage[] = data.turns.map((turn) => ({
+          role: turn.role,
+          text: turn.text,
+          imageUrls: turn.imageUrls.length > 0 ? turn.imageUrls : undefined,
+        }))
+        // Only hydrate into an empty thread — never clobber a conversation the user
+        // has already started while this request was in flight.
+        setMessages((prev) => (prev.length === 0 ? loaded : prev))
+      })
+      .catch(() => {
+        // Best-effort — history just won't be there for this thread.
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [contextKey])
 
   async function sendMessage(text: string) {
     const trimmed = text.trim()
@@ -80,15 +125,23 @@ export function useAgentChat({ sessionStorageKey, articleSlug }: UseAgentChatOpt
       { role: 'user', text: trimmed, images: images.length ? images : undefined },
       { role: 'assistant', text: '', toolCalls: [] },
     ])
+    persistTurn('user', trimmed, images.length ? images : undefined)
     setStreaming(true)
 
     const ctrl = new AbortController()
     abortRef.current = ctrl
+    // Accumulated outside React state (which updates asynchronously) so the persist
+    // call below always sees the full streamed text, not a stale closure snapshot.
+    let assistantText = ''
 
     try {
+      const token = getToken()
       const res = await fetch('/api/agent', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           message: trimmed,
           userId: sessionIdRef.current,
@@ -132,6 +185,7 @@ export function useAgentChat({ sessionStorageKey, articleSlug }: UseAgentChatOpt
 
             if (eventType === 'delta') {
               const delta = typeof data.text === 'string' ? data.text : ''
+              assistantText += delta
               setMessages((prev) => prev.map((m, i) => (i === assistantIndex ? { ...m, text: m.text + delta } : m)))
             } else if (eventType === 'tool_start') {
               const id = typeof data.id === 'string' ? data.id : String(Date.now())
@@ -161,6 +215,8 @@ export function useAgentChat({ sessionStorageKey, articleSlug }: UseAgentChatOpt
           }
         }
       }
+
+      if (assistantText.trim()) persistTurn('assistant', assistantText)
     } catch (err) {
       const aborted = (err as Error).name === 'AbortError'
       setMessages((prev) =>
@@ -170,6 +226,7 @@ export function useAgentChat({ sessionStorageKey, articleSlug }: UseAgentChatOpt
             : m
         )
       )
+      if (assistantText.trim()) persistTurn('assistant', assistantText)
     } finally {
       setStreaming(false)
       abortRef.current = null
