@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import { sanitizeNext } from '@/lib/auth/client'
 
 export default function LoginPage() {
@@ -17,23 +18,14 @@ export default function LoginPage() {
     setStatus('loading')
     setMessage('')
 
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
+    const res = await signIn('credentials', { email, password, redirect: false })
 
-    const data = await res.json()
-
-    if (res.ok) {
-      localStorage.setItem('user_token', data.token)
-      localStorage.setItem('user_email', data.email)
-      localStorage.setItem('user_role', data.role)
+    if (res?.error) {
+      setStatus('error')
+      setMessage('邮箱或密码错误，请重试。')
+    } else {
       const next = sanitizeNext(new URLSearchParams(window.location.search).get('next'))
       router.push(next ?? '/dashboard')
-    } else {
-      setStatus('error')
-      setMessage(data.error || '登录失败，请稍后重试。')
     }
   }
 

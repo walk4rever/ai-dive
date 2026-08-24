@@ -1,24 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
 import { createServiceClient } from '@/lib/supabase/server'
-import { resolveSession } from '@/lib/auth/session'
+import { authOptions } from '@/lib/auth'
 import { deriveContextKey, fetchRecentTurns } from '@/lib/agent-context'
 import { validateImageAttachments } from '@/lib/image-attachment'
 import { uploadBase64ToR2 } from '@/lib/r2'
 
-function extractBearer(req: NextRequest): string | null {
-  const header = req.headers.get('authorization') ?? ''
-  return header.startsWith('Bearer ') ? header.slice(7) : null
-}
-
 const MAX_TEXT_LENGTH = 8000
 
 export async function GET(req: NextRequest) {
-  const session = await resolveSession(extractBearer(req))
+  const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const contextKey = deriveContextKey(req.nextUrl.searchParams.get('contextKey'))
   const supabase = await createServiceClient()
-  const turns = await fetchRecentTurns(supabase, session.id, contextKey)
+  const turns = await fetchRecentTurns(supabase, session.user.id, contextKey)
 
   return NextResponse.json({ turns })
 }
@@ -31,7 +27,7 @@ interface PostBody {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await resolveSession(extractBearer(req))
+  const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = (await req.json().catch(() => null)) as PostBody | null
@@ -64,12 +60,12 @@ export async function POST(req: NextRequest) {
   const contextKey = deriveContextKey(typeof body.contextKey === 'string' ? body.contextKey : undefined)
 
   const imageUrls = images
-    ? await Promise.all(images.map((image) => uploadBase64ToR2(session.id, 'chat', image)))
+    ? await Promise.all(images.map((image) => uploadBase64ToR2(session.user.id, 'chat', image)))
     : []
 
   const supabase = await createServiceClient()
   const { error } = await supabase.from('ai_pulse_chat_turns').insert({
-    user_id: session.id,
+    user_id: session.user.id,
     context_key: contextKey,
     role,
     text,

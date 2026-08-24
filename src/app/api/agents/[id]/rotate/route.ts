@@ -1,16 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
 import { createServiceClient } from '@/lib/supabase/server'
-import { resolveSession } from '@/lib/auth/session'
+import { authOptions } from '@/lib/auth'
 import { generateAgentKey } from '@/lib/auth/token'
 
 interface RouteParams {
   params: Promise<{ id: string }>
 }
 
-export async function POST(req: NextRequest, { params }: RouteParams) {
-  const token = extractBearer(req)
-  const user = await resolveSession(token)
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export async function POST(_req: NextRequest, { params }: RouteParams) {
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
   const supabase = await createServiceClient()
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     .eq('id', id)
     .single()
 
-  if (!agent || agent.user_id !== user.id) {
+  if (!agent || agent.user_id !== session.user.id) {
     return NextResponse.json({ error: 'Agent not found' }, { status: 404 })
   }
 
@@ -39,9 +40,4 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
   if (error) return NextResponse.json({ error: 'Failed to rotate key' }, { status: 500 })
 
   return NextResponse.json({ api_key: key })
-}
-
-function extractBearer(req: NextRequest): string | null {
-  const h = req.headers.get('authorization') ?? ''
-  return h.startsWith('Bearer ') ? h.slice(7) : null
 }

@@ -1,61 +1,27 @@
-'use client'
-
-import { useEffect, useEffectEvent, useState } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { redirect } from 'next/navigation'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { loginHref } from '@/lib/auth/client'
+import { createServiceClient } from '@/lib/supabase/server'
 import { EditForm } from './EditForm'
 
-interface Post {
-  slug: string
-  title: string
-  content: string
-  body_markdown: string | null
-  excerpt: string
-  featured: boolean
-  status: string
-  published_at: string | null
-  is_premium: boolean
-  content_type: string
-  author_slug: string | null
-  author_display: string | null
+interface PageParams {
+  params: Promise<{ slug: string }>
 }
 
-function getToken() {
-  return typeof window !== 'undefined' ? localStorage.getItem('user_token') : null
-}
+export default async function EditPage({ params }: PageParams) {
+  const session = await getServerSession(authOptions)
+  if (!session || session.user.role !== 'admin') redirect(loginHref('/admin'))
 
-export default function EditPage() {
-  const router = useRouter()
-  const params = useParams()
-  const slug = params.slug as string
-  const [post, setPost] = useState<Post | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { slug } = await params
+  const supabase = await createServiceClient()
+  const { data: post } = await supabase
+    .from('ai_pulse_stories')
+    .select('slug, title, content, body_markdown, excerpt, featured, status, published_at, is_premium, content_type, author_slug, author_display')
+    .eq('slug', slug)
+    .single()
 
-  const fetchPost = useEffectEvent(async () => {
-    const res = await fetch(`/api/admin/posts/${slug}`, {
-      headers: { Authorization: `Bearer ${getToken()}` },
-    })
-    if (res.status === 401) { router.push('/login'); return }
-    if (res.status === 404) { router.push('/admin'); return }
-    const data = await res.json()
-    setPost(data.post)
-    setLoading(false)
-  })
-
-  useEffect(() => {
-    const role = localStorage.getItem('user_role')
-    if (!getToken() || role !== 'admin') { router.push('/login'); return }
-    void fetchPost()
-  }, [router, slug])
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-sm text-[var(--muted)]">加载中...</p>
-      </div>
-    )
-  }
-
-  if (!post) return null
+  if (!post) redirect('/admin')
 
   return (
     <div className="min-h-screen p-8">

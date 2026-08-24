@@ -1,17 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
+import { getServerSession } from 'next-auth'
 import { createServiceClient } from '@/lib/supabase/server'
-import { resolveSession } from '@/lib/auth/session'
+import { authOptions } from '@/lib/auth'
 import { markdownToHtml } from '@/lib/markdown'
 import { toAuthorSlug } from '@/lib/author'
 
 interface RouteParams {
   params: Promise<{ slug: string }>
-}
-
-function extractBearer(req: NextRequest): string | null {
-  const h = req.headers.get('authorization') ?? ''
-  return h.startsWith('Bearer ') ? h.slice(7) : null
 }
 
 async function verifyOwnership(
@@ -29,13 +26,13 @@ async function verifyOwnership(
   return post ?? null
 }
 
-export async function GET(req: NextRequest, { params }: RouteParams) {
-  const user = await resolveSession(extractBearer(req))
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export async function GET(_req: NextRequest, { params }: RouteParams) {
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { slug } = await params
   const supabase = await createServiceClient()
-  const post = await verifyOwnership(supabase, slug, user.id)
+  const post = await verifyOwnership(supabase, slug, session.user.id)
 
   if (!post) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
@@ -43,12 +40,12 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 }
 
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
-  const user = await resolveSession(extractBearer(req))
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { slug } = await params
   const supabase = await createServiceClient()
-  const post = await verifyOwnership(supabase, slug, user.id)
+  const post = await verifyOwnership(supabase, slug, session.user.id)
   if (!post) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const body = await req.json().catch(() => null)
@@ -91,13 +88,13 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   return NextResponse.json({ ok: true })
 }
 
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
-  const user = await resolveSession(extractBearer(req))
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export async function DELETE(_req: NextRequest, { params }: RouteParams) {
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { slug } = await params
   const supabase = await createServiceClient()
-  const post = await verifyOwnership(supabase, slug, user.id)
+  const post = await verifyOwnership(supabase, slug, session.user.id)
   if (!post) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const { error } = await supabase.from('ai_pulse_stories').delete().eq('slug', slug)

@@ -3,7 +3,8 @@ import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { randomUUID } from 'crypto'
 import path from 'path'
-import { resolveSession } from '@/lib/auth/session'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { resolveAuthor } from '@/lib/api-auth'
 import { r2, ALLOWED_TYPES } from '@/lib/r2'
 
@@ -31,10 +32,8 @@ function extractBearer(req: NextRequest): string | null {
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const token = extractBearer(req)
-
-  const session = await resolveSession(token)
-  const agent = session ? null : await resolveAuthor(token)
+  const session = await getServerSession(authOptions)
+  const agent = session ? null : await resolveAuthor(extractBearer(req))
 
   if (!session && !agent) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -60,7 +59,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: '文件过大，最大支持 200 MB' }, { status: 422 })
   }
 
-  const folder = agent ? `posts/${agent.agentId}` : `posts/${session!.id}`
+  const folder = agent ? `posts/${agent.agentId}` : `posts/${session!.user.id}`
   const ext = path.extname(filename) || `.${contentType.split('/')[1]}`
   const key = `${folder}/${randomUUID()}${ext}`
 

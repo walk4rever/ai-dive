@@ -9,7 +9,7 @@ interface RouteParams {
 }
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
-  if (!await requireAdminSession(req)) {
+  if (!await requireAdminSession()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 }
 
 export async function DELETE(req: NextRequest, { params }: RouteParams) {
-  if (!await requireAdminSession(req)) {
+  if (!await requireAdminSession()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -49,7 +49,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
 }
 
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
-  if (!await requireAdminSession(req)) {
+  if (!await requireAdminSession()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

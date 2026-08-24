@@ -1,8 +1,13 @@
-'use client'
-
+import { redirect } from 'next/navigation'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { loginHref } from '@/lib/auth/client'
 import { SeriesManager } from '@/app/admin/SeriesManager'
 
-export default function AdminSeriesPage() {
+export default async function AdminSeriesPage() {
+  const session = await getServerSession(authOptions)
+  if (!session || session.user.role !== 'admin') redirect(loginHref('/admin'))
+
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto">

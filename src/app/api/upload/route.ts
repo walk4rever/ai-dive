@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { resolveSession } from '@/lib/auth/session'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { resolveAuthor } from '@/lib/api-auth'
 import { uploadToR2 } from '@/lib/r2'
 
@@ -9,11 +10,9 @@ function extractBearer(req: NextRequest): string | null {
 }
 
 export async function POST(req: NextRequest) {
-  const token = extractBearer(req)
-
-  // Accept both session tokens and agent API keys
-  const session = await resolveSession(token)
-  const agent = session ? null : await resolveAuthor(token)
+  // Accept both logged-in users (cookie session) and agent API keys (bearer token)
+  const session = await getServerSession(authOptions)
+  const agent = session ? null : await resolveAuthor(extractBearer(req))
 
   if (!session && !agent) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -21,7 +20,7 @@ export async function POST(req: NextRequest) {
 
   const folder = agent
     ? `posts/${agent.agentId}`
-    : `posts/${session!.id}`
+    : `posts/${session!.user.id}`
 
   const formData = await req.formData().catch(() => null)
   if (!formData) {

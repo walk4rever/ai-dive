@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireAdminSession } from '@/lib/admin-auth'
 
-export async function GET(req: NextRequest) {
-  if (!await requireAdminSession(req)) {
+export async function GET() {
+  if (!await requireAdminSession()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!await requireAdminSession(req)) {
+  if (!await requireAdminSession()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

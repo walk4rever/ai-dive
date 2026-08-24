@@ -1,6 +1,9 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { getServerSession } from 'next-auth'
 import { ListPageHeader } from '@/components/ListPageHeader'
-import { AuthGate } from '@/components/AuthGate'
+import { authOptions } from '@/lib/auth'
+import { loginHref } from '@/lib/auth/client'
 import { createClient } from '@/lib/supabase/server'
 import { getSupabaseEnv } from '@/lib/supabase/env'
 
@@ -22,6 +25,9 @@ interface Deck {
 }
 
 export default async function DecksPage() {
+  const session = await getServerSession(authOptions)
+  if (!session) redirect(loginHref('/decks'))
+
   const { hasPublicEnv } = getSupabaseEnv()
   if (!hasPublicEnv) return <p className="text-sm text-[var(--muted)]">配置未完成。</p>
 
@@ -35,42 +41,40 @@ export default async function DecksPage() {
   const decks = (data ?? []).map((deck) => ({ ...deck, date: deck.date.replaceAll('-', '.') })) as Deck[]
 
   return (
-    <AuthGate>
-      <div className="mx-auto max-w-4xl px-6 py-16">
-        <ListPageHeader
-          kicker="Decks"
-          title="出品"
-          description="将深度思考浓缩为极具传播力的视觉产品——幻灯片、报告、交互式解读，加速前沿知识的流动。"
-          count={decks.length}
-        />
-        <ul className="flex flex-col gap-10">
-          {decks.map((deck) => (
-            <li key={deck.slug}>
-              <Link
-                href={deck.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group block border-b border-[var(--border)] pb-10 transition-colors hover:border-[var(--accent)]"
-              >
-                <p className="kicker mb-3" style={{ color: 'var(--accent)' }}>
-                  {deck.kicker}
-                </p>
-                <h2 className="font-serif text-2xl md:text-3xl font-medium leading-snug tracking-tight text-[var(--foreground)] transition-colors group-hover:text-[var(--accent)]">
-                  {deck.title}
-                </h2>
-                <p className="mt-4 text-base text-[var(--muted)] leading-relaxed">
-                  {deck.description}
-                </p>
-                <p className="date mt-5 flex gap-4">
-                  <span>{deck.date}</span>
-                  <span>·</span>
-                  <span>{deck.meta}</span>
-                </p>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </AuthGate>
+    <div className="mx-auto max-w-4xl px-6 py-16">
+      <ListPageHeader
+        kicker="Decks"
+        title="出品"
+        description="将深度思考浓缩为极具传播力的视觉产品——幻灯片、报告、交互式解读，加速前沿知识的流动。"
+        count={decks.length}
+      />
+      <ul className="flex flex-col gap-10">
+        {decks.map((deck) => (
+          <li key={deck.slug}>
+            <Link
+              href={deck.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group block border-b border-[var(--border)] pb-10 transition-colors hover:border-[var(--accent)]"
+            >
+              <p className="kicker mb-3" style={{ color: 'var(--accent)' }}>
+                {deck.kicker}
+              </p>
+              <h2 className="font-serif text-2xl md:text-3xl font-medium leading-snug tracking-tight text-[var(--foreground)] transition-colors group-hover:text-[var(--accent)]">
+                {deck.title}
+              </h2>
+              <p className="mt-4 text-base text-[var(--muted)] leading-relaxed">
+                {deck.description}
+              </p>
+              <p className="date mt-5 flex gap-4">
+                <span>{deck.date}</span>
+                <span>·</span>
+                <span>{deck.meta}</span>
+              </p>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }

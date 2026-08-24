@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { ComponentPropsWithoutRef, ClipboardEvent } from 'react'
-import { useAgentChat, TOOL_META } from '@/hooks/useAgentChat'
+import { useAgentChat, TOOL_META, type AgentMessage } from '@/hooks/useAgentChat'
 import { handleClipboardImages, MessageImages, PendingImageChips, useImageLightbox } from '@/components/AgentChatImages'
 
 const mdComponents = {
@@ -33,12 +33,17 @@ const StopIcon = () => (
   </svg>
 )
 
-export function AgentChat() {
+interface AgentChatProps {
+  initialMessages?: AgentMessage[]
+}
+
+export function AgentChat({ initialMessages }: AgentChatProps = {}) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   const { messages, input, setInput, streaming, sendMessage, abort, pendingImages, addImage, removeImage } =
     useAgentChat({
       sessionStorageKey: 'ai_dive_agent_session_id',
+      initialMessages,
     })
   const lightbox = useImageLightbox()
 

@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { isLoggedIn, loginHref } from '@/lib/auth/client'
+import { useSession } from 'next-auth/react'
+import { loginHref } from '@/lib/auth/client'
 
 const NAV_ITEMS: ReadonlyArray<
   | { type: 'link'; href: string; label: string; gated?: boolean }
@@ -24,6 +25,7 @@ interface NavLinksProps {
 export function NavLinks({ variant }: NavLinksProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const { status } = useSession()
   const isDesktop = variant === 'desktop'
   const containerClass = isDesktop
     ? 'hidden md:flex items-center justify-center gap-5'
@@ -52,7 +54,7 @@ export function NavLinks({ variant }: NavLinksProps) {
           : 'text-[var(--foreground-soft)] hover:text-[var(--foreground)]'
         const handleClick = item.gated
           ? (e: React.MouseEvent) => {
-              if (!isLoggedIn()) {
+              if (status !== 'authenticated') {
                 e.preventDefault()
                 router.push(loginHref(item.href))
               }

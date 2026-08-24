@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { getTypeLabel } from '@/lib/content'
 
 interface Series {
@@ -27,10 +26,6 @@ interface SeriesPost {
   post: AdminPost
 }
 
-function getToken() {
-  return typeof window !== 'undefined' ? localStorage.getItem('user_token') : null
-}
-
 function formatDate(value: string | null) {
   if (!value) return '未发布'
   const d = new Date(value)
@@ -38,7 +33,6 @@ function formatDate(value: string | null) {
 }
 
 export function SeriesManager() {
-  const router = useRouter()
   const [seriesList, setSeriesList] = useState<Series[]>([])
   const [allPosts, setAllPosts] = useState<AdminPost[]>([])
   const [selectedSeriesId, setSelectedSeriesId] = useState<string>('')
@@ -55,44 +49,32 @@ export function SeriesManager() {
   )
 
   const fetchSeries = useCallback(async () => {
-    const res = await fetch('/api/admin/series', {
-      headers: { Authorization: `Bearer ${getToken()}` },
-    })
-    if (res.status === 401) { router.push('/login'); return }
+    const res = await fetch('/api/admin/series')
     const data = await res.json()
     const list = (data.series ?? []) as Series[]
     setSeriesList(list)
     if (list.length > 0 && !selectedSeriesId) {
       setSelectedSeriesId(list[0].id)
     }
-  }, [router, selectedSeriesId])
+  }, [selectedSeriesId])
 
   const fetchPosts = useCallback(async () => {
-    const res = await fetch('/api/admin/posts', {
-      headers: { Authorization: `Bearer ${getToken()}` },
-    })
-    if (res.status === 401) { router.push('/login'); return }
+    const res = await fetch('/api/admin/posts')
     const data = await res.json()
     setAllPosts(data.posts ?? [])
-  }, [router])
+  }, [])
 
   const fetchSeriesPosts = useCallback(async (seriesId: string) => {
     if (!seriesId) {
       setSeriesPosts([])
       return
     }
-    const res = await fetch(`/api/admin/series/${seriesId}/posts`, {
-      headers: { Authorization: `Bearer ${getToken()}` },
-    })
-    if (res.status === 401) { router.push('/login'); return }
+    const res = await fetch(`/api/admin/series/${seriesId}/posts`)
     const data = await res.json()
     setSeriesPosts((data.posts ?? []) as SeriesPost[])
-  }, [router])
+  }, [])
 
   useEffect(() => {
-    const role = localStorage.getItem('user_role')
-    if (!getToken() || role !== 'admin') { router.push('/login'); return }
-
     const timer = window.setTimeout(() => {
       void (async () => {
         setLoading(true)
@@ -102,7 +84,7 @@ export function SeriesManager() {
     }, 0)
 
     return () => window.clearTimeout(timer)
-  }, [fetchPosts, fetchSeries, router])
+  }, [fetchPosts, fetchSeries])
 
   useEffect(() => {
     if (!selectedSeriesId) return
@@ -118,10 +100,7 @@ export function SeriesManager() {
 
     const res = await fetch('/api/admin/series', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${getToken()}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: newSeriesName.trim(),
         description: newSeriesDescription.trim(),
@@ -149,10 +128,7 @@ export function SeriesManager() {
 
     const res = await fetch(`/api/admin/series/${selectedSeries.id}`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${getToken()}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: selectedSeries.name,
         description: selectedSeries.description,
@@ -178,7 +154,6 @@ export function SeriesManager() {
     setSaving(true)
     const res = await fetch(`/api/admin/series/${selectedSeries.id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${getToken()}` },
     })
 
     const data = await res.json().catch(() => null)
@@ -201,10 +176,7 @@ export function SeriesManager() {
 
     const res = await fetch(`/api/admin/series/${selectedSeries.id}/posts`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${getToken()}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ post_id: selectedPostId }),
     })
 
@@ -225,7 +197,6 @@ export function SeriesManager() {
 
     const res = await fetch(`/api/admin/series/${selectedSeries.id}/posts/${postId}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${getToken()}` },
     })
 
     const data = await res.json().catch(() => null)

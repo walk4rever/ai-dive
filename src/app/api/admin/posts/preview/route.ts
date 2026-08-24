@@ -3,7 +3,7 @@ import { markdownToHtml } from '@/lib/markdown'
 import { requireAdminSession } from '@/lib/admin-auth'
 
 export async function POST(req: NextRequest) {
-  if (!await requireAdminSession(req)) {
+  if (!await requireAdminSession()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

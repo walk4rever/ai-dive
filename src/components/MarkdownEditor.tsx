@@ -18,10 +18,9 @@ export function MarkdownEditor({ value, onChange, disabled = false, legacyHtml =
   async function preview() {
     setPreviewing(true)
     setError('')
-    const token = localStorage.getItem('user_token')
     const res = await fetch('/api/admin/posts/preview', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content: value }),
     })
     const data = await res.json().catch(() => null)

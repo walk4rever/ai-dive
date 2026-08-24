@@ -1,29 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
 import { createServiceClient } from '@/lib/supabase/server'
-import { resolveSession } from '@/lib/auth/session'
+import { authOptions } from '@/lib/auth'
 
-function extractBearer(req: NextRequest): string | null {
-  const h = req.headers.get('authorization') ?? ''
-  return h.startsWith('Bearer ') ? h.slice(7) : null
-}
-
-export async function GET(req: NextRequest) {
-  const user = await resolveSession(extractBearer(req))
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export async function GET() {
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const supabase = await createServiceClient()
   const { data } = await supabase
     .from('ai_pulse_users')
     .select('email, username, role')
-    .eq('id', user.id)
+    .eq('id', session.user.id)
     .single()
 
   return NextResponse.json({ profile: data })
 }
 
 export async function PATCH(req: NextRequest) {
-  const user = await resolveSession(extractBearer(req))
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const user = session.user
 
   const body = await req.json().catch(() => null)
   if (!body) return NextResponse.json({ error: 'Invalid body' }, { status: 400 })

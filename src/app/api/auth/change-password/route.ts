@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
 import { createServiceClient } from '@/lib/supabase/server'
-import { resolveSession } from '@/lib/auth/session'
+import { authOptions } from '@/lib/auth'
 import { verifyPassword, hashPassword } from '@/lib/auth/password'
 
 export async function POST(req: NextRequest) {
-  const token = extractBearer(req)
-  const user = await resolveSession(token)
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const user = session.user
 
   let body: { current_password?: string; new_password?: string }
   try { body = await req.json() } catch {
@@ -42,9 +43,4 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: 'Failed to update password' }, { status: 500 })
 
   return NextResponse.json({ ok: true })
-}
-
-function extractBearer(req: NextRequest): string | null {
-  const h = req.headers.get('authorization') ?? ''
-  return h.startsWith('Bearer ') ? h.slice(7) : null
 }

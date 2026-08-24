@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { validateImageAttachments } from '@/lib/image-attachment'
-import { resolveSession } from '@/lib/auth/session'
+import { authOptions } from '@/lib/auth'
 import { deriveContextKey, fetchRecentTurns } from '@/lib/agent-context'
 
 export const maxDuration = 90
@@ -9,11 +10,6 @@ export const maxDuration = 90
 const GATEWAY_URL = process.env.AI_DIVE_AGENT_GATEWAY_URL
 const AGENT_SECRET = process.env.AI_DIVE_AGENT_SECRET
 const IMAGE_ONLY_PLACEHOLDER = '[用户发送了一张图片]'
-
-function extractBearer(req: NextRequest): string | null {
-  const header = req.headers.get('authorization') ?? ''
-  return header.startsWith('Bearer ') ? header.slice(7) : null
-}
 
 async function resolveArticleSlug(candidate: unknown): Promise<string | undefined> {
   if (typeof candidate !== 'string' || !candidate) return undefined
@@ -35,7 +31,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Agent not configured' }, { status: 503 })
   }
 
-  const session = await resolveSession(extractBearer(req))
+  const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json().catch(() => null)
@@ -55,7 +51,7 @@ export async function POST(req: NextRequest) {
 
   const contextKey = deriveContextKey(typeof body.articleSlug === 'string' ? body.articleSlug : undefined)
   const supabaseService = await createServiceClient()
-  const recentTurns = await fetchRecentTurns(supabaseService, session.id, contextKey)
+  const recentTurns = await fetchRecentTurns(supabaseService, session.user.id, contextKey)
 
   // The client fire-and-forgets a persist call for this exact user message
   // concurrently with this request — the history query can race ahead and pick it

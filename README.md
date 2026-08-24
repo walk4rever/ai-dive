@@ -15,7 +15,7 @@ Powered by [Air7.fun](https://air7.fun)
 - 邮件订阅页
 - 双重确认订阅流程
 - 登录、注册和用户文章管理
-- `/agent`、`/decks`、文章 AI解读 面板的登录门禁：未登录点击自动跳转 `/login?next=...`，登录成功后自动返回原页面 / 重新打开 AI解读面板
+- 登录态：next-auth（httpOnly JWT session cookie），服务端 `getServerSession()` 本地验签，不再逐请求查库；`/agent`、`/decks`、`/dashboard`、`/my/posts`、`/admin/*`、文章 AI解读 面板的登录门禁均已下沉到服务端，未登录直接 SSR 跳转 `/login?next=...`，登录成功后自动返回原页面 / 重新打开 AI解读面板
 - `/agent` 与文章 AI解读 面板支持粘贴图片提问（DeepSeek vision，client 端降采样为 1280px JPEG，单条消息最多 4 张，点击缩略图可查看大图）
 - `/agent`、文章 AI解读 面板的会话持久化：登录用户对话写入 `ai_pulse_chat_turns`，刷新/换设备可续接最近 10 轮；图片存 R2；pi-gateway 冷启动时把历史回放进 `AgentSession`，模型能记住之前聊过什么
 - 管理后台：编辑文章元数据、发布状态、精选状态和专题编排
@@ -35,6 +35,7 @@ Powered by [Air7.fun](https://air7.fun)
 - Tailwind CSS v4
 - Supabase
 - Resend
+- next-auth v4
 - Vitest
 
 ## 本地启动
@@ -65,11 +66,15 @@ cp .env.example .env.local
 - `RESEND_FROM_EMAIL`
 - `EMAIL_CONFIRMATION_SECRET`
 - `EMAIL_CONFIRMATION_TTL_SECONDS`
+- `NEXTAUTH_SECRET`
+- `NEXTAUTH_URL`
 
 说明：
 
 - `EMAIL_CONFIRMATION_SECRET` 用于生成和校验一次性确认链接，不能和其他密钥复用。
 - `EMAIL_CONFIRMATION_TTL_SECONDS` 默认建议 `86400`，即 24 小时。
+- `NEXTAUTH_SECRET` 用于加密登录 session cookie，`openssl rand -base64 32` 生成；本地和线上必须各用一份独立的值，不能共用——泄露一份等于两边都能被伪造登录态。
+- `NEXTAUTH_URL` 填当前环境的站点地址（本地 `http://localhost:3000`，线上填实际域名）。
 
 ### 3. 初始化数据库
 

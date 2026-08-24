@@ -1,11 +1,12 @@
 import { NextRequest } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const resolveSession = vi.fn()
+const getServerSession = vi.fn()
 const createServiceClient = vi.fn()
 const uploadBase64ToR2 = vi.fn()
 
-vi.mock('@/lib/auth/session', () => ({ resolveSession }))
+vi.mock('next-auth', () => ({ getServerSession }))
+vi.mock('@/lib/auth', () => ({ authOptions: {} }))
 vi.mock('@/lib/supabase/server', () => ({ createServiceClient }))
 vi.mock('@/lib/r2', () => ({ uploadBase64ToR2 }))
 
@@ -33,14 +34,14 @@ describe('/api/agent-turns', () => {
 
   describe('GET', () => {
     it('rejects unauthenticated requests', async () => {
-      resolveSession.mockResolvedValue(null)
+      getServerSession.mockResolvedValue(null)
       const { GET } = await import('./route')
       const res = await GET(new NextRequest('http://localhost/api/agent-turns?contextKey=global'))
       expect(res.status).toBe(401)
     })
 
     it('returns turns oldest-first for the session user', async () => {
-      resolveSession.mockResolvedValue({ id: 'user-1', email: 'a@b.com', role: 'user' })
+      getServerSession.mockResolvedValue({ user: { id: 'user-1', email: 'a@b.com', role: 'user' } })
       const client = mockSupabaseSelect([
         { role: 'assistant', text: 'b', image_urls: [], created_at: '2026-01-02' },
         { role: 'user', text: 'a', image_urls: [], created_at: '2026-01-01' },
@@ -65,11 +66,11 @@ describe('/api/agent-turns', () => {
 
   describe('POST', () => {
     beforeEach(() => {
-      resolveSession.mockResolvedValue({ id: 'user-1', email: 'a@b.com', role: 'user' })
+      getServerSession.mockResolvedValue({ user: { id: 'user-1', email: 'a@b.com', role: 'user' } })
     })
 
     it('rejects unauthenticated requests', async () => {
-      resolveSession.mockResolvedValue(null)
+      getServerSession.mockResolvedValue(null)
       const { POST } = await import('./route')
       const req = new NextRequest('http://localhost/api/agent-turns', { method: 'POST', body: '{}' })
       const res = await POST(req)

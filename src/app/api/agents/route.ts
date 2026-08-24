@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
 import { createServiceClient } from '@/lib/supabase/server'
-import { resolveSession } from '@/lib/auth/session'
+import { authOptions } from '@/lib/auth'
 import { generateAgentKey } from '@/lib/auth/token'
 
 const MAX_AGENTS_PER_USER = 3
 
-export async function GET(req: NextRequest) {
-  const token = extractBearer(req)
-  const user = await resolveSession(token)
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export async function GET() {
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const user = session.user
 
   const supabase = await createServiceClient()
   const { data, error } = await supabase
@@ -23,9 +24,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const token = extractBearer(req)
-  const user = await resolveSession(token)
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const user = session.user
 
   let body: { name?: string }
   try {
@@ -66,9 +67,4 @@ export async function POST(req: NextRequest) {
 
   // Return key only once — not stored in plain text
   return NextResponse.json({ agent: data, api_key: key }, { status: 201 })
-}
-
-function extractBearer(req: NextRequest): string | null {
-  const header = req.headers.get('authorization') ?? ''
-  return header.startsWith('Bearer ') ? header.slice(7) : null
 }

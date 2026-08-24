@@ -5,8 +5,8 @@ import { requireAdminSession } from '@/lib/admin-auth'
 import { markdownToHtml } from '@/lib/markdown'
 import { toAuthorDisplay, toAuthorSlug } from '@/lib/author'
 
-export async function GET(req: NextRequest) {
-  if (!await requireAdminSession(req)) {
+export async function GET() {
+  if (!await requireAdminSession()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!await requireAdminSession(req)) {
+  if (!await requireAdminSession()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

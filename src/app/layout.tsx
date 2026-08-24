@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { NavUser } from '@/components/NavUser'
 import { NavLinks } from '@/components/NavLinks'
+import { Providers } from '@/components/Providers'
 import 'katex/dist/katex.min.css'
 import './globals.css'
 
@@ -16,6 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="zh-CN">
       <body className="antialiased">
+        <Providers>
         <div className="mx-auto max-w-5xl bg-[var(--background)]">
         <header>
           <div className="px-5 md:px-6 py-6 md:py-12">
@@ -66,6 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </footer>
         </div>
+        </Providers>
       </body>
     </html>
   )

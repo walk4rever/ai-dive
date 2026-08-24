@@ -7,7 +7,7 @@ interface RouteParams {
 }
 
 export async function DELETE(req: NextRequest, { params }: RouteParams) {
-  if (!await requireAdminSession(req)) {
+  if (!await requireAdminSession()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

@@ -4,8 +4,9 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 're
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { ComponentPropsWithoutRef, ClipboardEvent } from 'react'
+import { useSession } from 'next-auth/react'
 import { useAgentChat, TOOL_META } from '@/hooks/useAgentChat'
-import { isLoggedIn, loginHref } from '@/lib/auth/client'
+import { loginHref } from '@/lib/auth/client'
 import { handleClipboardImages, MessageImages, PendingImageChips, useImageLightbox } from '@/components/AgentChatImages'
 
 // Query param the "AI解读" trigger appends to the login redirect so the
@@ -78,6 +79,7 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
   const [open, setOpen] = useState(false)
   const [quoteButton, setQuoteButton] = useState<QuoteButtonState | null>(null)
   const pendingArticleScrollRef = useRef<number | null>(null)
+  const { status } = useSession()
   const isDesktop = useIsDesktop()
   const docked = open && isDesktop
 
@@ -196,7 +198,7 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
   // Capture how far down they were before that switch so it can be replayed
   // as the new box's scrollTop, instead of the view snapping to the top.
   function openPanel(): boolean {
-    if (!isLoggedIn()) {
+    if (status !== 'authenticated') {
       const returnTo = `${window.location.pathname}?${REOPEN_PARAM}=${REOPEN_VALUE}`
       window.location.href = loginHref(returnTo)
       return false
@@ -211,14 +213,17 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
   // Reopen the panel automatically if we sent the reader to /login from here
   // and they're back with the reopen marker in the URL.
   useEffect(() => {
+    // Session resolves asynchronously — wait past the initial 'loading' state
+    // rather than deciding (and missing the reopen) before it's known.
+    if (status === 'loading') return
     const params = new URLSearchParams(window.location.search)
-    if (params.get(REOPEN_PARAM) !== REOPEN_VALUE || !isLoggedIn()) return
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (params.get(REOPEN_PARAM) !== REOPEN_VALUE || status !== 'authenticated') return
     openPanel()
     const url = new URL(window.location.href)
     url.searchParams.delete(REOPEN_PARAM)
     window.history.replaceState(null, '', `${url.pathname}${url.search}`)
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status])
 
   // The reverse of openPanel(): while docked, the article's reading position
   // lives in its own scroll box (articleRef.current.scrollTop), which the

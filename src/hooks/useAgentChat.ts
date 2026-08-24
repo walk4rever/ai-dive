@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MAX_IMAGES_PER_MESSAGE, type ImageAttachment } from '@/lib/image-attachment'
 import { deriveContextKey } from '@/lib/agent-context'
-import { getToken } from '@/lib/auth/client'
 
 export type { ImageAttachment }
 
@@ -43,10 +42,11 @@ export function toolDetail(name: string, args: Record<string, unknown> | undefin
 interface UseAgentChatOptions {
   sessionStorageKey: string
   articleSlug?: string
+  initialMessages?: AgentMessage[]
 }
 
-export function useAgentChat({ sessionStorageKey, articleSlug }: UseAgentChatOptions) {
-  const [messages, setMessages] = useState<AgentMessage[]>([])
+export function useAgentChat({ sessionStorageKey, articleSlug, initialMessages }: UseAgentChatOptions) {
+  const [messages, setMessages] = useState<AgentMessage[]>(initialMessages ?? [])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const [pendingImages, setPendingImages] = useState<ImageAttachment[]>([])
@@ -63,11 +63,9 @@ export function useAgentChat({ sessionStorageKey, articleSlug }: UseAgentChatOpt
   }
 
   function persistTurn(role: 'user' | 'assistant', text: string, images?: ImageAttachment[]) {
-    const token = getToken()
-    if (!token) return
     fetch('/api/agent-turns', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contextKey, role, text, images }),
     }).catch(() => {
       // Best-effort — a dropped persist just means this turn won't reload after refresh.
@@ -84,13 +82,12 @@ export function useAgentChat({ sessionStorageKey, articleSlug }: UseAgentChatOpt
   }, [sessionStorageKey])
 
   useEffect(() => {
-    const token = getToken()
-    if (!token) return
+    // SSR-rendered pages seed history via `initialMessages` — this fetch is a
+    // fallback for callers (e.g. the article chat panel) that don't.
+    if (initialMessages) return
 
     let cancelled = false
-    fetch(`/api/agent-turns?contextKey=${encodeURIComponent(contextKey)}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    fetch(`/api/agent-turns?contextKey=${encodeURIComponent(contextKey)}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data: { turns?: { role: 'user' | 'assistant'; text: string; imageUrls: string[] }[] } | null) => {
         if (cancelled || !data?.turns?.length) return
@@ -110,6 +107,9 @@ export function useAgentChat({ sessionStorageKey, articleSlug }: UseAgentChatOpt
     return () => {
       cancelled = true
     }
+    // initialMessages is only read to decide whether this mount already has
+    // SSR-seeded history — it isn't meant to re-trigger the fetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contextKey])
 
   async function sendMessage(text: string) {
@@ -135,13 +135,9 @@ export function useAgentChat({ sessionStorageKey, articleSlug }: UseAgentChatOpt
     let assistantText = ''
 
     try {
-      const token = getToken()
       const res = await fetch('/api/agent', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: trimmed,
           userId: sessionIdRef.current,
