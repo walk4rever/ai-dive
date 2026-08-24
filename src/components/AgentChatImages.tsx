@@ -93,8 +93,15 @@ export function MessageImages({ images = [], imageUrls = [], onOpen }: MessageIm
           src={src}
           alt=""
           onClick={() => onOpen(src)}
-          className="cursor-zoom-in object-cover"
-          style={{ width: '96px', height: '96px', borderRadius: '10px', border: '1px solid var(--border)' }}
+          className="cursor-zoom-in"
+          style={{
+            width: 'auto',
+            height: 'auto',
+            maxWidth: '200px',
+            maxHeight: '120px',
+            borderRadius: '10px',
+            border: '1px solid var(--border)',
+          }}
         />
       ))}
     </div>
