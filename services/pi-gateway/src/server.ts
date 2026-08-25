@@ -78,11 +78,16 @@ app.post("/chat", requireSecret, async (req, res) => {
 // runtime), a client disconnect never reaches this process at all — the function just
 // keeps running the request to completion in the background regardless of `res`'s
 // close event above. The client hits this endpoint directly instead of relying on that.
-app.post("/cancel", requireSecret, (req, res) => {
+// Awaits the abort rather than firing it off: abort() only resolves once the
+// generation has actually unwound and isStreaming is back to false. Responding
+// before that lets a client that immediately sends its next message reach /chat
+// while the session still looks busy, which is exactly the 409 this endpoint exists
+// to prevent.
+app.post("/cancel", requireSecret, async (req, res) => {
   const { userId, articleSlug } = req.body as { userId?: string; articleSlug?: string };
   const session = getExistingSession(userId, typeof articleSlug === "string" && articleSlug ? articleSlug : undefined);
-  if (session?.isStreaming) session.abort();
-  res.json({ ok: true });
+  if (session?.isStreaming) await session.abort();
+  res.json({ ok: true, streaming: session?.isStreaming ?? false });
 });
 
 app.listen(PORT, () => {

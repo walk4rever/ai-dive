@@ -51,6 +51,7 @@ export function useAgentChat({ sessionStorageKey, articleSlug, initialMessages }
   const [streaming, setStreaming] = useState(false)
   const [pendingImages, setPendingImages] = useState<ImageAttachment[]>([])
   const abortRef = useRef<AbortController | null>(null)
+  const pendingCancelRef = useRef<Promise<void> | null>(null)
   const sessionIdRef = useRef('')
   const contextKey = deriveContextKey(articleSlug)
 
@@ -135,6 +136,15 @@ export function useAgentChat({ sessionStorageKey, articleSlug, initialMessages }
     let assistantText = ''
 
     try {
+      // A stop click cancels the gateway session in the background so the UI can
+      // stop instantly. Sending the next message before that cancel lands races
+      // it — the gateway still sees the old generation and rejects this one as
+      // "Session is busy" — so wait it out here rather than at click time.
+      if (pendingCancelRef.current) {
+        await pendingCancelRef.current
+        pendingCancelRef.current = null
+      }
+
       const res = await fetch('/api/agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -233,12 +243,16 @@ export function useAgentChat({ sessionStorageKey, articleSlug, initialMessages }
     abortRef.current?.abort()
     // Closing our own fetch doesn't reach the gateway on every deployment target
     // (Vercel's Node.js serverless runtime never sees the browser disconnect at
-    // all) — tell it directly so the session isn't left locked as busy.
-    fetch('/api/agent/cancel', {
+    // all) — tell it directly so the session isn't left locked as busy. Kept
+    // off the UI's critical path (the chat stops immediately either way), but
+    // tracked so the next send can wait for it — see sendMessage.
+    pendingCancelRef.current = fetch('/api/agent/cancel', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: sessionIdRef.current, articleSlug }),
-    }).catch(() => {})
+    })
+      .then(() => undefined)
+      .catch(() => undefined)
   }
 
   return { messages, input, setInput, streaming, sendMessage, abort, pendingImages, addImage, removeImage }
