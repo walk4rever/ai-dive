@@ -68,6 +68,10 @@ export async function POST(req: NextRequest) {
     text: turn.text || IMAGE_ONLY_PLACEHOLDER,
   }))
 
+  // req.signal alone reflects the browser disconnecting (stop button, tab close);
+  // without also wiring it here, this route just keeps running the upstream
+  // gateway call to completion in the background even after the client is gone,
+  // leaving the gateway session's busy lock held until that orphaned call finishes.
   const upstream = await fetch(`${GATEWAY_URL}/chat`, {
     method: 'POST',
     headers: {
@@ -75,7 +79,7 @@ export async function POST(req: NextRequest) {
       'X-Agent-Secret': AGENT_SECRET,
     },
     body: JSON.stringify({ message: body.message, userId: body.userId, articleSlug, images, history }),
-    signal: AbortSignal.timeout(85_000),
+    signal: AbortSignal.any([req.signal, AbortSignal.timeout(85_000)]),
   })
 
   if (!upstream.ok) {
