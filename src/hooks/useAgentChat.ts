@@ -226,11 +226,15 @@ export function useAgentChat({ sessionStorageKey, articleSlug, initialMessages }
     } catch (err) {
       const aborted = (err as Error).name === 'AbortError'
       setMessages((prev) =>
-        prev.map((m, i) =>
-          i === assistantIndex
-            ? { ...m, text: aborted ? '已中止' : (err as Error).message || '连接失败', error: !aborted || !m.text }
-            : m
-        )
+        prev.map((m, i) => {
+          if (i !== assistantIndex) return m
+          // Whatever streamed in before the abort is worth keeping on screen —
+          // it's already what gets persisted below, so overwriting it with a bare
+          // "已中止" just threw away a real (if incomplete) answer the user could
+          // still read. Only fall back to the placeholder when nothing streamed.
+          if (aborted) return m.text ? m : { ...m, text: '已中止', error: true }
+          return { ...m, text: (err as Error).message || '连接失败', error: true }
+        })
       )
       if (assistantText.trim()) persistTurn('assistant', assistantText)
     } finally {
