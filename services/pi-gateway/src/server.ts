@@ -61,7 +61,12 @@ app.post("/chat", requireSecret, async (req, res) => {
     return;
   }
 
-  req.on("close", () => {
+  // `req`'s close event tracks the request body's readable side, which Express's
+  // json() middleware already drains before this handler runs — it never fires
+  // again just because the client walks away mid-response. `res`'s close event is
+  // what actually reflects the underlying socket being torn down (client abort),
+  // so it's the one that needs to trigger cancelling the in-flight generation.
+  res.on("close", () => {
     if (session.isStreaming) session.abort();
   });
 
