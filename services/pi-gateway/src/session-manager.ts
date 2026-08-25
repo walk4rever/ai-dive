@@ -126,6 +126,10 @@ async function makeSession(articleSlug?: string, history?: HistoryTurn[]): Promi
   return session;
 }
 
+function sessionKey(userId: string, articleSlug?: string): string {
+  return `${userId}:${articleSlug ?? "global"}`;
+}
+
 export async function getSession(
   userId: string | undefined,
   articleSlug?: string,
@@ -133,7 +137,7 @@ export async function getSession(
 ): Promise<AgentSession> {
   if (!userId) return makeSession(articleSlug, history);
 
-  const key = `${userId}:${articleSlug ?? "global"}`;
+  const key = sessionKey(userId, articleSlug);
   const existing = sessions.get(key);
   if (existing) {
     lastUsed.set(key, Date.now());
@@ -147,4 +151,12 @@ export async function getSession(
   sessions.set(key, session);
   lastUsed.set(key, Date.now());
   return session;
+}
+
+// Looks up a session without creating one — used by /cancel, which must be a
+// no-op for a userId/articleSlug pair that never started a session (already
+// finished, already evicted, or never existed) rather than spinning one up.
+export function getExistingSession(userId: string | undefined, articleSlug?: string): AgentSession | undefined {
+  if (!userId) return undefined;
+  return sessions.get(sessionKey(userId, articleSlug));
 }

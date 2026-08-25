@@ -1,30 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { validateImageAttachments } from '@/lib/image-attachment'
 import { authOptions } from '@/lib/auth'
 import { deriveContextKey, fetchRecentTurns } from '@/lib/agent-context'
+import { resolveArticleSlug } from '@/lib/resolve-article-slug'
 
 export const maxDuration = 90
 
 const GATEWAY_URL = process.env.AI_DIVE_AGENT_GATEWAY_URL
 const AGENT_SECRET = process.env.AI_DIVE_AGENT_SECRET
 const IMAGE_ONLY_PLACEHOLDER = '[用户发送了一张图片]'
-
-async function resolveArticleSlug(candidate: unknown): Promise<string | undefined> {
-  if (typeof candidate !== 'string' || !candidate) return undefined
-
-  const supabase = await createClient()
-  const { data } = await supabase
-    .from('ai_pulse_stories')
-    .select('slug')
-    .eq('slug', candidate)
-    .eq('status', 'published')
-    .eq('is_premium', false)
-    .single()
-
-  return data?.slug
-}
 
 export async function POST(req: NextRequest) {
   if (!GATEWAY_URL || !AGENT_SECRET) {

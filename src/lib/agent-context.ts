@@ -2,9 +2,13 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 /** Normalizes the client-supplied article slug into the storage/lookup key for a chat
  *  thread. Deliberately does NOT validate against the stories table (that's a separate
- *  concern handled by resolveArticleSlug() in /api/agent) — using the DB-validated slug
- *  here would make the persisted context_key disagree with what the client used to
- *  persist turns whenever an article is unpublished/premium. */
+ *  concern handled by resolveArticleSlug() in '@/lib/resolve-article-slug') — using the
+ *  DB-validated slug here would make the persisted context_key disagree with what the
+ *  client used to persist turns whenever an article is unpublished/premium.
+ *
+ *  Kept in this file (rather than resolve-article-slug.ts) because this module is
+ *  imported by the client-side useAgentChat hook — it must never pull in server-only
+ *  code (like next/headers via the Supabase server client). */
 export function deriveContextKey(articleSlug?: string | null): string {
   const trimmed = articleSlug?.trim()
   return trimmed ? trimmed : 'global'

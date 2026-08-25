@@ -231,6 +231,14 @@ export function useAgentChat({ sessionStorageKey, articleSlug, initialMessages }
 
   function abort() {
     abortRef.current?.abort()
+    // Closing our own fetch doesn't reach the gateway on every deployment target
+    // (Vercel's Node.js serverless runtime never sees the browser disconnect at
+    // all) — tell it directly so the session isn't left locked as busy.
+    fetch('/api/agent/cancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: sessionIdRef.current, articleSlug }),
+    }).catch(() => {})
   }
 
   return { messages, input, setInput, streaming, sendMessage, abort, pendingImages, addImage, removeImage }

@@ -1,6 +1,6 @@
 import express from "express";
 import { requireSecret } from "./auth.js";
-import { getSession } from "./session-manager.js";
+import { getSession, getExistingSession } from "./session-manager.js";
 import { streamPrompt } from "./stream.js";
 import { validateImageAttachments } from "./image-attachment.js";
 import { validateHistory } from "./history.js";
@@ -71,6 +71,18 @@ app.post("/chat", requireSecret, async (req, res) => {
   });
 
   await streamPrompt(session, message.trim(), res, images);
+});
+
+// Explicit cancel, independent of connection-close detection: on platforms where the
+// Next.js route forwarding /chat runs as a serverless function (Vercel's Node.js
+// runtime), a client disconnect never reaches this process at all — the function just
+// keeps running the request to completion in the background regardless of `res`'s
+// close event above. The client hits this endpoint directly instead of relying on that.
+app.post("/cancel", requireSecret, (req, res) => {
+  const { userId, articleSlug } = req.body as { userId?: string; articleSlug?: string };
+  const session = getExistingSession(userId, typeof articleSlug === "string" && articleSlug ? articleSlug : undefined);
+  if (session?.isStreaming) session.abort();
+  res.json({ ok: true });
 });
 
 app.listen(PORT, () => {
