@@ -360,6 +360,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - 登录态：next-auth（httpOnly、加密 JWT session cookie），服务端 Server Component / Route Handler 用 `getServerSession()` 本地验签即可拿到用户，不再需要每次请求查 `ai_pulse_user_sessions` 表；`/agent` 页面的对话历史在 SSR 阶段直接查出来传给客户端，不再有"渲染空壳、hydrate 后再 fetch 一次"的额外往返
 - Agent 对话图片输入（`/agent`、文章 AI解读 面板）：粘贴图片时，`pi-gateway` 仅为携带图片的这一回合切换到 DeepSeek vision 模型（`deepseek-v4-flash-vision-exp`），回复完成后切回默认文本模型
 - Agent 会话持久化（`/agent`、文章 AI解读 面板）：登录用户的每一轮对话写入 `ai_pulse_chat_turns`（按 `user_id` + `context_key` 归属，`context_key` 是文章 slug 或字面量 `global`），刷新页面/换设备会重新加载最近 10 轮；图片附件上传到 R2（`users/<userId>/chat/...`），`imageUrls` 随历史一起落库；`pi-gateway` 冷启动（同一 tab-scoped 匿名 session 30 分钟 TTL 过期后的下一次请求）时会用 `SessionManager.appendMessage()` 把这份历史原样灌回 `AgentSession`，让模型"记得"之前聊过什么——历史里的纯图片轮次回放时替换成文字占位符，不重新下载图片
+- `/insights` 来源胶囊过滤（`InsightsList.tsx`，客户端组件）：按 `author_display` 分组统计后渲染一排胶囊（含"全部"），点选后仅客户端过滤当前已加载的列表，不发起新请求；胶囊嵌在 `ListPageHeader` 的 `filters` 插槽里，渲染在标题分隔线之上
 
 ### 7.2 当前明确未实现
 

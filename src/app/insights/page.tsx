@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getSupabaseEnv } from '@/lib/supabase/env'
 import { Post } from '@/types'
-import { ArticleListItem } from '@/components/ArticleListItem'
-import { ListPageHeader } from '@/components/ListPageHeader'
+import { InsightsList } from '@/components/InsightsList'
 
 export const revalidate = 60
 
@@ -29,22 +28,5 @@ export default async function PodcastPage() {
 
   const allPosts = (posts ?? []) as ListPost[]
 
-  return (
-    <div>
-      <ListPageHeader
-        kicker="Insights"
-        title="洞见"
-        description="对话大模型时代的现场亲历者；在思想碰撞与深度访谈中，倾听技术与商业最前沿那些不为人知的关键决策时刻。"
-        count={allPosts.length}
-      />
-      <div className="divide-y divide-[var(--border-subtle)]">
-        {allPosts.map((post) => (
-          <ArticleListItem key={post.id} post={post} showSource />
-        ))}
-        {allPosts.length === 0 && (
-          <p className="py-8 text-sm text-[var(--muted)]">洞见内容即将发布。</p>
-        )}
-      </div>
-    </div>
-  )
+  return <InsightsList posts={allPosts} />
 }

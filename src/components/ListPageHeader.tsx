@@ -1,12 +1,15 @@
+import type { ReactNode } from 'react'
+
 interface ListPageHeaderProps {
   kicker: string
   title: string
   description?: string
   count?: number
   hideBorder?: boolean
+  filters?: ReactNode
 }
 
-export function ListPageHeader({ kicker, title, description, count, hideBorder = false }: ListPageHeaderProps) {
+export function ListPageHeader({ kicker, title, description, count, hideBorder = false, filters }: ListPageHeaderProps) {
   return (
     <header className={`${hideBorder ? 'pb-0 mb-6' : 'pb-10 mb-14 border-b border-[var(--border)]'}`}>
       <p className="kicker mb-5" style={{ color: 'var(--accent)' }}>
@@ -23,6 +26,7 @@ export function ListPageHeader({ kicker, title, description, count, hideBorder =
       {typeof count === 'number' && (
         <p className="mt-6 date">共 {count} 篇</p>
       )}
+      {filters && <div className="mt-6">{filters}</div>}
     </header>
   )
 }

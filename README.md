@@ -154,7 +154,7 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=... 
 - `/post/[slug]`：文章详情
 - `/intels`：信号日历 + 信号流页
 - `/dives`：深度列表
-- `/insights`：洞见列表
+- `/insights`：洞见列表，按来源（`author_display`）胶囊过滤
 - `/latest`：最新内容列表
 - `/archive`：内容归档
 - `/series`：专题列表
