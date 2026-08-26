@@ -7,6 +7,7 @@ import { MermaidContent } from '@/components/MermaidContent'
 import { WechatShare } from '@/components/WechatShare'
 import { ArticleChatPanel } from '@/components/ArticleChatPanel'
 import { ArticleToc } from '@/components/ArticleToc'
+import { BackToTop } from '@/components/BackToTop'
 import { extractHeadings } from '@/lib/extract-headings'
 
 interface Props {
@@ -109,6 +110,7 @@ export default async function PostPage({ params }: Props) {
   return (
     <article>
       <ArticleToc headings={headings} />
+      {(post.content_type === 'dive' || post.content_type === 'insight') && <BackToTop />}
       <ArticleChatPanel slug={post.slug} title={post.title}>
         {header}
         <MermaidContent className="prose" html={post.content} />

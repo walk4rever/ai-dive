@@ -2,31 +2,21 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { ArticleHeading } from '@/lib/extract-headings'
+import { findScrollContainer } from '@/lib/scroll-container'
 
 const MIN_HEADINGS_TO_SHOW = 3
 
-// Element.scrollIntoView() walks up and scrolls every scrollable ancestor
-// needed to reveal the target, including the (overflow: hidden) <body>/<html>
-// that ArticleChatPanel locks while its docked "AI解读" panel is open —
-// those are still programmatically scrollable even while locked, so native
-// scrollIntoView leaves a blank gap where the window scrolled underneath the
-// fixed-height docked layout. Scroll only the actual scrollable container
-// (the docked article box, or the window when nothing is docked) instead.
 function scrollHeadingIntoView(id: string) {
   const el = document.getElementById(id)
   if (!el) return
 
   const marginTop = parseFloat(getComputedStyle(el).scrollMarginTop) || 0
+  const container = findScrollContainer(el)
 
-  let container = el.parentElement
-  while (container && container !== document.body) {
-    const style = getComputedStyle(container)
-    if (/(auto|scroll)/.test(style.overflowY) && container.scrollHeight > container.clientHeight) {
-      const top = el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop - marginTop
-      container.scrollTo({ top, behavior: 'smooth' })
-      return
-    }
-    container = container.parentElement
+  if (container) {
+    const top = el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop - marginTop
+    container.scrollTo({ top, behavior: 'smooth' })
+    return
   }
 
   window.scrollTo({ top: window.scrollY + el.getBoundingClientRect().top - marginTop, behavior: 'smooth' })

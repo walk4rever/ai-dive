@@ -11,6 +11,7 @@ Powered by [Air7.fun](https://air7.fun)
 - 极简首页：精选文章、最新文章、专题入口和每日 Signals
 - 文章详情页：适合中文长文阅读的 editorial 排版；情报/深度/洞见发布即全文可读，不再有付费墙
 - 文章目录导航：H2/H3 数量 ≥3 篇的文章左上角显示悬浮目录按钮，点开面板可跳转到对应章节
+- 回到顶部：`dive`/`insight` 文章滚动超过一屏后左下角出现悬浮按钮，点击回到文章顶部
 - `/wiki`：Quartz 静态知识库子站，挂在 `ai.air7.fun/wiki/`
 - `/intels`：信号日历页，含 SignalHighlights（洞见 / 实践 / 影响力三维 top 信号）和 SignalFeed（当日完整信号列表）
 - 邮件订阅页
