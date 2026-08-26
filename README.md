@@ -9,7 +9,8 @@ Powered by [Air7.fun](https://air7.fun)
 ## 当前能力
 
 - 极简首页：精选文章、最新文章、专题入口和每日 Signals
-- 文章详情页：适合中文长文阅读的 editorial 排版
+- 文章详情页：适合中文长文阅读的 editorial 排版；情报/深度/洞见发布即全文可读，不再有付费墙
+- 文章目录导航：H2/H3 数量 ≥3 篇的文章左上角显示悬浮目录按钮，点开面板可跳转到对应章节
 - `/wiki`：Quartz 静态知识库子站，挂在 `ai.air7.fun/wiki/`
 - `/intels`：信号日历页，含 SignalHighlights（洞见 / 实践 / 影响力三维 top 信号）和 SignalFeed（当日完整信号列表）
 - 邮件订阅页
@@ -22,7 +23,7 @@ Powered by [Air7.fun](https://air7.fun)
 - Newsletter 批量发送、退订处理和发送记录
 - R2 文件上传（包括大文件 presigned upload）
 - Vault Markdown → Supabase 内容导入脚本
-- 付费内容占位式 paywall
+- `/decks`（出品）登录门禁：未登录跳转 `/login`，登录后即可查看；付费/会员机制尚未设计，暂不做额外拦截
 - Signal 注入 API：`POST /api/signals`，支持单条或批量 upsert 到 `ai_pulse_signals`（可选 `signal_date`；不传默认 UTC+8 当天）
 
 产品与架构设计详见 `PRODUCT.md`，阶段化事项详见 `TODO.md`。

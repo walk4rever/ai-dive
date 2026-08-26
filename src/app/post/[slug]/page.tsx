@@ -1,12 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { getTypeLabel } from '@/lib/content'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { BackButton } from '@/components/BackButton'
 import { MermaidContent } from '@/components/MermaidContent'
 import { WechatShare } from '@/components/WechatShare'
 import { ArticleChatPanel } from '@/components/ArticleChatPanel'
+import { ArticleToc } from '@/components/ArticleToc'
+import { extractHeadings } from '@/lib/extract-headings'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -71,6 +72,7 @@ export default async function PostPage({ params }: Props) {
 
   const contentTypeLabel = getTypeLabel(post.content_type)
   const authorLabel = post.author_display ?? formatAuthorLabel(post.author_slug)
+  const headings = extractHeadings(post.content)
 
   const header = (
     <>
@@ -81,7 +83,6 @@ export default async function PostPage({ params }: Props) {
       <header className="mb-14 pb-10 border-b border-[var(--border)]">
         <div className="flex flex-wrap items-center gap-4 mb-8">
           <span className="kicker" style={{ color: 'var(--accent)' }}>{contentTypeLabel}</span>
-          {post.is_premium && <span className="kicker">付费内容</span>}
           <span className="kicker text-[var(--subtle)]">·</span>
           <span className="kicker">{authorLabel}</span>
           <span className="kicker text-[var(--subtle)]">·</span>
@@ -107,47 +108,12 @@ export default async function PostPage({ params }: Props) {
 
   return (
     <article>
-      {post.is_premium ? (
-        <div className="mx-auto max-w-2xl">
-          {header}
-          <PremiumPaywall excerpt={post.excerpt} />
-          {share}
-        </div>
-      ) : (
-        <ArticleChatPanel slug={post.slug} title={post.title}>
-          {header}
-          <MermaidContent className="prose" html={post.content} />
-          {share}
-        </ArticleChatPanel>
-      )}
+      <ArticleToc headings={headings} />
+      <ArticleChatPanel slug={post.slug} title={post.title}>
+        {header}
+        <MermaidContent className="prose" html={post.content} />
+        {share}
+      </ArticleChatPanel>
     </article>
-  )
-}
-
-function PremiumPaywall({ excerpt }: { excerpt: string }) {
-  return (
-    <div>
-      <MermaidContent className="prose" html={excerpt} />
-      <div className="relative mt-12">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-transparent to-[var(--background)]" />
-        <div className="mt-8 bg-[var(--background)] border border-[var(--border-subtle)] rounded-2xl px-8 py-10 text-center shadow-[0_4px_24px_rgba(20,20,19,0.05)]">
-          <p className="kicker mb-4" style={{ color: 'var(--accent)' }}>Members Edition</p>
-          <h3 className="font-serif text-2xl md:text-3xl font-medium leading-tight tracking-tight">
-            订阅以阅读完整内容
-          </h3>
-          <p className="mt-4 text-[var(--muted)] leading-relaxed max-w-md mx-auto">
-            加入 AI-DIVE 的读者名单，每周获取更完整的深度分析与长期判断。
-          </p>
-          <div className="mt-8">
-            <Link
-              href="/subscribe"
-              className="inline-flex items-center bg-[var(--accent)] text-[#faf9f5] px-6 py-3 rounded-xl text-base font-medium hover:bg-[var(--accent-coral)] transition-colors shadow-[0_0_0_1px_var(--accent),0_4px_12px_rgba(201,100,66,0.2)]"
-            >
-              免费订阅 →
-            </Link>
-          </div>
-        </div>
-      </div>
-    </div>
   )
 }

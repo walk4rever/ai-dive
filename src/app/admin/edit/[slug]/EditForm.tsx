@@ -13,7 +13,6 @@ interface Post {
   featured: boolean
   status: string
   published_at: string | null
-  is_premium: boolean
   content_type: string
   author_slug: string | null
   author_display: string | null
@@ -28,7 +27,6 @@ export function EditForm({ post }: { post: Post }) {
     featured: post.featured,
     status: post.status,
     published_at: post.published_at ? post.published_at.slice(0, 10) : '',
-    is_premium: post.is_premium,
   })
   const [saving, setSaving] = useState(false)
   const [sending, setSending] = useState(false)
@@ -52,7 +50,6 @@ export function EditForm({ post }: { post: Post }) {
       featured: form.featured,
       status: form.status,
       published_at: form.published_at ? new Date(form.published_at).toISOString() : null,
-      is_premium: form.is_premium,
     }
     if (form.content.trim() || post.body_markdown) body.content = form.content
 
@@ -152,14 +149,6 @@ export function EditForm({ post }: { post: Post }) {
             onChange={(e) => update('featured', e.target.checked)}
           />
           <span className="kicker">精选</span>
-        </label>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={form.is_premium}
-            onChange={(e) => update('is_premium', e.target.checked)}
-          />
-          <span className="kicker">付费</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
           <input

@@ -11,7 +11,6 @@ export interface EditablePost {
   excerpt: string
   status: string
   published_at: string | null
-  is_premium: boolean
   content_type: string
   author_slug: string | null
   author_display: string | null
@@ -31,7 +30,6 @@ export function MyPostEditClient({ post }: MyPostEditClientProps) {
     content: post.body_markdown ?? '',
     status: post.status,
     published_at: post.published_at ? post.published_at.slice(0, 10) : '',
-    is_premium: post.is_premium,
     author_display: post.author_display ?? post.author_slug ?? '',
   })
   const [saving, setSaving] = useState(false)
@@ -57,7 +55,6 @@ export function MyPostEditClient({ post }: MyPostEditClientProps) {
         content: form.content || undefined,
         status: form.status,
         published_at: form.published_at ? new Date(form.published_at).toISOString() : null,
-        is_premium: form.is_premium,
         author_display: form.author_display || null,
       }),
     })
@@ -114,10 +111,6 @@ export function MyPostEditClient({ post }: MyPostEditClientProps) {
         </div>
 
         <div className="flex gap-8">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={form.is_premium} onChange={(e) => update('is_premium', e.target.checked)} />
-            <span className="kicker">付费</span>
-          </label>
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.status === 'published'} onChange={(e) => update('status', e.target.checked ? 'published' : 'draft')} />
             <span className="kicker">已发布</span>
