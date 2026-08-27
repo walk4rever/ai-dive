@@ -21,6 +21,7 @@ Powered by [Air7.fun](https://air7.fun)
 - `/agent`、文章 AI解读 面板的 credits 计量：`ai_pulse_credit_ledger`（append-only，余额 = 当期 `SUM(delta)`），登录用户每月懒发放 1000 credits（1 轮对话 = 1 credit），另加 50/小时的速率限制防脚本失控——两者是两层不同的机制，不是同一回事
 - `/agent` 与文章 AI解读 面板支持粘贴图片提问（DeepSeek vision，client 端降采样为 1280px JPEG，单条消息最多 4 张，点击缩略图可查看大图）
 - `/agent`、文章 AI解读 面板的会话持久化：登录用户对话写入 `ai_pulse_chat_turns`，刷新/换设备可续接最近 10 轮；图片存 R2；pi-gateway 冷启动时把历史回放进 `AgentSession`，模型能记住之前聊过什么
+- 文章 AI解读 面板支持最大化/还原（header 图标按钮，原地撑满视口，不丢对话状态），标题统一为单行 `AI解读 · {文章标题}`
 - 管理后台：编辑文章元数据、发布状态、精选状态和专题编排
 - Newsletter 批量发送、退订处理和发送记录
 - R2 文件上传（包括大文件 presigned upload）

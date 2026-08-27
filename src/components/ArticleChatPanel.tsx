@@ -14,6 +14,18 @@ import { handleClipboardImages, MessageImages, PendingImageChips, useImageLightb
 const REOPEN_PARAM = 'open'
 const REOPEN_VALUE = 'chat'
 
+const MaximizeIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
+const MinimizeIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+    <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
 const mdComponents = {
   a: (props: ComponentPropsWithoutRef<'a'>) => {
     const isExternal = /^https?:\/\//i.test(props.href ?? '')
@@ -77,6 +89,7 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const quoteButtonRef = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
+  const [maximized, setMaximized] = useState(false)
   const [quoteButton, setQuoteButton] = useState<QuoteButtonState | null>(null)
   const pendingArticleScrollRef = useRef<number | null>(null)
   const { status } = useSession()
@@ -261,20 +274,39 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
         {open && (
           <div
             className={
-              docked
-                ? 'sticky top-6 flex h-[calc(100vh-9.5rem)] w-[440px] flex-shrink-0 flex-col rounded-2xl'
-                : 'fixed inset-y-0 right-0 z-40 flex w-full flex-col sm:w-[420px]'
+              maximized
+                ? 'fixed inset-0 z-50 flex w-full flex-col'
+                : docked
+                  ? 'sticky top-6 flex h-[calc(100vh-9.5rem)] w-[440px] flex-shrink-0 flex-col rounded-2xl'
+                  : 'fixed inset-y-0 right-0 z-40 flex w-full flex-col sm:w-[420px]'
             }
-            style={{ background: 'var(--surface)', border: docked ? '1px solid var(--border)' : undefined, borderLeft: docked ? undefined : '1px solid var(--border)', boxShadow: docked ? '0 1px 4px rgba(20,20,19,0.05)' : '-8px 0 24px rgba(20,20,19,0.08)' }}
+            style={{
+              background: 'var(--surface)',
+              borderTop: !maximized && docked ? '1px solid var(--border)' : undefined,
+              borderRight: !maximized && docked ? '1px solid var(--border)' : undefined,
+              borderBottom: !maximized && docked ? '1px solid var(--border)' : undefined,
+              borderLeft: !maximized ? '1px solid var(--border)' : undefined,
+              boxShadow: maximized ? undefined : docked ? '0 1px 4px rgba(20,20,19,0.05)' : '-8px 0 24px rgba(20,20,19,0.08)',
+            }}
           >
             <div className="flex flex-shrink-0 items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
               <div className="min-w-0">
-                <p className="text-[0.7rem] font-medium uppercase tracking-[0.1em]" style={{ color: 'var(--accent)' }}>AI解读</p>
-                <p className="truncate text-sm font-medium" style={{ color: '#141413' }}>{title}</p>
+                <p className="truncate text-sm font-medium" style={{ color: '#141413' }}>AI解读 · {title}</p>
               </div>
-              <button type="button" onClick={closePanel} aria-label="关闭" className="flex-shrink-0 text-xl leading-none" style={{ color: '#87867f' }}>
-                ×
-              </button>
+              <div className="flex flex-shrink-0 items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setMaximized((v) => !v)}
+                  aria-label={maximized ? '还原' : '最大化'}
+                  className="flex items-center justify-center rounded p-1"
+                  style={{ color: '#87867f' }}
+                >
+                  {maximized ? <MinimizeIcon /> : <MaximizeIcon />}
+                </button>
+                <button type="button" onClick={closePanel} aria-label="关闭" className="text-xl leading-none" style={{ color: '#87867f' }}>
+                  ×
+                </button>
+              </div>
             </div>
 
             <div ref={messageListRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5" style={{ scrollbarWidth: 'thin' }}>

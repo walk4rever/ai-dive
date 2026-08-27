@@ -362,6 +362,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - Agent 会话持久化（`/agent`、文章 AI解读 面板）：登录用户的每一轮对话写入 `ai_pulse_chat_turns`（按 `user_id` + `context_key` 归属，`context_key` 是文章 slug 或字面量 `global`），刷新页面/换设备会重新加载最近 10 轮；图片附件上传到 R2（`users/<userId>/chat/...`），`imageUrls` 随历史一起落库；`pi-gateway` 冷启动（同一 tab-scoped 匿名 session 30 分钟 TTL 过期后的下一次请求）时会用 `SessionManager.appendMessage()` 把这份历史原样灌回 `AgentSession`，让模型"记得"之前聊过什么——历史里的纯图片轮次回放时替换成文字占位符，不重新下载图片
 - `/insights` 来源胶囊过滤（`InsightsList.tsx`，客户端组件）：按 `author_display` 分组统计后渲染一排胶囊（含"全部"），点选后仅客户端过滤当前已加载的列表，不发起新请求；胶囊嵌在 `ListPageHeader` 的 `filters` 插槽里，渲染在标题分隔线之上
 - Agent 停止按钮真取消（`/agent`、文章 AI解读 面板）：点击停止时，除了 abort 掉浏览器自己的 fetch，还会调用 `POST /api/agent/cancel` 直接告诉 `pi-gateway` 中止那个 session 的生成——不依赖 HTTP 连接断开检测，因为 `/api/agent` 跑在 Vercel 的 Node.js Serverless 运行时上，浏览器断连这件事根本不会传导到正在执行的函数实例，纯连接层面的 abort 会导致 gateway session 卡在"busy"直到原生成自然跑完（`pi-gateway` 自身也在 `server.ts` 把断连检测从 `req.on("close")` 修成了 `res.on("close")`，但这只覆盖常驻进程场景，Vercel 场景仍需这个显式 cancel 端点）
+- 文章 AI解读 面板最大化/还原（2026-08-27，从姊妹项目 buffett-tribe 迁移过来的设计）：header 上加了展开/还原图标按钮，点击后 `maximized` state 把面板从停靠/浮层布局切到 `fixed inset-0` 撑满视口，再点还原——纯 CSS/state 切换，不卸载 `AgentChat`，对话内容和输入框草稿不丢；刻意不做"跳转到 `/agent` 页面"这条路，因为 `/agent` 是 `deriveContextKey(undefined)` 的无上下文全局对话页，跳过去会丢文章 slug 对应的 context。同时把面板 header 标题从两行（"AI解读" 标签 + 文章标题）收敛成单行 `AI解读 · {标题}`
 
 ### 7.2 当前明确未实现
 
