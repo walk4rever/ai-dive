@@ -112,7 +112,7 @@ export function AgentChat({ initialMessages }: AgentChatProps = {}) {
                       <MessageImages images={msg.images} imageUrls={msg.imageUrls} onOpen={lightbox.open} />
                     )}
                     {msg.text && (
-                      <p className="text-[0.84rem] leading-[1.85] px-4 py-2.5 whitespace-pre-wrap"
+                      <p className="text-[0.95rem] leading-[1.7] px-4 py-2.5 whitespace-pre-wrap"
                         style={{
                           background: 'var(--accent)',
                           color: '#faf9f5',
@@ -164,7 +164,7 @@ export function AgentChat({ initialMessages }: AgentChatProps = {}) {
                       >
                         {msg.text ? (
                           streaming && i === messages.length - 1 ? (
-                            <p className="text-[0.84rem] leading-[1.85] whitespace-pre-wrap" style={{ color: '#141413' }}>
+                            <p className="text-[0.95rem] leading-[1.7] whitespace-pre-wrap" style={{ color: '#141413' }}>
                               {msg.text}
                             </p>
                           ) : (
@@ -178,7 +178,7 @@ export function AgentChat({ initialMessages }: AgentChatProps = {}) {
                             </div>
                           )
                         ) : (
-                          <p className="text-[0.84rem] leading-[1.85]" style={{ color: '#141413' }}>▋</p>
+                          <p className="text-[0.95rem] leading-[1.7]" style={{ color: '#141413' }}>▋</p>
                         )}
                       </div>
                     )}
@@ -211,7 +211,7 @@ export function AgentChat({ initialMessages }: AgentChatProps = {}) {
               }
             }}
             placeholder="粘贴论文链接、GitHub URL，或直接描述技术问题… （Enter 发送，Shift+Enter 换行）"
-            className="flex-1 resize-none outline-none text-[0.9rem] leading-relaxed transition-all"
+            className="flex-1 resize-none outline-none text-[0.95rem] leading-[1.7] transition-all"
             style={{
               height: '52px',
               border: '1px solid var(--border)',

@@ -339,7 +339,7 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
                         )}
                         {msg.text && (
                           <p
-                            className="max-w-[85%] whitespace-pre-wrap px-3.5 py-2 text-[0.83rem] leading-[1.8]"
+                            className="max-w-[85%] whitespace-pre-wrap px-3.5 py-2 text-[0.95rem] leading-[1.7]"
                             style={{ background: 'var(--accent)', color: '#faf9f5', borderRadius: '12px 12px 3px 12px' }}
                           >
                             {msg.text}
@@ -371,14 +371,14 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
                             >
                               {msg.text ? (
                                 streaming && i === messages.length - 1 ? (
-                                  <p className="whitespace-pre-wrap text-[0.83rem] leading-[1.8]" style={{ color: '#141413' }}>{msg.text}</p>
+                                  <p className="whitespace-pre-wrap text-[0.95rem] leading-[1.7]" style={{ color: '#141413' }}>{msg.text}</p>
                                 ) : (
                                   <div className="agent-md">
                                     <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>{msg.text}</ReactMarkdown>
                                   </div>
                                 )
                               ) : (
-                                <p className="text-[0.83rem] leading-[1.8]" style={{ color: '#141413' }}>▋</p>
+                                <p className="text-[0.95rem] leading-[1.7]" style={{ color: '#141413' }}>▋</p>
                               )}
                             </div>
                           )}
@@ -408,7 +408,7 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
                       }
                     }}
                     placeholder="针对这篇文章提问…（Enter 发送，Shift+Enter 换行）"
-                    className="flex-1 resize-none overflow-y-auto rounded-[10px] px-3 py-2 text-[0.85rem] leading-relaxed outline-none"
+                    className="flex-1 resize-none overflow-y-auto rounded-[10px] px-3 py-2 text-[0.95rem] leading-[1.7] outline-none"
                     style={{ minHeight: '36px', maxHeight: '160px', border: '1px solid var(--border)', background: '#ffffff', color: '#141413' }}
                   />
                   <button
