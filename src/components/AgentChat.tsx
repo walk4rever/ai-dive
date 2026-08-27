@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm'
 import type { ComponentPropsWithoutRef, ClipboardEvent } from 'react'
 import { useAgentChat, TOOL_META, type AgentMessage } from '@/hooks/useAgentChat'
 import { handleClipboardImages, MessageImages, PendingImageChips, useImageLightbox } from '@/components/AgentChatImages'
+import { CopyMessageButton } from '@/components/AgentChatCopyButton'
 
 const mdComponents = {
   a: (props: ComponentPropsWithoutRef<'a'>) => {
@@ -168,14 +169,17 @@ export function AgentChat({ initialMessages }: AgentChatProps = {}) {
                               {msg.text}
                             </p>
                           ) : (
-                            <div className="agent-md">
-                              <ReactMarkdown
-                                remarkPlugins={[remarkGfm]}
-                                components={mdComponents}
-                              >
-                                {msg.text}
-                              </ReactMarkdown>
-                            </div>
+                            <>
+                              <div className="agent-md">
+                                <ReactMarkdown
+                                  remarkPlugins={[remarkGfm]}
+                                  components={mdComponents}
+                                >
+                                  {msg.text}
+                                </ReactMarkdown>
+                              </div>
+                              {!msg.error && <CopyMessageButton text={msg.text} />}
+                            </>
                           )
                         ) : (
                           <p className="text-[0.95rem] leading-[1.7]" style={{ color: '#141413' }}>▋</p>

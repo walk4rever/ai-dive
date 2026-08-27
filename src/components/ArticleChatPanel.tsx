@@ -8,6 +8,7 @@ import { useSession } from 'next-auth/react'
 import { useAgentChat, TOOL_META } from '@/hooks/useAgentChat'
 import { loginHref } from '@/lib/auth/client'
 import { handleClipboardImages, MessageImages, PendingImageChips, useImageLightbox } from '@/components/AgentChatImages'
+import { CopyMessageButton } from '@/components/AgentChatCopyButton'
 
 // Query param the "AI解读" trigger appends to the login redirect so the
 // panel can reopen itself once the reader is back on this article.
@@ -373,9 +374,12 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
                                 streaming && i === messages.length - 1 ? (
                                   <p className="whitespace-pre-wrap text-[0.95rem] leading-[1.7]" style={{ color: '#141413' }}>{msg.text}</p>
                                 ) : (
-                                  <div className="agent-md">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>{msg.text}</ReactMarkdown>
-                                  </div>
+                                  <>
+                                    <div className="agent-md">
+                                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>{msg.text}</ReactMarkdown>
+                                    </div>
+                                    {!msg.error && <CopyMessageButton text={msg.text} />}
+                                  </>
                                 )
                               ) : (
                                 <p className="text-[0.95rem] leading-[1.7]" style={{ color: '#141413' }}>▋</p>

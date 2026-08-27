@@ -364,6 +364,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - Agent 停止按钮真取消（`/agent`、文章 AI解读 面板）：点击停止时，除了 abort 掉浏览器自己的 fetch，还会调用 `POST /api/agent/cancel` 直接告诉 `pi-gateway` 中止那个 session 的生成——不依赖 HTTP 连接断开检测，因为 `/api/agent` 跑在 Vercel 的 Node.js Serverless 运行时上，浏览器断连这件事根本不会传导到正在执行的函数实例，纯连接层面的 abort 会导致 gateway session 卡在"busy"直到原生成自然跑完（`pi-gateway` 自身也在 `server.ts` 把断连检测从 `req.on("close")` 修成了 `res.on("close")`，但这只覆盖常驻进程场景，Vercel 场景仍需这个显式 cancel 端点）
 - 文章 AI解读 面板最大化/还原（2026-08-27，从姊妹项目 buffett-tribe 迁移过来的设计）：header 上加了展开/还原图标按钮，点击后 `maximized` state 把面板从停靠/浮层布局切到 `fixed inset-0` 撑满视口，再点还原——纯 CSS/state 切换，不卸载 `AgentChat`，对话内容和输入框草稿不丢；刻意不做"跳转到 `/agent` 页面"这条路，因为 `/agent` 是 `deriveContextKey(undefined)` 的无上下文全局对话页，跳过去会丢文章 slug 对应的 context。同时把面板 header 标题从两行（"AI解读" 标签 + 文章标题）收敛成单行 `AI解读 · {标题}`；`fixed inset-0` 一开始让消息列表和输入框撑满整个视口宽度，行距过长看着不对，随后补了一版让这两处内容改成 `mx-auto max-w-[860px]`，与 `/agent` 探索页的内容列宽对齐（docked/侧栏窄面板下 max-width 本来就大于面板宽度，不生效，行为不变）
 - `/agent` 与文章 AI解读 面板对话文字放大（2026-08-27）：正文字号从 `0.83–0.84rem` 统一调到 `0.95rem`，行高从 `1.8/1.85` 收到 `1.7`（字号变大后行距不需要那么松），覆盖用户气泡、AI 回复、流式打字光标、输入框，以及两个对话框共用的 `.agent-md`（渲染 markdown 正文的全局样式）；空状态的建议问题按钮字号保持原样未动
+- AI 回复复制按钮（2026-08-27，从姊妹项目 buffett-tribe 迁移过来的设计）：每条已生成完毕的 AI 回复下方新增一个常驻显示的复制图标按钮（不做 hover-only，触屏也能点到），点击复制原始 Markdown 源码而非渲染后的纯文本——粘贴到 Notion/飞书文档等支持 Markdown 的目的地能保留表格、加粗格式；1.5s 内切成 ✓ 反馈后自动还原。流式输出中的最后一条、以及出错的回复不显示该按钮。抽成独立的 `CopyMessageButton`（`src/components/AgentChatCopyButton.tsx`），`AgentChat.tsx` 与 `ArticleChatPanel.tsx` 两处共用，同 `AgentChatImages.tsx` 的既有拆分方式
 
 ### 7.2 当前明确未实现
 
