@@ -311,7 +311,7 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
 
             <div ref={messageListRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5" style={{ scrollbarWidth: 'thin' }}>
               {messages.length === 0 ? (
-                <div className="flex flex-col gap-2">
+                <div className="mx-auto flex flex-col gap-2" style={{ maxWidth: maximized ? '860px' : undefined }}>
                   <p className="text-sm leading-relaxed" style={{ color: '#87867f' }}>
                     选中正文中的段落或公式，或者直接提问。
                   </p>
@@ -330,7 +330,7 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col gap-4">
+                <div className="mx-auto flex flex-col gap-4" style={{ maxWidth: maximized ? '860px' : undefined }}>
                   {messages.map((msg, i) =>
                     msg.role === 'user' ? (
                       <div key={i} className="flex flex-col items-end">
@@ -391,34 +391,36 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
             </div>
 
             <div className="flex-shrink-0 px-5 py-3.5" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-              <PendingImageChips images={pendingImages} onRemove={removeImage} />
-              <div className="flex items-end gap-2">
-                <textarea
-                  ref={inputRef}
-                  value={input}
-                  disabled={streaming}
-                  rows={1}
-                  onChange={(e) => setInput(e.target.value)}
-                  onPaste={onPaste}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
-                      e.preventDefault()
-                      sendMessage(input)
-                    }
-                  }}
-                  placeholder="针对这篇文章提问…（Enter 发送，Shift+Enter 换行）"
-                  className="flex-1 resize-none overflow-y-auto rounded-[10px] px-3 py-2 text-[0.85rem] leading-relaxed outline-none"
-                  style={{ minHeight: '36px', maxHeight: '160px', border: '1px solid var(--border)', background: '#ffffff', color: '#141413' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => (streaming ? abort() : sendMessage(input))}
-                  disabled={!streaming && !input.trim() && pendingImages.length === 0}
-                  className="flex-shrink-0 rounded-[10px] px-3 py-2 text-sm font-medium disabled:opacity-40"
-                  style={{ background: streaming ? '#30302e' : 'var(--accent)', color: '#faf9f5' }}
-                >
-                  {streaming ? '停' : '发送'}
-                </button>
+              <div className="mx-auto" style={{ maxWidth: maximized ? '860px' : undefined }}>
+                <PendingImageChips images={pendingImages} onRemove={removeImage} />
+                <div className="flex items-end gap-2">
+                  <textarea
+                    ref={inputRef}
+                    value={input}
+                    disabled={streaming}
+                    rows={1}
+                    onChange={(e) => setInput(e.target.value)}
+                    onPaste={onPaste}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                        e.preventDefault()
+                        sendMessage(input)
+                      }
+                    }}
+                    placeholder="针对这篇文章提问…（Enter 发送，Shift+Enter 换行）"
+                    className="flex-1 resize-none overflow-y-auto rounded-[10px] px-3 py-2 text-[0.85rem] leading-relaxed outline-none"
+                    style={{ minHeight: '36px', maxHeight: '160px', border: '1px solid var(--border)', background: '#ffffff', color: '#141413' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => (streaming ? abort() : sendMessage(input))}
+                    disabled={!streaming && !input.trim() && pendingImages.length === 0}
+                    className="flex-shrink-0 rounded-[10px] px-3 py-2 text-sm font-medium disabled:opacity-40"
+                    style={{ background: streaming ? '#30302e' : 'var(--accent)', color: '#faf9f5' }}
+                  >
+                    {streaming ? '停' : '发送'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

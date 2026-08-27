@@ -191,11 +191,12 @@
   - 为标题启用 `text-wrap: pretty`，保持 H2 -> H3 -> H4 的语义顺序，不自动添加章节编号。
   - 分别在桌面和移动端验证长标题换行、标题与正文/链接/Callout 的视觉优先级，以及连续滚动时的章节辨识度。
 - [x] 为超长文章增加低干扰文章目录：`ArticleToc.tsx`，H2/H3 数量 ≥3 时左上角悬浮图标按钮，点开面板列出章节（H3 缩进），点击平滑滚动并收起；标题从 `post.content` 服务端解析（`extract-headings.ts`），未额外做桌面侧栏方案。
-- [ ] 为文章页 AI解读 面板（`ArticleChatPanel.tsx`）增加"放大 / 还原"：放大后切到和 `/agent`
-  一致的全屏样式（复用 `globals.css` 里现成的 `agent-screen` / `body:has()` 全屏机制，
-  改动收在 `ArticleChatPanel.tsx` 一个文件里，不动 `AgentChat.tsx`），但 context 仍绑定当前文章；
-  还原按钮切回"文章左 / 面板右"并排布局。待拍板：①移动端 overlay 本来已接近全屏，是否也要
-  放大按钮；②关闭面板时是否记住 maximized 状态，还是每次都重置为并排小面板重新打开。
+- [x] 为文章页 AI解读 面板（`ArticleChatPanel.tsx`）增加"放大 / 还原"：最终没有复用 `agent-screen`
+  全屏机制，而是 `maximized` state 切到 `fixed inset-0`（详见 PRODUCT.md），context 仍绑定当前
+  文章。2026-08-27 补齐宽度细节：放大后消息列表和输入框内容列改为 `mx-auto max-w-[860px]`，
+  与 `/agent` 探索页的内容列宽保持一致，不再撑满整个视口宽度（docked/侧栏窄面板下这个
+  max-width 不生效，行为不变）。待拍板：①移动端 overlay 本来已接近全屏，是否也要放大按钮；
+  ②关闭面板时是否记住 maximized 状态，还是每次都重置为并排小面板重新打开。
 - [ ] 出品（`/decks`）增加 AI解读能力，目前有两个卡点，其中一个已经有解法路径：
   ①`ai_pulse_decks` 没有可喂给模型的全文字段——多数条目的源 markdown 能在 Vault 里找到（如 `agent-harness-speech-v0.4.0.md`、ribbit 两封信译文、inference-engineering 的 zh/ 分章），可以加一列 `body_markdown` 并在 `import-deck.mjs` 里带上，但 `harvey-playbook`、`anthropic-founders-playbook`、`chuhai-growth-os` 目前没找到明显的 md 源，需要手动补或从 HTML 兜底抽取，仍未解决；
   ②出品条目是 `target="_blank"` 跳到 R2/`public/decks/` 上的独立 HTML，不在 `/decks` 自己的页面内渲染，没有地方吸附现有 `ArticleChatPanel.tsx` 这类侧栏——阶段 4.2（出品付费墙）本来就要建一个站内鉴权查看器路由替换直链跳转，届时这个查看器页面就是天然的挂载点，不用为 AI解读单独再建一套。
