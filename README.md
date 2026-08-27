@@ -17,14 +17,15 @@ Powered by [Air7.fun](https://air7.fun)
 - 邮件订阅页
 - 双重确认订阅流程
 - 登录、注册和用户文章管理
-- 登录态：next-auth（httpOnly JWT session cookie），服务端 `getServerSession()` 本地验签，不再逐请求查库；`/agent`、`/decks`、`/dashboard`、`/my/posts`、`/admin/*`、文章 AI解读 面板的登录门禁均已下沉到服务端，未登录直接 SSR 跳转 `/login?next=...`，登录成功后自动返回原页面 / 重新打开 AI解读面板
+- 登录态：next-auth（httpOnly JWT session cookie），服务端 `getServerSession()` 本地验签，不再逐请求查库；`/agent`、`/dashboard`、`/my/posts`、`/admin/*`、文章 AI解读 面板的登录门禁均已下沉到服务端，未登录直接 SSR 跳转 `/login?next=...`，登录成功后自动返回原页面 / 重新打开 AI解读面板（`/decks` 列表页不在此列，已改为公开访问，见下）
+- `/agent`、文章 AI解读 面板的 credits 计量：`ai_pulse_credit_ledger`（append-only，余额 = 当期 `SUM(delta)`），登录用户每月懒发放 1000 credits（1 轮对话 = 1 credit），另加 50/小时的速率限制防脚本失控——两者是两层不同的机制，不是同一回事
 - `/agent` 与文章 AI解读 面板支持粘贴图片提问（DeepSeek vision，client 端降采样为 1280px JPEG，单条消息最多 4 张，点击缩略图可查看大图）
 - `/agent`、文章 AI解读 面板的会话持久化：登录用户对话写入 `ai_pulse_chat_turns`，刷新/换设备可续接最近 10 轮；图片存 R2；pi-gateway 冷启动时把历史回放进 `AgentSession`，模型能记住之前聊过什么
 - 管理后台：编辑文章元数据、发布状态、精选状态和专题编排
 - Newsletter 批量发送、退订处理和发送记录
 - R2 文件上传（包括大文件 presigned upload）
 - Vault Markdown → Supabase 内容导入脚本
-- `/decks`（出品）登录门禁：未登录跳转 `/login`，登录后即可查看；付费/会员机制尚未设计，暂不做额外拦截
+- `/decks`（出品）付费墙骨架：列表页公开可浏览（不再需要登录），正文按 `ai_pulse_decks.price_cents` 走鉴权代理路由（`/decks/[slug]/[...path]`）——未定价的 deck 对所有人开放，定价后的 deck 需要登录 + 有 `paid` 状态的 `ai_pulse_orders` 记录才能访问；下单（`POST /api/decks/[slug]/orders`）和异步支付回调（`GET /api/orders/callback/epay`）已实现，走的是通用"易支付"协议、可换供应商，但列表页还没有真正的购买按钮，也还没有真实支付账号验证过——现有 8 篇 deck 都还未定价
 - Signal 注入 API：`POST /api/signals`，支持单条或批量 upsert 到 `ai_pulse_signals`（可选 `signal_date`；不传默认 UTC+8 当天）
 
 产品与架构设计详见 `PRODUCT.md`，阶段化事项详见 `TODO.md`。
@@ -119,16 +120,16 @@ node scripts/upload-html-embed.mjs <html-file> <slug> [--height=2400]
 
 ### 4c. 导入出品（/decks，可选）
 
-`/decks` 的元数据存在 `ai_pulse_decks` 表里（见 `supabase/migrations/20260812_create_decks.sql`），HTML 内容一律传到 R2——外部 agent 跑一条命令即可上线新条目，不需要改代码或部署。数据库里存的 `href` 是同源路径（如 `/decks/<slug>/<entry>`），不是 R2 原始域名；`next.config.ts` 的 `rewrites()` 把 `/decks/:slug/:path*` 服务端转发到 R2，访客地址栏不会看到 R2 的域名。`kicker` 是固定分类枚举（`KEYNOTE`/`COURSE`/`REPORT`/`PLAYBOOK`，数据库层有 `CHECK` 约束，见 `supabase/migrations/20260827_decks_kicker_fixed_taxonomy.sql`），不是自由文本：
+`/decks` 的元数据存在 `ai_pulse_decks` 表里（见 `supabase/migrations/20260812_create_decks.sql`），HTML 内容一律传到 R2——外部 agent 跑一条命令即可上线新条目，不需要改代码或部署。数据库里存的 `href` 是同源路径（如 `/decks/<slug>/<entry>`），不是 R2 原始域名；`src/app/decks/[slug]/[...path]/route.ts` 这个鉴权代理路由负责把该路径读回 R2 对象内容，访客地址栏不会看到 R2 的域名（之前是 `next.config.ts` 的公开 `rewrites()` 做同样的转发，阶段 4.2 已改成这个会校验权限的路由，见 `TODO.md`）。`kicker` 是固定分类枚举（`KEYNOTE`/`COURSE`/`REPORT`/`PLAYBOOK`，数据库层有 `CHECK` 约束，见 `supabase/migrations/20260827_decks_kicker_fixed_taxonomy.sql`），不是自由文本：
 
 ```bash
 node scripts/import-deck.mjs <html-file-or-dir> \
   --slug=<slug> --title="..." --kicker=<KEYNOTE|COURSE|REPORT|PLAYBOOK> --description="..." \
   --meta="..." --date=2026-08-12 \
-  [--entry=index.html] [--status=draft] [--dry-run]
+  [--entry=index.html] [--status=draft] [--price=19.9] [--currency=CNY] [--dry-run]
 ```
 
-输入可以是单个 HTML 文件，也可以是一个目录（比如 index.html + 多篇 day-0X.html 组成的系列课程）；目录会按相对路径整体上传到 R2，`--entry` 指定作为 `/decks` 列表点击目标的入口文件（默认 `index.html`），页内的相对链接和相对资源引用保持不变。
+输入可以是单个 HTML 文件，也可以是一个目录（比如 index.html + 多篇 day-0X.html 组成的系列课程）；目录会按相对路径整体上传到 R2，`--entry` 指定作为 `/decks` 列表点击目标的入口文件（默认 `index.html`），页内的相对链接和相对资源引用保持不变。`--price` 是元为单位，不传则不改动已有价格（新 slug 默认免费），`--price=0` 显式清价改回免费。
 
 ### 5. 启动开发服务器
 
@@ -160,7 +161,7 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=<KEY
 - `/latest`：最新内容列表
 - `/archive`：内容归档
 - `/series`：专题列表
-- `/decks`：出品（幻灯片 / 报告 / 交互式解读，元数据存于 `ai_pulse_decks` 表，导入见上文 4c；需登录）
+- `/decks`：出品（幻灯片 / 报告 / 交互式解读，元数据存于 `ai_pulse_decks` 表，导入见上文 4c；列表页公开，正文按定价走鉴权，见"当前能力"）
 - `/admin`：管理员内容后台
 - `/admin/new`：管理员新建文章
 - `/admin/edit/[slug]`：管理员文章元数据编辑
@@ -182,8 +183,11 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=<KEY
 - `/api/admin/posts/preview`：管理员 Markdown 正文预览
 - `/api/upload`、`/api/upload/presign`：文件上传
 - `/api/agents`：Agent 管理接口
-- `/api/agent`：探索/AI解读对话接口（POST，需登录，转发到 pi-gateway，SSE 流式返回）
+- `/api/agent`：探索/AI解读对话接口（POST，需登录，credits 余额不足返回 402、超出小时限速返回 429，转发到 pi-gateway，SSE 流式返回）
 - `/api/agent-turns`：会话历史读写接口（GET 拉取最近 10 轮，POST 持久化一轮，均需登录）
+- `/decks/[slug]/[...path]`：出品正文鉴权代理（GET，未定价放行，定价后需登录 + 有 `paid` 订单，从私有 R2 读取内容原样返回）
+- `/api/decks/[slug]/orders`：出品下单接口（POST，需登录，创建 `pending` 订单并返回支付通道的跳转链接）
+- `/api/orders/callback/epay`：支付异步回调（GET，验签后把订单标记为 `paid`；未配置 `EPAY_*` 时直接报错，不会静默失败）
 
 ## 当前确认流程
 

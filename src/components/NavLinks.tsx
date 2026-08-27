@@ -15,7 +15,7 @@ const NAV_ITEMS: ReadonlyArray<
   { type: 'divider' },
   { type: 'link', href: '/series', label: '专题' },
   { type: 'link', href: '/agent', label: '探索', gated: true },
-  { type: 'link', href: '/decks', label: '出品', gated: true },
+  { type: 'link', href: '/decks', label: '出品' },
 ]
 
 interface NavLinksProps {

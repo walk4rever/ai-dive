@@ -15,7 +15,14 @@
  *   node scripts/import-deck.mjs <html-file-or-dir> \
  *     --slug=<slug> --title="..." --kicker=<KEYNOTE|COURSE|REPORT|PLAYBOOK> --description="..." \
  *     --meta="..." --date=2026-08-12 \
- *     [--entry=index.html] [--status=draft] [--dry-run]
+ *     [--entry=index.html] [--status=draft] [--price=19.9] [--currency=CNY] [--dry-run]
+ *
+ * `--price` is in whole currency units (e.g. `--price=19.9` for ¥19.90), converted to
+ * `price_cents` on write. Omit it entirely to leave pricing untouched — on a brand new
+ * slug that means the deck stays free (price_cents defaults to NULL); on a re-import of
+ * an existing slug it means whatever price was set before is left alone, so refreshing
+ * a deck's content never silently un-prices it. Pass `--price=0` to explicitly clear a
+ * price and make a deck free again. See TODO.md 阶段 4.2 / `src/lib/decks/access.ts`.
  *
  * `--entry` only matters when the input is a directory: it names the file
  * (relative to that directory) that becomes the deck's link target. Defaults
@@ -66,7 +73,7 @@ async function main() {
 
   if (!inputPath || !flags.slug || !flags.title || !flags.kicker || !flags.description || !flags.meta || !flags.date) {
     console.error(
-      'Usage: node scripts/import-deck.mjs <html-file-or-dir> --slug=<slug> --title="..." --kicker=<KEYNOTE|COURSE|REPORT|PLAYBOOK> --description="..." --meta="..." --date=2026-08-12 [--entry=index.html] [--status=draft] [--dry-run]'
+      'Usage: node scripts/import-deck.mjs <html-file-or-dir> --slug=<slug> --title="..." --kicker=<KEYNOTE|COURSE|REPORT|PLAYBOOK> --description="..." --meta="..." --date=2026-08-12 [--entry=index.html] [--status=draft] [--price=19.9] [--currency=CNY] [--dry-run]'
     )
     process.exit(1)
   }
@@ -91,6 +98,16 @@ async function main() {
   if (status !== 'draft' && status !== 'published') {
     console.error('--status must be "draft" or "published".')
     process.exit(1)
+  }
+
+  let priceCents
+  if (flags.price !== undefined) {
+    const priceUnits = Number(flags.price)
+    if (!Number.isFinite(priceUnits) || priceUnits < 0) {
+      console.error('--price must be a non-negative number, e.g. --price=19.9. Use --price=0 to make a deck free again.')
+      process.exit(1)
+    }
+    priceCents = priceUnits === 0 ? null : Math.round(priceUnits * 100)
   }
 
   const absPath = path.resolve(process.cwd(), inputPath)
@@ -126,6 +143,11 @@ async function main() {
     meta: flags.meta,
     date: flags.date,
     status,
+    // Omitted entirely (rather than sent as undefined/null) when the flag wasn't
+    // passed, so re-importing a deck's content never overwrites a price set earlier —
+    // see the --price doc comment above.
+    ...(priceCents !== undefined ? { price_cents: priceCents } : {}),
+    ...(flags.currency ? { currency: flags.currency } : {}),
   }
 
   if (dryRun) {

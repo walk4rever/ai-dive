@@ -90,17 +90,65 @@
 
 ## 阶段 4：付费订阅闭环
 
-目标：把当前的”软付费提示”升级为真实的会员系统。
+目标：把当前的"软付费提示"升级为真实的付费与额度系统。
 
-现状（本轮调整）：情报/深度/洞见已彻底移除 `is_premium` 付费墙，发布即全文可读；出品（`/decks`）暂时只做登录门禁，不区分付费。下面几项均待重新设计，不要沿用旧的 `is_premium` 占位思路。
+现状（2026-08-27 设计定稿，替代旧的 `is_premium` 占位思路）：情报/深度/洞见已彻底移除 `is_premium` 付费墙，发布即全文可读，保持公开免费。出品（`/decks`）暂时只做登录门禁，不区分付费——本阶段就是把它落地成真正的付费墙。以下方案是完整讨论后的结论，实现顺序按 4.1 → 4.2 → 4.3 → 4.4。
 
-- [ ] 明确付费产品形态：月付、年付、单篇、专栏或会员制。
-- [ ] 接入支付服务并同步客户状态到 `ai_pulse_subscribers`。
-- [ ] 设计订阅状态机，覆盖试用、有效、过期、取消、退款等状态。
-- [ ] 建立真实的付费内容访问控制。
-- [ ] 处理免费用户、已订阅未确认用户、已付费用户三类访问路径。
-- [ ] 设计支付成功、失败、续费、取消的用户通知。
-- [ ] 明确“免费订阅”和“付费会员”的内容边界。
+### 4.0 三层访问模型（已定方向，不再讨论）
+
+| 层 | 栏目 | 登录 | 收费 |
+|---|---|---|---|
+| 公开 | 信号 / 深度 / 洞见 / 专题 | 否 | 免费 |
+| 账号 | 探索（`/agent`）+ 所有 AI 解读 | 是 | 免费，但计 credits 防爆仓 |
+| 付费 | 出品（`/decks`） | 是 | 单篇/系列买断，更新免费 |
+
+统一原则：公开内容匿名可读，凡是有状态的（AI 对话、购买）一律绑账号。出品购买前必须先注册登录（不做匿名购买），邮箱验证墙保持强制不放开——credits 免费额度按账号发放，验证是防止脚本批量注册刷额度的最低成本防线；出品购买路径本身安全价值低，但改动收益不足以为它单独破例。
+
+### 4.1 Credits 骨架（不依赖支付，可独立先做，优先建这块开始收集成本数据）
+
+- [x] 新增 `ai_pulse_credit_ledger`（append-only：`user_id, delta, reason, period, ref_id, created_at`），余额 = `SUM(delta) WHERE user_id = ? AND (period = 当期 OR period IS NULL)`；`period` 让过期变成隐式的，不需要清理任务（`supabase/migrations/20260827_create_credit_ledger.sql`）
+- [x] 免费额度懒发放：消费前检查当期 `grant_free` 记录是否存在，不存在才插入，靠 `(user_id, reason, period)` 唯一索引保证幂等，不用挂 cron（`src/lib/credits.ts` `ensureFreeGrant`）
+- [x] `src/app/api/agent/route.ts` 调 gateway 前查余额拦截（余额 `<=0` 返回 402），调用成功（`upstream.ok`）后才插一条 `delta=-1`——全站 LLM 调用只有这一个出口（浏览器不直连 pi-gateway），前端和 gateway 都不用改；先查后花，不做"先扣后退"，失败路径不产生任何 ledger 写入，天然不需要冲正
+- [x] 计费粒度先按"一轮对话 = 1 credit"，不按 token（pi-gateway 暂无 usage 回传，且这样用户更好理解账单）
+- [x] 额外加一层小时级速率限制（读现有 `spend_agent` 行的 trailing-hour 计数，不建新表也不额外写入）——credits 是经济模型（月度额度），速率限制是防滥用（短时高频），两者不是一回事，只靠 credits 拦不住"一下午打光月度额度"（`src/lib/credits.ts` `withinHourlyLimit`，超限返回 429）
+- [ ] 用户菜单显示当期余额；余额耗尽时 402 状态对应的引导 UI（提示充值/等下月刷新）——402/429 的错误文案已经通过 `useAgentChat.ts` 现有的 `!res.ok` 分支原样透出到对话气泡，仍缺一个随时可见的余额展示入口
+- [x] 免费额度先给宽松值，不要现在拍定价：`FREE_MONTHLY_CREDITS = 1000`（约每天 33 次），`HOURLY_SPEND_LIMIT = 50`——月度宽松是因为当前无法向撞墙用户变现（付费出口还没做），提前拦掉活跃用户只有下行没有上行；小时限制独立设置是为了防止失控脚本/重试循环在几分钟内烧掉大比例月度额度，不是为了限制真实人类的正常聊天节奏。先跑数据收集期，再回头拿真实用量分布定免费额度和会员卡定价（数据收集本身是运营动作，不是代码任务）
+
+### 4.2 出品栏目公开化 + 内容访问改造
+
+- [x] `/decks` 列表页去掉登录门禁（`src/app/decks/page.tsx`），改为公开渲染，展示标题/简介/kicker/价格；`NavLinks.tsx` 里 `/decks` 的 `gated: true` 也一并去掉，否则未登录点击导航仍会被拦去登录页
+- [ ] **R2 访问收紧——原计划"关闭 bucket 公开访问"是错的，已撤回，改成下面这个方案。** `CLOUDFLARE_R2_BUCKET_NAME`/`CLOUDFLARE_R2_PUBLIC_URL` 这对 env 是全站公用的一个 bucket，除了 decks 还扛着文章配图（`/api/upload`、`/api/upload/presign`）、AI 对话贴图、`::embed{src=...}` 嵌入内容的安全校验域名——整桶关掉公开访问会连带炸掉这三处。正确做法：新建一个**专用于 decks 的私有 bucket**（新建的 R2 bucket 默认就是私有的，只要不开 `r2.dev` 子域名/不绑自定义域名，天生私有，不需要"关闭"任何东西），服务端 S3 client 用 access key/secret 照样能读。现有公开 bucket 保持不动。
+  - 操作步骤：① 在 Cloudflare 建新 bucket；② 确认现有 R2 API token 的权限范围覆盖到新 bucket（按 bucket 授权的 token 不会自动生效，可能要重新签发）；③ 加新 env var（如 `CLOUDFLARE_R2_DECKS_BUCKET_NAME`），`src/lib/r2.ts` 的 `fetchDeckObject()` 和 `scripts/import-deck.mjs` 都改成指向它；④ 用 `import-deck.mjs` 把现有 3 个 deck 重新导入到新 bucket（幂等，直接重跑即可）；⑤ 旧 bucket 里的 `decks/` 前缀可以事后清掉（卫生问题，不是安全阻塞项）。①②是 Cloudflare 控制台操作，我这边做不了；③④是代码/脚本改动，可以随时接手做
+- [x] 用带鉴权的 Route Handler 替换 `next.config.ts` 里现有的 `/decks/:slug/:path*` → R2 `rewrites()`：`src/app/decks/[slug]/[...path]/route.ts` 校验 `canAccessDeck()` 后用 `src/lib/r2.ts` 新增的 `fetchDeckObject()`（`GetObjectCommand`）读对象流式返回，响应头 `Cache-Control: private`（不再是公开可被 CDN/其他访客共享缓存的响应）。URL 保持同源不变（仍是 `/decks/xxx/yyy`），deck 内容和内部相对链接一个字节都不用改。每个子资源请求（图片等）都独立校验一次，不是只挡入口 HTML
+  - 明确排除 presigned URL 方案：deck 是一个 HTML + 多个相对路径引用的资源（图片等），presigned URL 只能签单个对象，HTML 里的相对链接会拼出不带签名的 R2 直链导致 403；服务端代理是唯一同时满足"能鉴权"又"不用重写内容"的方案
+- [x] `ai_pulse_decks` 加 `price_cents`、`currency`（`supabase/migrations/20260827_decks_pricing_and_orders.sql`）；`price_cents IS NULL` = 仍然免费，`canAccessDeck()`（`src/lib/decks/access.ts`）是内容路由和列表页共用的唯一权限判定点
+- [x] 新增统一订单表 `ai_pulse_orders`（`user_id NOT NULL`，冗余存一份 `email` 便于对账/找回，`kind` ∈ `deck`/`membership`，`ref`（deck_slug 或 plan_id），`amount_cents`，`provider`，`provider_order_id`，`status`，`paid_at`）——出品买断和会员卡本质都是一次性付款，用同一张表、同一套 provider 集成、同一套回调验签，不建两套
+- [x] 买断制：一条 `paid` 记录即永久访问权限。"更新免费"因此不需要任何额外代码——权限按 `deck_slug` 判定，与内容版本无关，R2 里的文件随便更新
+- [x] `scripts/import-deck.mjs` 加 `--price=<yuan>`（如 `--price=19.9`）/`--currency` flag，换算成 `price_cents` 写入；不传该 flag 时完全不带这个字段进 payload（而不是传 `undefined`/`null`），所以刷新一个已定价 deck 的内容不会把价格意外清空；`--price=0` 是显式清价回到免费的转义口。现有三个 deck 仍未定价（`price_cents` 全部 NULL，正确的默认状态，不是 bug）——后台可视化编辑入口仍未做，眼下定价只能走这个 CLI flag
+- [ ] 列表页现在对 priced-且-未购买 的 deck 展示"购买功能开发中，敬请期待"（`src/app/decks/page.tsx`），不渲染可点击链接——因为 4.3 的支付通道还没接，`ai_pulse_orders` 里目前不可能出现任何 `paid` 记录，此时给一个可点击但必然 403 的死链接体验更差。真正的购买按钮/流程要等 4.3
+
+### 4.3 支付通道接入
+
+- [x] 抽象 provider 接口（`createOrder` / `verifyCallback` / `queryStatus`，`src/lib/payments/types.ts`），`ai_pulse_orders` 字段本身 provider-agnostic，换通道不动订单模型
+- [x] 接入个人可开通的聚合支付通道——建的是通用的"易支付"协议实现（`src/lib/payments/epay.ts`），不是绑定某一家。虎皮椒的历史 API、码支付、彩虹易支付各种克隆站、ZPAY 等一大批面向个人的聚合商都实现同一套协议（`pid`/`key`/MD5 签名、`submit.php` 页面跳转、`notify_url` 异步回调），选哪家只是配 `EPAY_PID`/`EPAY_KEY`/`EPAY_BASE_URL` 三个环境变量的事，不用换代码——因为当前没有企业/个体户经营主体，微信支付/支付宝官方直连、国内持牌聚合支付（Ping++等）都过不了资质审核
+  - 协议细节核对自公开文档（页面跳转 `submit.php` 不需要 `clientip`/`device`，这两个字段只有服务端直出 JSON 的 `mapi.php` 接口才需要，所以整个下单流程是纯字符串拼接，不需要请求上下文）；`src/lib/payments/epay.test.ts` 里的签名校验是照文档独立重写的算法，不是照抄实现代码，真能测出"实现跟协议对不上"这种问题
+  - 订单创建（`src/lib/decks/orders.ts` `createDeckOrder` + `POST /api/decks/[slug]/orders`）：校验有价可买、未重复购买，插入 `pending` 订单，问 provider 要 `payUrl`，浏览器跳转过去
+  - 异步回调（`GET /api/orders/callback/epay`）：验签 + 校验 `trade_status=TRADE_SUCCESS` 后把订单从 `pending` 改成 `paid`；`.eq('status','pending')` 这个过滤条件保证回调被重复投递时不会被处理两次；成功后必须回纯文本 `"success"`（不是 JSON）通道才会停止重试，这是协议要求
+  - **还没打通真实通道**：没有任何一家聚合商的 `pid`/`key` 可用，代码目前完全没有被真实调用过、也没有跑过一次真实收款——签名算法本身有单测覆盖，但请求/响应的实际字段、多渠道之间的细节差异，仍需要拿到真实账号后走一遍才能确认。缺 `EPAY_*` 三个环境变量时 `getPaymentProvider()` 会直接抛错，不会静默失败
+- [x] 明确记录并接受这个限制：这类通道本质是"二清"渠道，不受官方商户协议保护，有单日限额和随时断线/封号的风险，只作为验证阶段方案，不是长期主力；后续若拿到企业主体或境外账户（可走 Stripe/Airwallex 等跨境路线开通 Alipay/WeChat Pay 收款方式），只需要新增一个实现 `PaymentProvider` 接口的文件、切 `getPaymentProvider()` 的 env 开关，不用重做订单模型
+- [ ] 会员卡不做自动续费——个人聚合通道签不了代扣协议，做成一次性付款的月卡/季卡/年卡，到期手动再买（会员卡本身待 4.4 做）
+- [ ] 列表页(`src/app/decks/page.tsx`)的"购买功能开发中，敬请期待"还没换成真正的购买按钮——后端下单/回调都好了，但前端还没接：需要一个"支付宝/微信"选择 + 调 `POST /api/decks/[slug]/orders` + 跳转 `payUrl` 的小交互，且必须等真实 `EPAY_*` 凭证到位才可能端到端验证一次真实支付
+
+### 4.4 会员卡与内容边界
+
+- [ ] 会员卡购买（`kind='membership'`）履约为发放 credits（`reason='grant_plan'`），**不包含出品内容**——出品买断和会员卡额度是两条独立的线，不要打包进同一张卡：混在一起会让退款、有效期、"会员到期了已买的出品还能看吗"这类边界变脏
+- [ ] `/my/orders` 订单记录页，出品购买和会员卡记录共用同一张表展示
+
+### 已放弃 / 明确不做
+
+- **登录后购买折扣**：出品购买前强制要求注册登录，人人都是登录价，折扣这个"拉注册"的钩子已经没有存在意义，不做差异化定价
+- **匿名购买（邮箱锚点，不强制注册）**：曾讨论过用邮箱当身份锚点让未注册用户也能购买，但会引入签名访问链接、cookie 绑定、注册后回填 `user_id` 等一整套机制；权衡后选择更简单的"购买前必须注册"，如果后续数据显示购买转化因此流失严重，是可逆的增量改动（`ai_pulse_orders.user_id` 改可空 + 用已冗余的 `email` 列做回填 join）
+- **邮箱验证墙放开为软提醒**：目前保持 `src/lib/auth.ts:28` 强制验证不改。如果未来确实需要放开，正确做法是把验证要求从"登录"移到"发放免费 credits"（`grant_free` 只对 `email_verified_at IS NOT NULL` 生效），而不是整体拆掉验证
 
 ## 阶段 5：工程质量与可运维性
 
@@ -133,6 +181,9 @@
   改动收在 `ArticleChatPanel.tsx` 一个文件里，不动 `AgentChat.tsx`），但 context 仍绑定当前文章；
   还原按钮切回"文章左 / 面板右"并排布局。待拍板：①移动端 overlay 本来已接近全屏，是否也要
   放大按钮；②关闭面板时是否记住 maximized 状态，还是每次都重置为并排小面板重新打开。
+- [ ] 出品（`/decks`）增加 AI解读能力，目前有两个卡点，其中一个已经有解法路径：
+  ①`ai_pulse_decks` 没有可喂给模型的全文字段——多数条目的源 markdown 能在 Vault 里找到（如 `agent-harness-speech-v0.4.0.md`、ribbit 两封信译文、inference-engineering 的 zh/ 分章），可以加一列 `body_markdown` 并在 `import-deck.mjs` 里带上，但 `harvey-playbook`、`anthropic-founders-playbook`、`chuhai-growth-os` 目前没找到明显的 md 源，需要手动补或从 HTML 兜底抽取，仍未解决；
+  ②出品条目是 `target="_blank"` 跳到 R2/`public/decks/` 上的独立 HTML，不在 `/decks` 自己的页面内渲染，没有地方吸附现有 `ArticleChatPanel.tsx` 这类侧栏——阶段 4.2（出品付费墙）本来就要建一个站内鉴权查看器路由替换直链跳转，届时这个查看器页面就是天然的挂载点，不用为 AI解读单独再建一套。
 - [ ] 增加订阅转化文案与落地页实验。
 - [ ] 增加推荐阅读、相关文章、热门内容模块。
 - [ ] 支持搜索、标签页或专题页。
@@ -159,5 +210,5 @@
 
 1. 优化 Dive / Insight 文章页 H2/H3/H4 标题层级，并完成桌面与移动端视觉验证。
 2. 为 Agent 发布、Signals 注入和文件上传 API 增加核心测试。
-3. 应用 `20260804_add_author_display.sql` 数据库迁移。
+3. ~~应用 `20260804_add_author_display.sql` 数据库迁移。~~（已完成，线上库已有 `author_display` 列）
 4. 明确后台编辑内容与 Vault Markdown 之间的同步规则。

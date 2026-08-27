@@ -5,16 +5,6 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
-  async rewrites() {
-    const r2Base = process.env.CLOUDFLARE_R2_PUBLIC_URL
-    if (!r2Base) return []
-    return [
-      {
-        source: '/decks/:slug/:path*',
-        destination: `${r2Base}/decks/:slug/:path*`,
-      },
-    ]
-  },
   images: {
     remotePatterns: [
       {

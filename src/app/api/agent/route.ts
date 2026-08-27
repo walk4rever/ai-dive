@@ -5,6 +5,7 @@ import { validateImageAttachments } from '@/lib/image-attachment'
 import { authOptions } from '@/lib/auth'
 import { deriveContextKey, fetchRecentTurns } from '@/lib/agent-context'
 import { resolveArticleSlug } from '@/lib/resolve-article-slug'
+import { ensureFreeGrant, getBalance, recordSpend, withinHourlyLimit } from '@/lib/credits'
 
 export const maxDuration = 90
 
@@ -19,6 +20,18 @@ export async function POST(req: NextRequest) {
 
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const supabaseService = await createServiceClient()
+
+  if (!(await withinHourlyLimit(supabaseService, session.user.id))) {
+    return NextResponse.json({ error: '请求过于频繁，请稍后再试' }, { status: 429 })
+  }
+
+  await ensureFreeGrant(supabaseService, session.user.id)
+  const balance = await getBalance(supabaseService, session.user.id)
+  if (balance <= 0) {
+    return NextResponse.json({ error: '本月额度已用完，下月自动刷新', code: 'insufficient_credits' }, { status: 402 })
+  }
 
   const body = await req.json().catch(() => null)
   if (!body?.message || typeof body.message !== 'string') {
@@ -36,7 +49,6 @@ export async function POST(req: NextRequest) {
   }
 
   const contextKey = deriveContextKey(typeof body.articleSlug === 'string' ? body.articleSlug : undefined)
-  const supabaseService = await createServiceClient()
   const recentTurns = await fetchRecentTurns(supabaseService, session.user.id, contextKey)
 
   // The client fire-and-forgets a persist call for this exact user message
@@ -75,6 +87,11 @@ export async function POST(req: NextRequest) {
       { status: upstream.status }
     )
   }
+
+  // Spend is recorded only once the gateway has confirmed it accepted the request,
+  // not pre-deducted — see src/lib/credits.ts for why that's the only ledger write
+  // this turn needs.
+  await recordSpend(supabaseService, session.user.id, contextKey)
 
   return new Response(upstream.body, {
     headers: {

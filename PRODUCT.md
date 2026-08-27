@@ -356,7 +356,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - HTML 消毒（`rehype-sanitize` + `rehype-raw`）
 - 数据库迁移体系（`supabase/migrations/`，非单一 `schema.sql`）
 - 基础 CI（GitHub Actions，push/PR 到 `main` 时跑 `lint`）
-- 登录门禁（`/agent`、`/decks`、`/dashboard`、`/my/posts`、`/admin/*`、文章 AI解读 面板）：服务端鉴权，未登录直接在 Server Component 里 `redirect('/login?next=...')`，不再有"先渲染空白、客户端 hydrate 完再检查 localStorage 才决定要不要跳转"的闪烁；登录成功后自动返回原页面（AI解读面板会带着 `?open=chat` 标记自动重新打开）
+- 登录门禁（`/agent`、`/dashboard`、`/my/posts`、`/admin/*`、文章 AI解读 面板）：服务端鉴权，未登录直接在 Server Component 里 `redirect('/login?next=...')`，不再有"先渲染空白、客户端 hydrate 完再检查 localStorage 才决定要不要跳转"的闪烁；登录成功后自动返回原页面（AI解读面板会带着 `?open=chat` 标记自动重新打开）——`/decks` 列表页已改为公开访问（阶段 4.2），不再走这条门禁
 - 登录态：next-auth（httpOnly、加密 JWT session cookie），服务端 Server Component / Route Handler 用 `getServerSession()` 本地验签即可拿到用户，不再需要每次请求查 `ai_pulse_user_sessions` 表；`/agent` 页面的对话历史在 SSR 阶段直接查出来传给客户端，不再有"渲染空壳、hydrate 后再 fetch 一次"的额外往返
 - Agent 对话图片输入（`/agent`、文章 AI解读 面板）：粘贴图片时，`pi-gateway` 仅为携带图片的这一回合切换到 DeepSeek vision 模型（`deepseek-v4-flash-vision-exp`），回复完成后切回默认文本模型
 - Agent 会话持久化（`/agent`、文章 AI解读 面板）：登录用户的每一轮对话写入 `ai_pulse_chat_turns`（按 `user_id` + `context_key` 归属，`context_key` 是文章 slug 或字面量 `global`），刷新页面/换设备会重新加载最近 10 轮；图片附件上传到 R2（`users/<userId>/chat/...`），`imageUrls` 随历史一起落库；`pi-gateway` 冷启动（同一 tab-scoped 匿名 session 30 分钟 TTL 过期后的下一次请求）时会用 `SessionManager.appendMessage()` 把这份历史原样灌回 `AgentSession`，让模型"记得"之前聊过什么——历史里的纯图片轮次回放时替换成文字占位符，不重新下载图片
@@ -370,13 +370,34 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - 打开追踪与点击追踪（`ai_pulse_email_sends.opened_at`/`clicked_at` 字段已预留，未写入）
 - 邮件模板管理（当前硬编码单一模板）
 - 运营指标面板（订阅数、确认率、打开率、点击率）
-- 真正的付费访问控制：情报/深度/洞见已彻底移除 `is_premium` 付费墙（不再读取该字段），出品（`/decks`）只做登录门禁；付费/会员机制整体待重新设计，不复用旧的 `is_premium` 思路
-- 会员/付费分级：登录门禁目前只区分"已登录/未登录"，不区分付费等级；具体如何对会员收费待后续设计
+- 真正的付费访问控制：情报/深度/洞见已彻底移除 `is_premium` 付费墙（不再读取该字段）；出品（`/decks`）已具备访问控制骨架和下单/回调后端（`src/lib/payments/`、`src/lib/decks/orders.ts`，阶段 4.2/4.3），走的是通用"易支付"协议、可换供应商。但还没有真实支付账号能验证过一次真实收款，列表页也还没接购买按钮——priced 的 deck 现在仍展示"购买功能开发中"
+- credits 额度系统：探索（`/agent`）与 AI 解读目前登录后无限使用，尚无消耗计量、无月度额度、无速率限制
 - 作者页
 - 精选创作者工作流
 - 搜索、标签页、相关文章推荐
 
-### 7.3 当前技术约束
+### 7.3 访问与付费模型（设计方向，2026-08-27 定稿，未实现）
+
+三层访问模型，公开内容匿名可读，凡是有状态的（AI 对话、购买）一律绑账号：
+
+| 层 | 栏目 | 登录 | 收费 |
+|---|---|---|---|
+| 公开 | 信号 / 深度 / 洞见 / 专题 | 否 | 免费 |
+| 账号 | 探索 + 所有 AI 解读 | 是 | 免费，但计 credits 防爆仓 |
+| 付费 | 出品 | 是 | 单篇/系列买断，更新免费 |
+
+要点：
+
+- 出品列表页公开可浏览，但购买前必须先注册登录——不做匿名购买（曾评估用邮箱当身份锚点让未登录用户也能买，但会引入签名链接/cookie 绑定等一整套机制，权衡后放弃，改为更简单的"先注册再买"）
+- 邮箱验证墙保持强制，不放开：credits 免费额度按账号发放，验证是防止批量注册刷额度最便宜的一道门槛
+- 出品买断是永久权限，与内容版本无关，"更新免费"不需要额外机制
+- 出品买断和会员卡额度是两条独立的线，不打包在一起，避免退款/有效期边界变脏
+- credits（月度额度，经济模型）和速率限制（短时高频，防滥用）是两层不同的机制，不能互相替代
+- 会员卡不支持自动续费（受限于国内个人可开通的支付通道，签不了代扣协议），做成一次性付款的月卡/季卡/年卡
+
+详细落地方案（数据模型、支付通道选型、迁移顺序）见 `TODO.md` 阶段 4。
+
+### 7.4 当前技术约束
 
 - 文章正文保存 Markdown 源（`body_markdown`）和已消毒 HTML（`content`）两种形态
 - CI 执行 lint、test、build

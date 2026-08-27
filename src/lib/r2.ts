@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'
 import { randomUUID } from 'crypto'
 import path from 'path'
 import { lookup } from 'mime-types'
@@ -70,6 +70,35 @@ export async function uploadToR2(file: File, folder = 'posts'): Promise<UploadRe
 // can be audited or cleaned up per-user without touching public content keys.
 export function buildUserObjectKey(userId: string, category: string, filename: string): string {
   return `users/${userId}/${category}/${filename}`
+}
+
+export interface DeckObject {
+  stream: ReadableStream
+  contentType: string
+}
+
+/** Reads one object out of a deck's `decks/<slug>/...` R2 prefix. Used by the
+ *  entitlement-gated content route (src/app/decks/[slug]/[...path]/route.ts) — the
+ *  bucket is private, so this is the only way to reach deck content, replacing the
+ *  old public next.config.ts rewrite. Returns null on any read failure (missing
+ *  object, bad key, etc.) so callers can uniformly respond 404. */
+export async function fetchDeckObject(slug: string, relativePath: string): Promise<DeckObject | null> {
+  const bucket = process.env.CLOUDFLARE_R2_BUCKET_NAME
+  if (!bucket) return null
+
+  try {
+    const object = await r2.send(
+      new GetObjectCommand({ Bucket: bucket, Key: `decks/${slug}/${relativePath}` })
+    )
+    if (!object.Body) return null
+
+    return {
+      stream: object.Body.transformToWebStream(),
+      contentType: object.ContentType ?? 'application/octet-stream',
+    }
+  } catch {
+    return null
+  }
 }
 
 /** Uploads a base64-encoded chat image attachment to R2 and returns its public URL. */

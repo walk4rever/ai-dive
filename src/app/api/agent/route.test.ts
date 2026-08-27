@@ -5,6 +5,10 @@ const getServerSession = vi.fn()
 const createClient = vi.fn()
 const createServiceClient = vi.fn()
 const fetchRecentTurns = vi.fn()
+const ensureFreeGrant = vi.fn()
+const getBalance = vi.fn()
+const recordSpend = vi.fn()
+const withinHourlyLimit = vi.fn()
 
 vi.mock('next-auth', () => ({ getServerSession }))
 vi.mock('@/lib/auth', () => ({ authOptions: {} }))
@@ -13,6 +17,7 @@ vi.mock('@/lib/agent-context', async () => {
   const actual = await vi.importActual<typeof import('@/lib/agent-context')>('@/lib/agent-context')
   return { ...actual, fetchRecentTurns }
 })
+vi.mock('@/lib/credits', () => ({ ensureFreeGrant, getBalance, recordSpend, withinHourlyLimit }))
 
 const originalFetch = global.fetch
 
@@ -29,6 +34,10 @@ describe('POST /api/agent', () => {
     })
     createServiceClient.mockResolvedValue({})
     fetchRecentTurns.mockResolvedValue([])
+    ensureFreeGrant.mockResolvedValue(undefined)
+    getBalance.mockResolvedValue(10)
+    recordSpend.mockResolvedValue(undefined)
+    withinHourlyLimit.mockResolvedValue(true)
   })
 
   afterEach(() => {
@@ -41,6 +50,60 @@ describe('POST /api/agent', () => {
     const req = new NextRequest('http://localhost/api/agent', { method: 'POST', body: JSON.stringify({ message: 'hi' }) })
     const res = await POST(req)
     expect(res.status).toBe(401)
+  })
+
+  it('returns 429 without calling the gateway when the hourly limit is hit', async () => {
+    getServerSession.mockResolvedValue({ user: { id: 'user-1', email: 'a@b.com', role: 'user' } })
+    withinHourlyLimit.mockResolvedValue(false)
+    const fetchSpy = vi.fn()
+    global.fetch = fetchSpy as unknown as typeof fetch
+
+    const { POST } = await import('./route')
+    const req = new NextRequest('http://localhost/api/agent', { method: 'POST', body: JSON.stringify({ message: 'hi' }) })
+    const res = await POST(req)
+
+    expect(res.status).toBe(429)
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  it('returns 402 without calling the gateway when the monthly balance is exhausted', async () => {
+    getServerSession.mockResolvedValue({ user: { id: 'user-1', email: 'a@b.com', role: 'user' } })
+    getBalance.mockResolvedValue(0)
+    const fetchSpy = vi.fn()
+    global.fetch = fetchSpy as unknown as typeof fetch
+
+    const { POST } = await import('./route')
+    const req = new NextRequest('http://localhost/api/agent', { method: 'POST', body: JSON.stringify({ message: 'hi' }) })
+    const res = await POST(req)
+    const json = await res.json()
+
+    expect(res.status).toBe(402)
+    expect(json.code).toBe('insufficient_credits')
+    expect(fetchSpy).not.toHaveBeenCalled()
+    expect(ensureFreeGrant).toHaveBeenCalled()
+  })
+
+  it('records spend only after the gateway accepts the request', async () => {
+    getServerSession.mockResolvedValue({ user: { id: 'user-1', email: 'a@b.com', role: 'user' } })
+    global.fetch = vi.fn(async () => new Response(new ReadableStream(), { status: 200 })) as unknown as typeof fetch
+
+    const { POST } = await import('./route')
+    const req = new NextRequest('http://localhost/api/agent', { method: 'POST', body: JSON.stringify({ message: 'hi' }) })
+    await POST(req)
+
+    expect(recordSpend).toHaveBeenCalledWith({}, 'user-1', 'global')
+  })
+
+  it('does not record spend when the gateway call fails', async () => {
+    getServerSession.mockResolvedValue({ user: { id: 'user-1', email: 'a@b.com', role: 'user' } })
+    global.fetch = vi.fn(async () => new Response('gateway down', { status: 500 })) as unknown as typeof fetch
+
+    const { POST } = await import('./route')
+    const req = new NextRequest('http://localhost/api/agent', { method: 'POST', body: JSON.stringify({ message: 'hi' }) })
+    const res = await POST(req)
+
+    expect(res.status).toBe(500)
+    expect(recordSpend).not.toHaveBeenCalled()
   })
 
   it('drops a trailing history turn that duplicates the current message', async () => {
