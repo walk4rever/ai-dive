@@ -13,7 +13,7 @@
  *
  * Usage:
  *   node scripts/import-deck.mjs <html-file-or-dir> \
- *     --slug=<slug> --title="..." --kicker="..." --description="..." \
+ *     --slug=<slug> --title="..." --kicker=<KEYNOTE|COURSE|REPORT|PLAYBOOK> --description="..." \
  *     --meta="..." --date=2026-08-12 \
  *     [--entry=index.html] [--status=draft] [--dry-run]
  *
@@ -56,6 +56,7 @@ const CONTENT_TYPES = {
 }
 
 const MAX_FILE_SIZE = 15 * 1024 * 1024
+const KICKERS = ['KEYNOTE', 'COURSE', 'REPORT', 'PLAYBOOK']
 
 async function main() {
   const args = process.argv.slice(2)
@@ -65,8 +66,14 @@ async function main() {
 
   if (!inputPath || !flags.slug || !flags.title || !flags.kicker || !flags.description || !flags.meta || !flags.date) {
     console.error(
-      'Usage: node scripts/import-deck.mjs <html-file-or-dir> --slug=<slug> --title="..." --kicker="..." --description="..." --meta="..." --date=2026-08-12 [--entry=index.html] [--status=draft] [--dry-run]'
+      'Usage: node scripts/import-deck.mjs <html-file-or-dir> --slug=<slug> --title="..." --kicker=<KEYNOTE|COURSE|REPORT|PLAYBOOK> --description="..." --meta="..." --date=2026-08-12 [--entry=index.html] [--status=draft] [--dry-run]'
     )
+    process.exit(1)
+  }
+
+  flags.kicker = flags.kicker.toUpperCase()
+  if (!KICKERS.includes(flags.kicker)) {
+    console.error(`--kicker must be one of: ${KICKERS.join(', ')}`)
     process.exit(1)
   }
 

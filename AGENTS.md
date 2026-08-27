@@ -15,6 +15,7 @@ The main application is a Next.js 16 App Router project. Pages, layouts, and API
 - `npm run import:post -- "/path/article.md"`: import one Markdown article.
 - `node scripts/upload-html-embed.mjs <html-file> <slug>`: upload a self-contained interactive HTML page to R2 for use with the `::embed{src="..." height="..."}` markdown directive (renders as a sandboxed iframe; see README).
 - `node scripts/import-deck.mjs <html-file-or-dir> --slug=... --title=... --kicker=... --description=... --meta=... --date=...`: import one `/decks` entry (single HTML file or a directory of one) — uploads to R2 and upserts `ai_pulse_decks`; no deploy needed (see README).
+  - **发布出品的 HTML 必须带 favicon（2026-08-27 用户明确规则）**：目录根放 `favicon.svg`（用 `src/app/icon.svg` 的副本），每个 HTML 的 `<head>` 加 `<link rel="icon" href="favicon.svg" type="image/svg+xml">`；目录上传时 favicon.svg 随相对路径一起到 R2。参照实现：`Vault/inference-engineering-journey/src/build_book.py`。
 
 Before handing off changes, run `npm run lint`, `npm test`, and `npm run build`.
 
