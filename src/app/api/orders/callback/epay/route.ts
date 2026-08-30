@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { getPaymentProvider } from '@/lib/payments'
+import { getProviderByName } from '@/lib/payments'
+import { markOrderPaid } from '@/lib/payments/settle'
 
 /** Async payment notification from the epay-protocol aggregator (GET, per protocol —
  *  see src/lib/payments/epay.ts). The provider retries this endpoint until it gets
@@ -12,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   let result
   try {
-    result = getPaymentProvider().verifyCallback(params)
+    result = getProviderByName('epay').verifyCallback(params)
   } catch {
     return new Response('fail', { status: 500 })
   }
@@ -20,20 +21,10 @@ export async function GET(req: NextRequest) {
   if (!result) return new Response('fail', { status: 400 })
 
   const supabase = await createServiceClient()
+  const outcome = await markOrderPaid(supabase, 'epay', result)
 
-  // Guarded by status='pending' so a retried callback (the aggregator resends until
-  // it sees "success") is a no-op the second time, not a double-processed payment.
-  const { error } = await supabase
-    .from('ai_pulse_orders')
-    .update({
-      status: 'paid',
-      paid_at: new Date().toISOString(),
-      provider_order_id: result.providerOrderId,
-    })
-    .eq('id', result.outTradeNo)
-    .eq('status', 'pending')
+  if (outcome === 'paid' || outcome === 'already_paid') return new Response('success')
 
-  if (error) return new Response('fail', { status: 500 })
-
-  return new Response('success')
+  console.error('[epay-callback]', outcome, result.outTradeNo, result.providerOrderId)
+  return new Response('fail', { status: outcome === 'error' ? 500 : 400 })
 }

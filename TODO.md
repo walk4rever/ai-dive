@@ -125,7 +125,7 @@
 - [x] 新增统一订单表 `ai_pulse_orders`（`user_id NOT NULL`，冗余存一份 `email` 便于对账/找回，`kind` ∈ `deck`/`membership`，`ref`（deck_slug 或 plan_id），`amount_cents`，`provider`，`provider_order_id`，`status`，`paid_at`）——出品买断和会员卡本质都是一次性付款，用同一张表、同一套 provider 集成、同一套回调验签，不建两套
 - [x] 买断制：一条 `paid` 记录即永久访问权限。"更新免费"因此不需要任何额外代码——权限按 `deck_slug` 判定，与内容版本无关，R2 里的文件随便更新
 - [x] `scripts/import-deck.mjs` 加 `--price=<yuan>`（如 `--price=19.9`）/`--currency` flag，换算成 `price_cents` 写入；不传该 flag 时完全不带这个字段进 payload（而不是传 `undefined`/`null`），所以刷新一个已定价 deck 的内容不会把价格意外清空；`--price=0` 是显式清价回到免费的转义口。现有三个 deck 仍未定价（`price_cents` 全部 NULL，正确的默认状态，不是 bug）——后台可视化编辑入口仍未做，眼下定价只能走这个 CLI flag
-- [ ] 列表页现在对 priced-且-未购买 的 deck 展示"购买功能开发中，敬请期待"（`src/app/decks/page.tsx`），不渲染可点击链接——因为 4.3 的支付通道还没接，`ai_pulse_orders` 里目前不可能出现任何 `paid` 记录，此时给一个可点击但必然 403 的死链接体验更差。真正的购买按钮/流程要等 4.3
+- [x] 列表页对 priced-且-未购买 的 deck 现在渲染真正的购买按钮（`src/components/DeckBuyButton.tsx`）——4.3 支付宝官方通道打通后替掉了原来的"购买功能开发中，敬请期待"占位
 
 ### 4.3 支付通道接入
 
@@ -135,6 +135,10 @@
   - 订单创建（`src/lib/decks/orders.ts` `createDeckOrder` + `POST /api/decks/[slug]/orders`）：校验有价可买、未重复购买，插入 `pending` 订单，问 provider 要 `payUrl`，浏览器跳转过去
   - 异步回调（`GET /api/orders/callback/epay`）：验签 + 校验 `trade_status=TRADE_SUCCESS` 后把订单从 `pending` 改成 `paid`；`.eq('status','pending')` 这个过滤条件保证回调被重复投递时不会被处理两次；成功后必须回纯文本 `"success"`（不是 JSON）通道才会停止重试，这是协议要求
   - **还没打通真实通道**：没有任何一家聚合商的 `pid`/`key` 可用，代码目前完全没有被真实调用过、也没有跑过一次真实收款——签名算法本身有单测覆盖，但请求/响应的实际字段、多渠道之间的细节差异，仍需要拿到真实账号后走一遍才能确认。缺 `EPAY_*` 三个环境变量时 `getPaymentProvider()` 会直接抛错，不会静默失败
+- [x] **接入支付宝官方电脑网站支付**（2026-08-30，已有商户主体并签约"电脑网站支付"）：`src/lib/payments/alipay.ts` 实现同一个 `PaymentProvider` 接口，`alipay.trade.page.pay` 页面跳转 + RSA2 公钥模式，`getPaymentProvider(method)` 按支付方式分流（`alipay` → 官方通道，`wechat` → 仍走易支付）。配 `ALIPAY_APP_ID`/`ALIPAY_PRIVATE_KEY`/`ALIPAY_PUBLIC_KEY` 三个环境变量
+  - 签名规则在支付宝这里是**不对称**的：请求签名要带 `sign_type`，异步通知验签要去掉——两边套同一套规则会得到 `isv.invalid-signature`，这个坑有专门的回归测试钉住
+  - 回调 `POST /api/orders/callback/alipay` 是表单 POST（不是易支付的 GET），验签之外还校验 `app_id` 属于本应用（合法签名不等于发给我们的通知）；落单逻辑抽到 `src/lib/payments/settle.ts` 两条通道共用，含**金额比对**（防止改价解锁）和"重复投递 → already_paid → 照样回 success"的幂等处理
+  - 已用只读的 `alipay.trade.query` 对真实商户号验证：请求签名、支付宝公钥验签、APPID、签约状态全部通过（返回 `ACQ.TRADE_NOT_EXIST`，查假单号的正确响应）。**真实付款 + 回调解锁这条链路仍未跑过**，等首笔 ¥19.90 支付走完才算确认
 - [x] 明确记录并接受这个限制：这类通道本质是"二清"渠道，不受官方商户协议保护，有单日限额和随时断线/封号的风险，只作为验证阶段方案，不是长期主力；后续若拿到企业主体或境外账户（可走 Stripe/Airwallex 等跨境路线开通 Alipay/WeChat Pay 收款方式），只需要新增一个实现 `PaymentProvider` 接口的文件、切 `getPaymentProvider()` 的 env 开关，不用重做订单模型
 - [ ] 会员卡不做自动续费——个人聚合通道签不了代扣协议，做成一次性付款的月卡/季卡/年卡，到期手动再买（会员卡本身待 4.4 做）
 
@@ -144,15 +148,16 @@
 
 - [ ] **mock 支付 provider**（`PAYMENT_PROVIDER=mock` 开关）：实现同一个 `PaymentProvider` 接口，`createOrder` 返回一个本地假的确认页，`verifyCallback` 由本地手动触发——目的是在拿到真实商户号之前，把"下单 → 回调 → 订单变 paid → 内容解锁"这条完整链路自己先跑通、自己先发现 bug，而不是等注册好聚合商那天才第一次真实验证。这是现在最优先的一项，因为目前这条链路从写完到现在从没被完整跑过一次（真实调用、真实回调都没有）
 - [ ] `/decks/[slug]` 详情页：替掉现在"点了就是死链接 / 裸 JSON 403"这个粗糙状态，未定价 → 直接看；定价未购买 → 显示价格 + 购买按钮；已购买 → 显示内容
-- [ ] 详情页装真正的购买按钮：选支付宝/微信 → 调 `POST /api/decks/[slug]/orders` → 跳转 `payUrl`。有了上面的 mock provider，这个按钮现在就能被完整测试，不用等真实凭证
+- [x] 列表页装真正的购买按钮（`src/components/DeckBuyButton.tsx`）：调 `POST /api/decks/[slug]/orders` → 跳转 `payUrl`，401 时带 `next` 参数送去登录。因为拿到了真实支付宝商户号，直接跳过了上面的 mock provider，按钮只提供支付宝一种方式（微信没有凭证）
 - [ ] 用上已经写了但还没接的 `provider.queryStatus()`：`return_url` 落地页主动查一次订单状态并兜底同步——异步回调（`notify_url`）不保证送达及时（用户付完钱就关掉页面是常见情况），只靠回调会出现"钱付了但没解锁"的体验问题
 - [ ] `/my/orders` 页面：展示自己的购买记录（pending/paid），方便用户和我们自己排查问题
 
 ### 需要你做的（我这边做不了）
 
-- [ ] 去注册一个易支付协议的聚合商（虎皮椒或同协议其他家），拿到 `EPAY_PID`/`EPAY_KEY`/`EPAY_BASE_URL`——真正卡住"能不能收到钱"的唯一一件事
+- [x] ~~去注册一个易支付协议的聚合商~~ —— 已改为直接开通支付宝商户并签约"电脑网站支付"，凭证已配置。微信支付若要接，仍需要一个易支付聚合商的 `EPAY_PID`/`EPAY_KEY`/`EPAY_BASE_URL`
 - [ ] R2 bucket 分离（见 4.2 那条，跟支付无关但同样是上线前必须完成的）
-- [ ] 定一下第一篇要卖的 deck 和价格——产品判断，不是技术问题
+- [x] 定第一篇要卖的 deck 和价格：「推理工程实战手册」（`inference-engineering`）¥19.90，已写入 `ai_pulse_decks.price_cents`
+- [ ] 走一笔真实的 ¥19.90 支付，确认回调解锁链路（这是支付部分最后一个未验证环节）
 
 ### 4.4 会员卡与内容边界
 

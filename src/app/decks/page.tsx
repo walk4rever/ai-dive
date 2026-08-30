@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getSupabaseEnv } from '@/lib/supabase/env'
 import { formatPrice, hasPaidDeckOrder } from '@/lib/decks/access'
+import { DeckBuyButton } from '@/components/DeckBuyButton'
 
 export const revalidate = 60
 
@@ -111,7 +112,7 @@ export default async function DecksPage() {
               ) : (
                 <div className="block border-b border-[var(--border)] pb-10">
                   {body}
-                  <p className="mt-3 text-sm text-[var(--muted)]">购买功能开发中，敬请期待</p>
+                  {priceLabel && <DeckBuyButton slug={deck.slug} priceLabel={priceLabel} />}
                 </div>
               )}
             </li>

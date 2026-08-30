@@ -7,10 +7,12 @@ const getPaymentProvider = vi.fn()
 vi.mock('./access', () => ({ getDeckPricing, hasPaidDeckOrder }))
 vi.mock('@/lib/payments', () => ({ getPaymentProvider }))
 
+const insertedRows: Record<string, unknown>[] = []
+
 function fakeSupabase(insertResult: { data?: unknown; error?: { message: string } | null }) {
   return {
     from: () => ({
-      insert: () => ({
+      insert: (row: Record<string, unknown>) => (insertedRows.push(row), {
         select: () => ({
           single: async () => insertResult,
         }),
@@ -22,6 +24,11 @@ function fakeSupabase(insertResult: { data?: unknown; error?: { message: string 
 describe('createDeckOrder', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    insertedRows.length = 0
+    getPaymentProvider.mockReturnValue({
+      name: 'alipay',
+      createOrder: vi.fn().mockResolvedValue({ payUrl: 'https://openapi.alipay.com/gateway.do?x=y' }),
+    })
   })
 
   it('refuses a deck that has never been priced', async () => {
@@ -30,7 +37,7 @@ describe('createDeckOrder', () => {
     const supabase = fakeSupabase({ data: null, error: null })
 
     await expect(
-      createDeckOrder(supabase, 'user-1', 'a@b.com', 'free-deck', 'alipay', 'https://x/notify', 'https://x/return')
+      createDeckOrder(supabase, 'user-1', 'a@b.com', 'free-deck', 'alipay', 'https://ai.air7.fun')
     ).rejects.toThrow(DeckOrderError)
   })
 
@@ -40,7 +47,7 @@ describe('createDeckOrder', () => {
     const supabase = fakeSupabase({ data: null, error: null })
 
     await expect(
-      createDeckOrder(supabase, 'user-1', 'a@b.com', 'nope', 'alipay', 'https://x/notify', 'https://x/return')
+      createDeckOrder(supabase, 'user-1', 'a@b.com', 'nope', 'alipay', 'https://ai.air7.fun')
     ).rejects.toThrow(DeckOrderError)
   })
 
@@ -51,7 +58,7 @@ describe('createDeckOrder', () => {
     const supabase = fakeSupabase({ data: null, error: null })
 
     await expect(
-      createDeckOrder(supabase, 'user-1', 'a@b.com', 'k3-course', 'alipay', 'https://x/notify', 'https://x/return')
+      createDeckOrder(supabase, 'user-1', 'a@b.com', 'k3-course', 'alipay', 'https://ai.air7.fun')
     ).rejects.toThrow(DeckOrderError)
   })
 
@@ -62,7 +69,7 @@ describe('createDeckOrder', () => {
     const supabase = fakeSupabase({ data: null, error: { message: 'insert failed' } })
 
     await expect(
-      createDeckOrder(supabase, 'user-1', 'a@b.com', 'k3-course', 'alipay', 'https://x/notify', 'https://x/return')
+      createDeckOrder(supabase, 'user-1', 'a@b.com', 'k3-course', 'alipay', 'https://ai.air7.fun')
     ).rejects.toThrow(DeckOrderError)
   })
 
@@ -72,27 +79,34 @@ describe('createDeckOrder', () => {
     hasPaidDeckOrder.mockResolvedValue(false)
     const supabase = fakeSupabase({ data: { id: 'order-abc' }, error: null })
 
-    const createOrder = vi.fn().mockResolvedValue({ payUrl: 'https://pay.example.com/submit.php?x=y' })
-    getPaymentProvider.mockReturnValue({ createOrder })
+    const createOrder = vi.fn().mockResolvedValue({ payUrl: 'https://openapi.alipay.com/gateway.do?x=y' })
+    getPaymentProvider.mockReturnValue({ name: 'alipay', createOrder })
 
-    const result = await createDeckOrder(
-      supabase,
-      'user-1',
-      'a@b.com',
-      'k3-course',
-      'alipay',
-      'https://ai-dive.test/api/orders/callback/epay',
-      'https://ai-dive.test/decks'
-    )
+    const result = await createDeckOrder(supabase, 'user-1', 'a@b.com', 'k3-course', 'alipay', 'https://ai.air7.fun')
 
-    expect(result).toEqual({ payUrl: 'https://pay.example.com/submit.php?x=y' })
+    expect(result).toEqual({ payUrl: 'https://openapi.alipay.com/gateway.do?x=y' })
+    expect(getPaymentProvider).toHaveBeenCalledWith('alipay')
     expect(createOrder).toHaveBeenCalledWith({
       outTradeNo: 'order-abc',
       amountCents: 1900,
       title: 'K3 七天课',
       method: 'alipay',
-      notifyUrl: 'https://ai-dive.test/api/orders/callback/epay',
-      returnUrl: 'https://ai-dive.test/decks',
+      notifyUrl: 'https://ai.air7.fun/api/orders/callback/alipay',
+      returnUrl: 'https://ai.air7.fun/decks',
     })
+  })
+
+  it('records which channel the order was created on, so its callback can be matched', async () => {
+    const { createDeckOrder } = await import('./orders')
+    getDeckPricing.mockResolvedValue({ title: 'K3', priceCents: 1900, currency: 'CNY' })
+    hasPaidDeckOrder.mockResolvedValue(false)
+    getPaymentProvider.mockReturnValue({
+      name: 'epay',
+      createOrder: vi.fn().mockResolvedValue({ payUrl: 'https://pay.example.com/submit.php' }),
+    })
+
+    await createDeckOrder(fakeSupabase({ data: { id: 'order-abc' }, error: null }), 'user-1', 'a@b.com', 'k3-course', 'wechat', 'https://ai.air7.fun')
+
+    expect(insertedRows[0]).toMatchObject({ provider: 'epay', status: 'pending', amount_cents: 1900 })
   })
 })

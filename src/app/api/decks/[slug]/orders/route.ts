@@ -33,8 +33,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       session.user.email,
       slug,
       method,
-      `${origin}/api/orders/callback/epay`,
-      `${origin}/decks`
+      origin
     )
     return NextResponse.json(result)
   } catch (err) {

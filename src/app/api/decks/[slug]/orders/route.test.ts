@@ -69,7 +69,7 @@ describe('POST /api/decks/[slug]/orders', () => {
     expect(res.status).toBe(500)
   })
 
-  it('creates the order with a same-origin callback/return URL and returns the payUrl', async () => {
+  it('creates the order against the request origin and returns the payUrl', async () => {
     getServerSession.mockResolvedValue({ user: { id: 'user-1', email: 'a@b.com' } })
     createDeckOrder.mockResolvedValue({ payUrl: 'https://pay.example.com/submit.php?x=y' })
 
@@ -85,8 +85,7 @@ describe('POST /api/decks/[slug]/orders', () => {
       'a@b.com',
       'k3-course',
       'alipay',
-      'http://localhost/api/orders/callback/epay',
-      'http://localhost/decks'
+      'http://localhost'
     )
   })
 })

@@ -2,18 +2,12 @@ import { NextRequest } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const createServiceClient = vi.fn()
-const getPaymentProvider = vi.fn()
+const getProviderByName = vi.fn()
+const markOrderPaid = vi.fn()
 
 vi.mock('@/lib/supabase/server', () => ({ createServiceClient }))
-vi.mock('@/lib/payments', () => ({ getPaymentProvider }))
-
-function fakeSupabase(updateResult: { error: { message: string } | null }) {
-  const eqChain = {
-    eq: () => eqChain,
-    then: (resolve: (v: typeof updateResult) => void) => resolve(updateResult),
-  }
-  return { from: () => ({ update: () => eqChain }) }
-}
+vi.mock('@/lib/payments', () => ({ getProviderByName }))
+vi.mock('@/lib/payments/settle', () => ({ markOrderPaid }))
 
 function callbackReq(query: Record<string, string>) {
   const url = new URL('http://localhost/api/orders/callback/epay')
@@ -24,10 +18,12 @@ function callbackReq(query: Record<string, string>) {
 describe('GET /api/orders/callback/epay', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    createServiceClient.mockResolvedValue({})
   })
 
   it('returns "fail" without touching the database when verification fails', async () => {
-    getPaymentProvider.mockReturnValue({ verifyCallback: () => null })
+    getProviderByName.mockReturnValue({ verifyCallback: () => null })
 
     const { GET } = await import('./route')
     const res = await GET(callbackReq({ sign: 'bad' }))
@@ -38,7 +34,7 @@ describe('GET /api/orders/callback/epay', () => {
   })
 
   it('returns 500 "fail" if the provider throws (e.g. not configured)', async () => {
-    getPaymentProvider.mockImplementation(() => {
+    getProviderByName.mockImplementation(() => {
       throw new Error('Payment provider not configured')
     })
 
@@ -50,10 +46,10 @@ describe('GET /api/orders/callback/epay', () => {
   })
 
   it('marks the order paid and returns "success" on a verified callback', async () => {
-    getPaymentProvider.mockReturnValue({
+    getProviderByName.mockReturnValue({
       verifyCallback: () => ({ outTradeNo: 'order-1', providerOrderId: 'epay-txn-1', amountCents: 1990 }),
     })
-    createServiceClient.mockResolvedValue(fakeSupabase({ error: null }))
+    markOrderPaid.mockResolvedValue('paid')
 
     const { GET } = await import('./route')
     const res = await GET(callbackReq({ out_trade_no: 'order-1', trade_no: 'epay-txn-1', sign: 'ok' }))
@@ -63,10 +59,10 @@ describe('GET /api/orders/callback/epay', () => {
   })
 
   it('returns 500 "fail" if the database update errors', async () => {
-    getPaymentProvider.mockReturnValue({
+    getProviderByName.mockReturnValue({
       verifyCallback: () => ({ outTradeNo: 'order-1', providerOrderId: 'epay-txn-1', amountCents: 1990 }),
     })
-    createServiceClient.mockResolvedValue(fakeSupabase({ error: { message: 'db down' } }))
+    markOrderPaid.mockResolvedValue('error')
 
     const { GET } = await import('./route')
     const res = await GET(callbackReq({ out_trade_no: 'order-1', trade_no: 'epay-txn-1', sign: 'ok' }))
