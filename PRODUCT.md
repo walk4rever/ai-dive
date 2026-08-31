@@ -346,8 +346,9 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - `ai_pulse_signals` 时间语义：`signal_date`（归属日）/ `created_at`（入库）/ `updated_at`（更新）
 - `/intels` 页 SignalHighlights（三维 top 信号卡片）与 SignalFeed（日历驱动信号列表）
 - 后台管理端（`/admin`）：文章元数据编辑、精选管理、专题（系列）创建与排序
+- 用户控制台（`/dashboard`）：本月 AI 额度（数字 + 进度条，月份标签取自 `currentPeriod()`，与余额求和窗口同源）、我的订单（`ai_pulse_orders`，deck 标题批量解析，deck 下架后回落到原始 slug 不丢单）、账号（邮箱只读，用户名 / 密码就地展开修改）；管理员额外显示「管理员」徽章和「管理后台」入口。桌面端两张概览卡并排、订单列表整行铺开，DOM 顺序即移动端顺序（额度 → 订单 → 账号），靠显式 grid 定位换列而不重排标签。只有账号表单和退出按钮是 client 组件，额度与订单纯服务端渲染
+- 控制台不再有的两块（2026-08-31 精简）：Agent 创建/轮换/撤销（连同 `/api/agents/*` 路由一并删除，Key 改由 `scripts/issue-agent-key.mjs` 由站点管理员签发）、我的文章（`/my/posts` 及 `/api/my/posts/*` 删除）。`ai_pulse_agents` 表和 `resolveAuthor()` 保留——`/api/posts`、`/api/signals`、`/api/upload` 的 bearer 认证仍然依赖它
 - 后台文章工作流（`/admin/new`、`/admin/edit/[slug]`）：创建文章、编辑 Markdown 正文、预览、保存草稿、发布和撤回
-- 用户文章管理（`/my/posts`）：查看和编辑自己发布的文章元数据
 - Agent 发布接口（`/api/posts`、`/api/signals`）
 - R2 文件上传接口（`/api/upload`、`/api/upload/presign`）
 - 系列页（`/series`）
@@ -356,7 +357,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - HTML 消毒（`rehype-sanitize` + `rehype-raw`）
 - 数据库迁移体系（`supabase/migrations/`，非单一 `schema.sql`）
 - 基础 CI（GitHub Actions，push/PR 到 `main` 时跑 `lint`）
-- 登录门禁（`/agent`、`/dashboard`、`/my/posts`、`/admin/*`、文章 AI解读 面板）：服务端鉴权，未登录直接在 Server Component 里 `redirect('/login?next=...')`，不再有"先渲染空白、客户端 hydrate 完再检查 localStorage 才决定要不要跳转"的闪烁；登录成功后自动返回原页面（AI解读面板会带着 `?open=chat` 标记自动重新打开）——`/decks` 列表页已改为公开访问（阶段 4.2），不再走这条门禁
+- 登录门禁（`/agent`、`/dashboard`、`/admin/*`、文章 AI解读 面板）：服务端鉴权，未登录直接在 Server Component 里 `redirect('/login?next=...')`，不再有"先渲染空白、客户端 hydrate 完再检查 localStorage 才决定要不要跳转"的闪烁；登录成功后自动返回原页面（AI解读面板会带着 `?open=chat` 标记自动重新打开）——`/decks` 列表页已改为公开访问（阶段 4.2），不再走这条门禁
 - 登录态：next-auth（httpOnly、加密 JWT session cookie），服务端 Server Component / Route Handler 用 `getServerSession()` 本地验签即可拿到用户，不再需要每次请求查 `ai_pulse_user_sessions` 表；`/agent` 页面的对话历史在 SSR 阶段直接查出来传给客户端，不再有"渲染空壳、hydrate 后再 fetch 一次"的额外往返
 - Agent 对话图片输入（`/agent`、文章 AI解读 面板）：粘贴图片时，`pi-gateway` 仅为携带图片的这一回合切换到 DeepSeek vision 模型（`deepseek-v4-flash-vision-exp`），回复完成后切回默认文本模型
 - Agent 会话持久化（`/agent`、文章 AI解读 面板）：登录用户的每一轮对话写入 `ai_pulse_chat_turns`（按 `user_id` + `context_key` 归属，`context_key` 是文章 slug 或字面量 `global`），刷新页面/换设备会重新加载最近 10 轮；图片附件上传到 R2（`users/<userId>/chat/...`），`imageUrls` 随历史一起落库；`pi-gateway` 冷启动（同一 tab-scoped 匿名 session 30 分钟 TTL 过期后的下一次请求）时会用 `SessionManager.appendMessage()` 把这份历史原样灌回 `AgentSession`，让模型"记得"之前聊过什么——历史里的纯图片轮次回放时替换成文字占位符，不重新下载图片
@@ -611,7 +612,7 @@ V1 只做最小闭环，不做复杂权限系统：
 1. 发布链路鉴权从本地 `ai_pulse_agents` 切到 `aurum introspect/verify`
 2. 文章记录改存 `external_agent_id`（指向 `aurum agent id`）
 3. `author_slug` 按映射规则生成，不再依赖本地 agent 名称
-4. 本地 `/api/agents` 改为下线或仅保留提示/跳转（不再实际管理）
+4. 本地 `/api/agents` 改为下线或仅保留提示/跳转（不再实际管理）——已于 2026-08-31 直接删除，Key 改由管理员在库里签发
 
 ### 12.6 迁移步骤（建议顺序）
 

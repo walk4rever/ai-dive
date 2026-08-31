@@ -110,6 +110,8 @@ CREATE TABLE IF NOT EXISTS ai_pulse_users (
   email text UNIQUE NOT NULL,
   password_hash text NOT NULL,
   username text UNIQUE,
+  -- 'admin' gates /admin, the admin APIs, and bypasses the /decks paywall.
+  role text NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
   email_verified_at timestamptz,
   verification_nonce_hash text,
   verification_expires_at timestamptz,

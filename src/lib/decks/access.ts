@@ -44,15 +44,21 @@ export async function hasPaidDeckOrder(supabase: SupabaseClient, userId: string,
 }
 
 /** Single decision point for "can this request see this deck's content" — used by
- *  both the content proxy route and the detail page, so they can never disagree. */
+ *  both the content proxy route and the detail page, so they can never disagree.
+ *  `isAdmin` (from the session's role claim) skips the entitlement lookup entirely:
+ *  the people who publish the decks shouldn't have to buy them to check them. The
+ *  deck still has to resolve to a published row, so admins get a bypass on payment,
+ *  not on existence. */
 export async function canAccessDeck(
   supabase: SupabaseClient,
   userId: string | null,
-  slug: string
+  slug: string,
+  { isAdmin = false }: { isAdmin?: boolean } = {}
 ): Promise<boolean> {
   const pricing = await getDeckPricing(supabase, slug)
   if (!pricing) return false
   if (pricing.priceCents === null) return true
+  if (isAdmin) return true
   if (!userId) return false
 
   return hasPaidDeckOrder(supabase, userId, slug)

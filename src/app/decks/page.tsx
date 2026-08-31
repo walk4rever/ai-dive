@@ -44,9 +44,14 @@ export default async function DecksPage() {
   // everyone, logged in or not, so they never need this lookup.
   const session = await getServerSession(authOptions)
   const userId = session?.user.id
+  // Admins bypass the paywall entirely (same rule as canAccessDeck), so there is
+  // nothing to look up for them.
+  const isAdmin = session?.user.role === 'admin'
   const pricedSlugs = rawDecks.filter((d) => d.price_cents !== null).map((d) => d.slug)
   const unlockedSlugs = new Set<string>()
-  if (userId && pricedSlugs.length > 0) {
+  if (isAdmin) {
+    for (const slug of pricedSlugs) unlockedSlugs.add(slug)
+  } else if (userId && pricedSlugs.length > 0) {
     const supabaseService = await createServiceClient()
     const results = await Promise.all(
       pricedSlugs.map(async (slug) => [slug, await hasPaidDeckOrder(supabaseService, userId, slug)] as const)
@@ -76,7 +81,7 @@ export default async function DecksPage() {
             <>
               <p className="kicker mb-3" style={{ color: 'var(--accent)' }}>
                 {deck.kicker}
-                {priceLabel && deck.unlocked && ' · 已购买'}
+                {priceLabel && deck.unlocked && (isAdmin ? ' · 管理员' : ' · 已购买')}
               </p>
               <h2 className="font-serif text-2xl md:text-3xl font-medium leading-snug tracking-tight text-[var(--foreground)] transition-colors group-hover:text-[var(--accent)]">
                 {deck.title}

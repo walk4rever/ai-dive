@@ -96,6 +96,19 @@ describe('canAccessDeck', () => {
     const supabase = fakeSupabase({ ai_pulse_decks: { data: null, error: { message: 'not found' } } })
     await expect(canAccessDeck(supabase, 'user-1', 'nope')).resolves.toBe(false)
   })
+
+  it('allows an admin without any order for a priced deck', async () => {
+    const supabase = fakeSupabase({
+      ai_pulse_decks: { data: { price_cents: 1900, currency: 'CNY' }, error: null },
+      ai_pulse_orders: { data: [], error: null },
+    })
+    await expect(canAccessDeck(supabase, 'admin-1', 'k3-course', { isAdmin: true })).resolves.toBe(true)
+  })
+
+  it('still denies an admin an unknown slug', async () => {
+    const supabase = fakeSupabase({ ai_pulse_decks: { data: null, error: { message: 'not found' } } })
+    await expect(canAccessDeck(supabase, 'admin-1', 'nope', { isAdmin: true })).resolves.toBe(false)
+  })
 })
 
 describe('formatPrice', () => {

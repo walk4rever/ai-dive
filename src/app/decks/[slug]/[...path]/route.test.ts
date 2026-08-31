@@ -42,7 +42,7 @@ describe('GET /decks/[slug]/[...path]', () => {
     })
 
     expect(res.status).toBe(403)
-    expect(canAccessDeck).toHaveBeenCalledWith({}, 'user-1', 'k3-course')
+    expect(canAccessDeck).toHaveBeenCalledWith({}, 'user-1', 'k3-course', { isAdmin: false })
   })
 
   it('returns 404 when the object is missing from R2', async () => {
@@ -86,6 +86,19 @@ describe('GET /decks/[slug]/[...path]', () => {
     expect(fetchDeckObject).toHaveBeenCalledWith('k3-course', 'assets/day-01/hero.png')
   })
 
+  it('passes the admin flag through so admins bypass the paywall', async () => {
+    getServerSession.mockResolvedValue({ user: { id: 'admin-1', role: 'admin' } })
+    canAccessDeck.mockResolvedValue(true)
+    fetchDeckObject.mockResolvedValue({ stream: new ReadableStream(), contentType: 'text/html; charset=utf-8' })
+
+    const { GET } = await import('./route')
+    const req = new NextRequest('http://localhost/decks/k3-course/index.html')
+    const res = await GET(req, { params: Promise.resolve({ slug: 'k3-course', path: ['index.html'] }) })
+
+    expect(res.status).toBe(200)
+    expect(canAccessDeck).toHaveBeenCalledWith({}, 'admin-1', 'k3-course', { isAdmin: true })
+  })
+
   it('allows an anonymous request when the deck is unentitled-but-free', async () => {
     getServerSession.mockResolvedValue(null)
     canAccessDeck.mockResolvedValue(true)
@@ -96,6 +109,6 @@ describe('GET /decks/[slug]/[...path]', () => {
     const res = await GET(req, { params: Promise.resolve({ slug: 'agent-harness', path: ['index.html'] }) })
 
     expect(res.status).toBe(200)
-    expect(canAccessDeck).toHaveBeenCalledWith({}, null, 'agent-harness')
+    expect(canAccessDeck).toHaveBeenCalledWith({}, null, 'agent-harness', { isAdmin: false })
   })
 })

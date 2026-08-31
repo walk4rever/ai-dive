@@ -17,8 +17,8 @@ Powered by [Air7.fun](https://air7.fun)
 - 邮件订阅页
 - 双重确认订阅流程
 - 登录、注册和用户文章管理
-- 登录态：next-auth（httpOnly JWT session cookie），服务端 `getServerSession()` 本地验签，不再逐请求查库；`/agent`、`/dashboard`、`/my/posts`、`/admin/*`、文章 AI解读 面板的登录门禁均已下沉到服务端，未登录直接 SSR 跳转 `/login?next=...`，登录成功后自动返回原页面 / 重新打开 AI解读面板（`/decks` 列表页不在此列，已改为公开访问，见下）
-- `/agent`、文章 AI解读 面板的 credits 计量：`ai_pulse_credit_ledger`（append-only，余额 = 当期 `SUM(delta)`），登录用户每月懒发放 1000 credits（1 轮对话 = 1 credit），另加 50/小时的速率限制防脚本失控——两者是两层不同的机制，不是同一回事
+- 登录态：next-auth（httpOnly JWT session cookie），服务端 `getServerSession()` 本地验签，不再逐请求查库；`/agent`、`/dashboard`、`/admin/*`、文章 AI解读 面板的登录门禁均已下沉到服务端，未登录直接 SSR 跳转 `/login?next=...`，登录成功后自动返回原页面 / 重新打开 AI解读面板（`/decks` 列表页不在此列，已改为公开访问，见下）
+- `/agent`、文章 AI解读 面板的 credits 计量：`ai_pulse_credit_ledger`（append-only，余额 = 当期 `SUM(delta)`），登录用户每月懒发放 1000 credits（1 轮对话 = 1 credit），另加 50/小时的速率限制防脚本失控——两者是两层不同的机制，不是同一回事；余额展示在 `/dashboard`（进页面即懒发放当期额度，再读余额）
 - `/agent` 与文章 AI解读 面板支持粘贴图片提问（DeepSeek vision，client 端降采样为 1280px JPEG，单条消息最多 4 张，点击缩略图可查看大图）
 - `/agent`、文章 AI解读 面板的会话持久化：登录用户对话写入 `ai_pulse_chat_turns`，刷新/换设备可续接最近 10 轮；图片存 R2；pi-gateway 冷启动时把历史回放进 `AgentSession`，模型能记住之前聊过什么
 - 文章 AI解读 面板支持最大化/还原（header 图标按钮，原地撑满视口，不丢对话状态），标题统一为单行 `AI解读 · {文章标题}`
@@ -26,7 +26,8 @@ Powered by [Air7.fun](https://air7.fun)
 - Newsletter 批量发送、退订处理和发送记录
 - R2 文件上传（包括大文件 presigned upload）
 - Vault Markdown → Supabase 内容导入脚本
-- `/decks`（出品）付费墙：列表页公开可浏览（不再需要登录），正文按 `ai_pulse_decks.price_cents` 走鉴权代理路由（`/decks/[slug]/[...path]`）——未定价的 deck 对所有人开放，定价后的 deck 需要登录 + 有 `paid` 状态的 `ai_pulse_orders` 记录才能访问；定价未购买的 deck 在列表页显示支付宝购买按钮，点击后创建 `pending` 订单并跳转支付宝收银台。支付走**支付宝官方电脑网站支付**（`alipay.trade.page.pay`，公钥模式 / RSA2，`src/lib/payments/alipay.ts`），签名与网关连通性已用只读查单接口对真实商户号验证通过；易支付聚合通道保留给微信支付（尚无凭证）。首篇定价 deck 为「推理工程实战手册」¥19.90，其余 7 篇仍未定价
+- 管理员标记：`ai_pulse_users.role`（`user` / `admin`），登录时读入 next-auth JWT（`src/lib/auth.ts`），管住 `/admin`、`/api/admin/*`，并绕过 `/decks` 付费墙。提升某个账号：`UPDATE ai_pulse_users SET role = 'admin' WHERE email = '...';`（该列历史上是直接在生产库手工加的，`supabase/migrations/20260831_users_role.sql` 已把定义补回仓库）
+- `/decks`（出品）付费墙：列表页公开可浏览（不再需要登录），正文按 `ai_pulse_decks.price_cents` 走鉴权代理路由（`/decks/[slug]/[...path]`）——未定价的 deck 对所有人开放，定价后的 deck 需要登录 + 有 `paid` 状态的 `ai_pulse_orders` 记录才能访问（`role = 'admin'` 的账号免购买，列表页标记为「管理员」）；定价未购买的 deck 在列表页显示支付宝购买按钮，点击后创建 `pending` 订单并跳转支付宝收银台。支付走**支付宝官方电脑网站支付**（`alipay.trade.page.pay`，公钥模式 / RSA2，`src/lib/payments/alipay.ts`），签名与网关连通性已用只读查单接口对真实商户号验证通过；易支付聚合通道保留给微信支付（尚无凭证）。首篇定价 deck 为「推理工程实战手册」¥19.90，其余 7 篇仍未定价
 - Signal 注入 API：`POST /api/signals`，支持单条或批量 upsert 到 `ai_pulse_signals`（可选 `signal_date`；不传默认 UTC+8 当天）
 
 产品与架构设计详见 `PRODUCT.md`，阶段化事项详见 `TODO.md`。
@@ -114,6 +115,13 @@ npm run import:post -- "/Users/rafael/R129/Vault/AI-DIVE/Harness系列-篇1-什�
 先把 HTML 文件传到 R2，拿到可用的 `src` 和一段供 AI 解读用的隐藏摘要：
 
 ```bash
+# 签发 Agent API Key（自助接口已下线，这是唯一入口；Key 只打印一次）
+source .env.local && node scripts/issue-agent-key.mjs <email> <agent-name>
+# 轮换已有 agent 的 Key（旧 Key 立即失效，文章与 agent id 保留）
+source .env.local && node scripts/issue-agent-key.mjs <email> <agent-name> --rotate
+```
+
+```bash
 node scripts/upload-html-embed.mjs <html-file> <slug> [--height=2400]
 ```
 
@@ -162,11 +170,11 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=<KEY
 - `/latest`：最新内容列表
 - `/archive`：内容归档
 - `/series`：专题列表
-- `/decks`：出品（幻灯片 / 报告 / 交互式解读，元数据存于 `ai_pulse_decks` 表，导入见上文 4c；列表页公开，正文按定价走鉴权，见"当前能力"）
+- `/decks`：出品（幻灯片 / 报告 / 交互式解读，元数据存于 `ai_pulse_decks` 表，导入见上文 4c；列表页公开，正文按定价走鉴权，管理员免付费，见"当前能力"）
 - `/admin`：管理员内容后台
 - `/admin/new`：管理员新建文章
 - `/admin/edit/[slug]`：管理员文章元数据编辑
-- `/my/posts`：用户文章列表
+- `/dashboard`：用户控制台（本月 AI 额度、我的订单、账号设置；管理员多一枚「管理员」徽章和「管理后台」入口）
 - `/agent`：Agent 入口（需登录）
 - `/docs`：API 文档
 - `/subscribe`：订阅页
@@ -178,15 +186,13 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=<KEY
 - `/api/signals`：信号注入接口（POST，agent auth，单条或批量）
 - `/api/posts`：故事发布接口（GET/POST，agent auth）
 - `/api/posts/[slug]`：故事更新接口（PATCH，agent auth）
-- `/api/my/posts`、`/api/my/posts/[slug]`：用户文章管理
 - `/api/admin/posts`、`/api/admin/posts/[slug]`：管理员文章管理
 - `/api/admin/posts/[slug]/send`：向确认订阅者发送文章
 - `/api/admin/posts/preview`：管理员 Markdown 正文预览
 - `/api/upload`、`/api/upload/presign`：文件上传
-- `/api/agents`：Agent 管理接口
 - `/api/agent`：探索/AI解读对话接口（POST，需登录，credits 余额不足返回 402、超出小时限速返回 429，转发到 pi-gateway，SSE 流式返回）
 - `/api/agent-turns`：会话历史读写接口（GET 拉取最近 10 轮，POST 持久化一轮，均需登录）
-- `/decks/[slug]/[...path]`：出品正文鉴权代理（GET，未定价放行，定价后需登录 + 有 `paid` 订单，从私有 R2 读取内容原样返回）
+- `/decks/[slug]/[...path]`：出品正文鉴权代理（GET，未定价放行，定价后需登录 + 有 `paid` 订单或 `role = 'admin'`，从私有 R2 读取内容原样返回）
 - `/api/decks/[slug]/orders`：出品下单接口（POST，需登录，创建 `pending` 订单并返回支付通道的跳转链接）
 - `/api/orders/callback/alipay`：支付宝异步回调（POST 表单，RSA2 验签 + 校验 `app_id` 与金额后把订单标记为 `paid`，回纯文本 `success`；未配置 `ALIPAY_*` 时直接报错，不会静默失败）
 - `/api/orders/callback/epay`：易支付异步回调（GET，验签后把订单标记为 `paid`；未配置 `EPAY_*` 时直接报错，不会静默失败）

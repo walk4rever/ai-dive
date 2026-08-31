@@ -20,7 +20,9 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
   const session = await getServerSession(authOptions)
   const supabase = await createServiceClient()
-  const allowed = await canAccessDeck(supabase, session?.user.id ?? null, slug)
+  const allowed = await canAccessDeck(supabase, session?.user.id ?? null, slug, {
+    isAdmin: session?.user.role === 'admin',
+  })
   if (!allowed) {
     return NextResponse.json({ error: 'Not found or access denied' }, { status: 403 })
   }
