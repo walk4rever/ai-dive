@@ -173,6 +173,8 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=<KEY
 - `/decks`：出品（幻灯片 / 报告 / 交互式解读，元数据存于 `ai_pulse_decks` 表，导入见上文 4c；列表页公开，正文按定价走鉴权，管理员免付费，见"当前能力"）
 - `/admin`：管理员总览（可点统计卡 + 最近发布列表）
 - `/admin/posts`：文章管理（搜索 + 类型/状态筛选）
+- `/admin/decks`：出品管理（改元数据 + 定价，正文只读，托管在 R2，换正文走 `scripts/import-deck.mjs`）
+- `/admin/users`：用户管理（列表 + 管理员角色切换 + 删除账号，见下方「当前能力」）
 - `/admin/series`：专题编排
 - `/admin/upload`：图片上传取 Markdown
 - `/admin/new`：管理员新建文章
@@ -192,6 +194,8 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=<KEY
 - `/api/admin/posts`、`/api/admin/posts/[slug]`：管理员文章管理
 - `/api/admin/posts/[slug]/send`：向确认订阅者发送文章
 - `/api/admin/posts/preview`：管理员 Markdown 正文预览
+- `/api/admin/decks/[slug]`：管理员出品元数据 + 定价（PATCH，只改 `ai_pulse_decks` 的元数据列，从不接受 `href`/`slug`——那是 R2 内容路径的身份，改了会让内容代理路由解析不到）
+- `/api/admin/users/[id]`：管理员用户管理（PATCH 只改 `role`，拦自我降级；DELETE 硬删除且级联 agent/订单/额度流水/会话，拦自我删除，外键冲突时返回 409 而不是裸 500）
 - `/api/upload`、`/api/upload/presign`：文件上传
 - `/api/agent`：探索/AI解读对话接口（POST，需登录，credits 余额不足返回 402、超出小时限速返回 429，转发到 pi-gateway，SSE 流式返回）
 - `/api/agent-turns`：会话历史读写接口（GET 拉取最近 10 轮，POST 持久化一轮，均需登录）

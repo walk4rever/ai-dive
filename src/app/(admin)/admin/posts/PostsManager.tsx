@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { getTypeLabel } from '@/lib/content'
 import type { AdminPost } from '@/lib/admin/posts'
@@ -144,24 +145,32 @@ function PostsManagerInner({ initialPosts, sentStoryIds }: PostsManagerProps) {
           <p className="kicker">Editorial Queue</p>
           <p className="font-serif text-2xl font-medium tracking-tight mt-1">文章管理</p>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-            disabled={page <= 1}
-            className="rounded-[var(--radius-md)] px-3 py-1.5 text-xs border border-[var(--border)] disabled:opacity-40"
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              disabled={page <= 1}
+              className="rounded-[var(--radius-md)] px-3 py-1.5 text-xs border border-[var(--border)] disabled:opacity-40"
+            >
+              上一页
+            </button>
+            <span className="text-xs text-[var(--muted)]">
+              第 {page} / {totalPages} 页
+            </span>
+            <button
+              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={page >= totalPages}
+              className="rounded-[var(--radius-md)] px-3 py-1.5 text-xs border border-[var(--border)] disabled:opacity-40"
+            >
+              下一页
+            </button>
+          </div>
+          <Link
+            href="/admin/new"
+            className="rounded-[var(--radius-md)] bg-[var(--foreground)] px-3.5 py-2 text-sm font-medium text-[var(--background)] transition-opacity hover:opacity-80"
           >
-            上一页
-          </button>
-          <span className="text-xs text-[var(--muted)]">
-            第 {page} / {totalPages} 页
-          </span>
-          <button
-            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-            disabled={page >= totalPages}
-            className="rounded-[var(--radius-md)] px-3 py-1.5 text-xs border border-[var(--border)] disabled:opacity-40"
-          >
-            下一页
-          </button>
+            新建文章
+          </Link>
         </div>
       </div>
 
@@ -213,7 +222,7 @@ function PostsManagerInner({ initialPosts, sentStoryIds }: PostsManagerProps) {
         <p className="mb-3 text-sm text-[var(--accent)]">{actionError}</p>
       )}
 
-      <div className="hidden md:grid md:grid-cols-[110px_90px_1fr_70px_170px] px-2 pb-2 border-b border-[var(--border)] text-xs text-[var(--muted)]">
+      <div className="hidden md:grid md:grid-cols-[110px_90px_1fr_70px_170px] md:gap-3 px-2 pb-2 border-b border-[var(--border)] text-xs text-[var(--muted)]">
         <span>日期</span>
         <span>类型</span>
         <span>标题</span>
@@ -228,7 +237,7 @@ function PostsManagerInner({ initialPosts, sentStoryIds }: PostsManagerProps) {
           {pagedPosts.map((post) => {
             const busy = busySlug === post.slug
             return (
-              <div key={post.id} className="py-3 md:grid md:grid-cols-[110px_90px_1fr_70px_170px] md:items-center gap-3">
+              <div key={post.id} className="py-3 md:grid md:grid-cols-[110px_90px_1fr_70px_170px] md:items-center gap-3 px-2">
                 <p className="date">{formatDate(post.published_at)}</p>
                 <p className="kicker mt-1 md:mt-0">{getTypeLabel(post.content_type)}</p>
                 <div className="mt-2 md:mt-0 min-w-0">

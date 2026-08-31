@@ -64,11 +64,31 @@ export async function canAccessDeck(
   return hasPaidDeckOrder(supabase, userId, slug)
 }
 
-/** Formats a price in minor units (分) as a display string, e.g. 1900 CNY -> "¥19",
- *  1950 CNY -> "¥19.50". Only currency actually in use today is CNY; anything else
- *  falls back to a plain "<CODE> <amount>" so it doesn't silently mislabel a price. */
+/** Formats a price in minor units (分) as a display string, always to two decimal
+ *  places, e.g. 1900 CNY -> "¥19.00", 1950 CNY -> "¥19.50". Only currency actually in
+ *  use today is CNY; anything else falls back to a plain "<CODE> <amount>" so it
+ *  doesn't silently mislabel a price. */
 export function formatPrice(priceCents: number, currency: string): string {
-  const amount = priceCents / 100
-  const formatted = Number.isInteger(amount) ? String(amount) : amount.toFixed(2)
+  const formatted = (priceCents / 100).toFixed(2)
   return currency === 'CNY' ? `¥${formatted}` : `${currency} ${formatted}`
+}
+
+export class InvalidPriceError extends Error {}
+
+/** Inverse of formatPrice, and must stay in lockstep with the `--price` flag on
+ *  scripts/import-deck.mjs: input is whole currency units (e.g. "19.9" for ¥19.90),
+ *  blank/0 both mean "not for sale / free" and parse to `null` (never to a stored 0 —
+ *  a ¥0 order is not a state this codebase's checkout flow is built to handle), any
+ *  other non-negative number rounds to price_cents. Throws InvalidPriceError on a
+ *  negative number or unparseable input so the two call sites (admin API route,
+ *  import-deck.mjs) can't silently store garbage. */
+export function parsePriceYuanToCents(input: string | number | null | undefined): number | null {
+  if (input === null || input === undefined || input === '') return null
+
+  const yuan = typeof input === 'number' ? input : Number(input)
+  if (!Number.isFinite(yuan) || yuan < 0) {
+    throw new InvalidPriceError('Price must be a non-negative number, or blank for free')
+  }
+
+  return yuan === 0 ? null : Math.round(yuan * 100)
 }

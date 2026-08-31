@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canAccessDeck, formatPrice, getDeckPricing, hasPaidDeckOrder } from './access'
+import { InvalidPriceError, canAccessDeck, formatPrice, getDeckPricing, hasPaidDeckOrder, parsePriceYuanToCents } from './access'
 
 interface FakeResult {
   data?: unknown
@@ -112,8 +112,8 @@ describe('canAccessDeck', () => {
 })
 
 describe('formatPrice', () => {
-  it('formats whole yuan without decimals', () => {
-    expect(formatPrice(1900, 'CNY')).toBe('¥19')
+  it('formats whole yuan with two decimal places', () => {
+    expect(formatPrice(1900, 'CNY')).toBe('¥19.00')
   })
 
   it('formats fractional yuan with two decimals', () => {
@@ -121,6 +121,45 @@ describe('formatPrice', () => {
   })
 
   it('falls back to a labeled amount for non-CNY currencies', () => {
-    expect(formatPrice(500, 'USD')).toBe('USD 5')
+    expect(formatPrice(500, 'USD')).toBe('USD 5.00')
+  })
+})
+
+describe('parsePriceYuanToCents', () => {
+  it('parses a whole-yuan string to cents', () => {
+    expect(parsePriceYuanToCents('19')).toBe(1900)
+  })
+
+  it('parses a fractional-yuan string to cents, rounding to the nearest cent', () => {
+    expect(parsePriceYuanToCents('19.9')).toBe(1990)
+  })
+
+  it('accepts a number as well as a string', () => {
+    expect(parsePriceYuanToCents(19.9)).toBe(1990)
+  })
+
+  it('treats an empty string as free (null)', () => {
+    expect(parsePriceYuanToCents('')).toBeNull()
+  })
+
+  it('treats null as free (null)', () => {
+    expect(parsePriceYuanToCents(null)).toBeNull()
+  })
+
+  it('treats undefined as free (null)', () => {
+    expect(parsePriceYuanToCents(undefined)).toBeNull()
+  })
+
+  it('treats an explicit 0 as free (null), not a stored zero price', () => {
+    expect(parsePriceYuanToCents('0')).toBeNull()
+    expect(parsePriceYuanToCents(0)).toBeNull()
+  })
+
+  it('rejects a negative price', () => {
+    expect(() => parsePriceYuanToCents('-5')).toThrow(InvalidPriceError)
+  })
+
+  it('rejects unparseable input', () => {
+    expect(() => parsePriceYuanToCents('abc')).toThrow(InvalidPriceError)
   })
 })

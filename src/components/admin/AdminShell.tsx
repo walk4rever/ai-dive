@@ -8,6 +8,8 @@ import { signOut } from 'next-auth/react'
 const NAV_ITEMS: ReadonlyArray<{ href: string; label: string }> = [
   { href: '/admin', label: '总览' },
   { href: '/admin/posts', label: '文章' },
+  { href: '/admin/decks', label: '出品' },
+  { href: '/admin/users', label: '用户' },
   { href: '/admin/series', label: '专题' },
   { href: '/admin/upload', label: '上传' },
 ]
@@ -37,20 +39,14 @@ export function AdminShell({ children }: { children: ReactNode }) {
         <header className="flex flex-wrap items-start justify-between gap-6 pb-6 mb-6 border-b border-[var(--border)]">
           <div>
             <p className="kicker mb-2" style={{ color: 'var(--accent)' }}>Admin Console</p>
-            <h1 className="font-serif text-3xl md:text-4xl font-medium tracking-tight">内容编排后台</h1>
+            <h1 className="font-serif text-3xl md:text-4xl font-medium tracking-tight">管理后台</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link
-              href="/dashboard"
+              href="/"
               className="rounded-[var(--radius-md)] border border-[var(--border)] px-3.5 py-2 text-sm text-[var(--foreground-soft)] transition-colors hover:border-[var(--ring)] hover:text-[var(--accent)]"
             >
-              控制台
-            </Link>
-            <Link
-              href="/admin/new"
-              className="rounded-[var(--radius-md)] bg-[var(--foreground)] px-3.5 py-2 text-sm font-medium text-[var(--background)] transition-opacity hover:opacity-80"
-            >
-              新建文章
+              首页
             </Link>
             <button
               onClick={handleLogout}

@@ -29,9 +29,7 @@ export function EditForm({ post }: { post: Post }) {
     published_at: post.published_at ? post.published_at.slice(0, 10) : '',
   })
   const [saving, setSaving] = useState(false)
-  const [sending, setSending] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [sendResult, setSendResult] = useState('')
   const [error, setError] = useState('')
 
   function update<K extends keyof typeof form>(key: K, value: typeof form[K]) {
@@ -69,47 +67,66 @@ export function EditForm({ post }: { post: Post }) {
     setSaving(false)
   }
 
-  async function handleSend() {
-    setSending(true)
-    setError('')
-    setSendResult('')
-
-    const res = await fetch(`/api/admin/posts/${post.slug}/send`, { method: 'POST' })
-
-    const data = await res.json().catch(() => null)
-
-    if (!res.ok) {
-      setError(data?.error ?? '发送失败')
-      setSending(false)
-      return
-    }
-
-    setSendResult(
-      `已发送 ${data?.sent ?? 0} 封，跳过 ${data?.skipped ?? 0} 封，失败 ${data?.failed ?? 0} 封`
-    )
-    setSending(false)
-  }
-
   const inputClass = 'w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--background)] px-4 py-2.5 text-sm outline-none focus:border-[var(--foreground)] transition'
   const labelClass = 'kicker mb-2 block'
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <p className="text-xs text-[var(--muted)] mb-4">
+    <form onSubmit={handleSubmit} className="space-y-8">
+      {/* Metadata — all together, above the content editor */}
+      <div className="space-y-6">
+        <p className="text-xs text-[var(--muted)]">
           {post.content_type} · {post.author_slug} · {post.slug}
         </p>
-      </div>
 
-      <div>
-        <label className={labelClass}>标题</label>
-        <input
-          type="text"
-          value={form.title}
-          onChange={(e) => update('title', e.target.value)}
-          required
-          className={inputClass}
-        />
+        <div>
+          <label className={labelClass}>标题</label>
+          <input
+            type="text"
+            value={form.title}
+            onChange={(e) => update('title', e.target.value)}
+            required
+            className={inputClass}
+          />
+        </div>
+
+        <div>
+          <label className={labelClass}>摘要</label>
+          <textarea
+            value={form.excerpt}
+            onChange={(e) => update('excerpt', e.target.value)}
+            rows={3}
+            className={inputClass}
+          />
+        </div>
+
+        <div>
+          <label className={labelClass}>发布日期</label>
+          <input
+            type="date"
+            value={form.published_at}
+            onChange={(e) => update('published_at', e.target.value)}
+            className={inputClass}
+          />
+        </div>
+
+        <div className="flex gap-8">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.featured}
+              onChange={(e) => update('featured', e.target.checked)}
+            />
+            <span className="kicker">精选</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.status === 'published'}
+              onChange={(e) => update('status', e.target.checked ? 'published' : 'draft')}
+            />
+            <span className="kicker">已发布</span>
+          </label>
+        </div>
       </div>
 
       <div>
@@ -119,45 +136,6 @@ export function EditForm({ post }: { post: Post }) {
           onChange={(content) => update('content', content)}
           legacyHtml={!post.body_markdown}
         />
-      </div>
-
-      <div>
-        <label className={labelClass}>摘要</label>
-        <textarea
-          value={form.excerpt}
-          onChange={(e) => update('excerpt', e.target.value)}
-          rows={4}
-          className={inputClass}
-        />
-      </div>
-
-      <div>
-        <label className={labelClass}>发布日期</label>
-        <input
-          type="date"
-          value={form.published_at}
-          onChange={(e) => update('published_at', e.target.value)}
-          className={inputClass}
-        />
-      </div>
-
-      <div className="flex gap-8">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={form.featured}
-            onChange={(e) => update('featured', e.target.checked)}
-          />
-          <span className="kicker">精选</span>
-        </label>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={form.status === 'published'}
-            onChange={(e) => update('status', e.target.checked ? 'published' : 'draft')}
-          />
-          <span className="kicker">已发布</span>
-        </label>
       </div>
 
       {error && <p className="text-sm text-[var(--accent)]">{error}</p>}
@@ -172,14 +150,12 @@ export function EditForm({ post }: { post: Post }) {
         </button>
         <button
           type="button"
-          disabled={sending || form.status !== 'published'}
-          onClick={handleSend}
-          className="rounded-[var(--radius-md)] border border-[var(--foreground)] px-6 py-2.5 text-sm hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-colors disabled:opacity-50"
+          onClick={() => router.push('/admin/posts')}
+          className="rounded-[var(--radius-md)] border border-[var(--border)] px-6 py-2.5 text-sm text-[var(--foreground-soft)] transition-colors hover:border-[var(--ring)] hover:text-[var(--accent)]"
         >
-          {sending ? '发送中...' : '发送给订阅者'}
+          取消
         </button>
         {saved && <span className="text-sm text-[var(--muted)]">已保存</span>}
-        {sendResult && <span className="text-sm text-[var(--muted)]">{sendResult}</span>}
       </div>
     </form>
   )

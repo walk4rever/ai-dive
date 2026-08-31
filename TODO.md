@@ -124,7 +124,7 @@
 - [x] `ai_pulse_decks` 加 `price_cents`、`currency`（`supabase/migrations/20260827_decks_pricing_and_orders.sql`）；`price_cents IS NULL` = 仍然免费，`canAccessDeck()`（`src/lib/decks/access.ts`）是内容路由和列表页共用的唯一权限判定点
 - [x] 新增统一订单表 `ai_pulse_orders`（`user_id NOT NULL`，冗余存一份 `email` 便于对账/找回，`kind` ∈ `deck`/`membership`，`ref`（deck_slug 或 plan_id），`amount_cents`，`provider`，`provider_order_id`，`status`，`paid_at`）——出品买断和会员卡本质都是一次性付款，用同一张表、同一套 provider 集成、同一套回调验签，不建两套
 - [x] 买断制：一条 `paid` 记录即永久访问权限。"更新免费"因此不需要任何额外代码——权限按 `deck_slug` 判定，与内容版本无关，R2 里的文件随便更新
-- [x] `scripts/import-deck.mjs` 加 `--price=<yuan>`（如 `--price=19.9`）/`--currency` flag，换算成 `price_cents` 写入；不传该 flag 时完全不带这个字段进 payload（而不是传 `undefined`/`null`），所以刷新一个已定价 deck 的内容不会把价格意外清空；`--price=0` 是显式清价回到免费的转义口。现有三个 deck 仍未定价（`price_cents` 全部 NULL，正确的默认状态，不是 bug）——后台可视化编辑入口仍未做，眼下定价只能走这个 CLI flag
+- [x] `scripts/import-deck.mjs` 加 `--price=<yuan>`（如 `--price=19.9`）/`--currency` flag，换算成 `price_cents` 写入；不传该 flag 时完全不带这个字段进 payload（而不是传 `undefined`/`null`），所以刷新一个已定价 deck 的内容不会把价格意外清空；`--price=0` 是显式清价回到免费的转义口。后台可视化编辑入口已补上（`/admin/decks`，2026-08-31），改价不用再走 CLI；这个 flag 仍是唯一能改正文/上下架内容的路径（正文托管在 R2，后台不碰）
 - [x] 列表页对 priced-且-未购买 的 deck 现在渲染真正的购买按钮（`src/components/DeckBuyButton.tsx`）——4.3 支付宝官方通道打通后替掉了原来的"购买功能开发中，敬请期待"占位
 
 ### 4.3 支付通道接入
