@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { formatPrice } from '@/lib/decks/access'
 import type { UserOrder } from '@/lib/orders/list'
-import { Card } from './Card'
+import { Card } from '@/components/ui/Card'
 
 interface OrdersCardProps {
   orders: UserOrder[]

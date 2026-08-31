@@ -90,7 +90,7 @@ export function EditForm({ post }: { post: Post }) {
     setSending(false)
   }
 
-  const inputClass = 'w-full border border-[var(--subtle)] border-opacity-30 bg-[var(--background)] px-4 py-2.5 text-sm outline-none focus:border-[var(--foreground)] transition'
+  const inputClass = 'w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--background)] px-4 py-2.5 text-sm outline-none focus:border-[var(--foreground)] transition'
   const labelClass = 'kicker mb-2 block'
 
   return (
@@ -166,7 +166,7 @@ export function EditForm({ post }: { post: Post }) {
         <button
           type="submit"
           disabled={saving}
-          className="bg-[var(--foreground)] text-[var(--background)] px-6 py-2.5 text-sm hover:opacity-80 transition-opacity disabled:opacity-50"
+          className="rounded-[var(--radius-md)] bg-[var(--foreground)] text-[var(--background)] px-6 py-2.5 text-sm hover:opacity-80 transition-opacity disabled:opacity-50"
         >
           {saving ? '保存中...' : '保存'}
         </button>
@@ -174,7 +174,7 @@ export function EditForm({ post }: { post: Post }) {
           type="button"
           disabled={sending || form.status !== 'published'}
           onClick={handleSend}
-          className="border border-[var(--foreground)] px-6 py-2.5 text-sm hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-colors disabled:opacity-50"
+          className="rounded-[var(--radius-md)] border border-[var(--foreground)] px-6 py-2.5 text-sm hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-colors disabled:opacity-50"
         >
           {sending ? '发送中...' : '发送给订阅者'}
         </button>

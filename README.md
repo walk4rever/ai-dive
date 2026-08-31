@@ -171,7 +171,10 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=<KEY
 - `/archive`：内容归档
 - `/series`：专题列表
 - `/decks`：出品（幻灯片 / 报告 / 交互式解读，元数据存于 `ai_pulse_decks` 表，导入见上文 4c；列表页公开，正文按定价走鉴权，管理员免付费，见"当前能力"）
-- `/admin`：管理员内容后台
+- `/admin`：管理员总览（可点统计卡 + 最近发布列表）
+- `/admin/posts`：文章管理（搜索 + 类型/状态筛选）
+- `/admin/series`：专题编排
+- `/admin/upload`：图片上传取 Markdown
 - `/admin/new`：管理员新建文章
 - `/admin/edit/[slug]`：管理员文章元数据编辑
 - `/dashboard`：用户控制台（本月 AI 额度、我的订单、账号设置；管理员多一枚「管理员」徽章和「管理后台」入口）

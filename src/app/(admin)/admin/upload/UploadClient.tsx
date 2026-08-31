@@ -50,23 +50,17 @@ export function UploadClient() {
     void handleFiles(e.dataTransfer.files)
   }
 
-  const inputClass = 'w-full border border-[var(--subtle)] border-opacity-30 bg-[var(--background)] px-4 py-2.5 text-sm outline-none font-mono'
+  const inputClass = 'w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--background)] px-4 py-2.5 text-sm outline-none font-mono'
 
   return (
     <div className="max-w-2xl">
-      <div className="mb-8">
-        <a href="/admin" className="kicker text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
-          ← 管理
-        </a>
-      </div>
-
-      <p className="text-lg font-semibold mb-8">图片上传</p>
+      <p className="font-serif text-2xl font-medium mb-8">图片上传</p>
 
       <div
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
         onClick={() => inputRef.current?.click()}
-        className="border border-dashed border-[var(--subtle)] border-opacity-40 rounded-lg p-12 text-center cursor-pointer hover:border-opacity-70 transition-colors"
+        className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border)] p-12 text-center cursor-pointer hover:border-[var(--ring)] transition-colors"
       >
         <input
           ref={inputRef}
@@ -87,7 +81,7 @@ export function UploadClient() {
       {results.length > 0 && (
         <div className="mt-8 space-y-4">
           {results.map((r) => (
-            <div key={r.url} className="border border-[var(--border)] rounded-lg overflow-hidden">
+            <div key={r.url} className="rounded-[var(--radius-lg)] border border-[var(--border)] overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={r.url} alt="" className="w-full max-h-48 object-contain bg-[var(--subtle)] bg-opacity-10" />
               <div className="p-4 space-y-2">
@@ -95,7 +89,7 @@ export function UploadClient() {
                   <input readOnly value={r.markdown} className={inputClass} onClick={(e) => (e.target as HTMLInputElement).select()} />
                   <button
                     onClick={() => void copy(r.markdown)}
-                    className="shrink-0 kicker px-3 py-2 border border-[var(--subtle)] border-opacity-30 hover:border-opacity-70 transition-colors"
+                    className="shrink-0 kicker rounded-[var(--radius-md)] px-3 py-2 border border-[var(--border)] hover:border-[var(--ring)] transition-colors"
                   >
                     {copied === r.markdown ? '已复制' : '复制'}
                   </button>
@@ -104,7 +98,7 @@ export function UploadClient() {
                   <input readOnly value={r.url} className={inputClass} onClick={(e) => (e.target as HTMLInputElement).select()} />
                   <button
                     onClick={() => void copy(r.url)}
-                    className="shrink-0 kicker px-3 py-2 border border-[var(--subtle)] border-opacity-30 hover:border-opacity-70 transition-colors"
+                    className="shrink-0 kicker rounded-[var(--radius-md)] px-3 py-2 border border-[var(--border)] hover:border-[var(--ring)] transition-colors"
                   >
                     {copied === r.url ? '已复制' : 'URL'}
                   </button>

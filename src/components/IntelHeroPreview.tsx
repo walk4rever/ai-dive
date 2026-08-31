@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import type { IntelDay } from '@/app/intels/IntelCalendar'
+import type { IntelDay } from '@/app/(site)/intels/IntelCalendar'
 
 interface Props {
   year: number
