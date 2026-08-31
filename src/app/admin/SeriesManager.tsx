@@ -48,15 +48,18 @@ export function SeriesManager() {
     [seriesList, selectedSeriesId]
   )
 
+  // No selectedSeriesId in the dependency array: this must stay stable across a
+  // selection change, otherwise the mount effect below (which depends on this
+  // function's identity) reruns and re-fetches everything just because the user
+  // picked a different series. The functional setState form reads the current value
+  // without needing to close over it.
   const fetchSeries = useCallback(async () => {
     const res = await fetch('/api/admin/series')
     const data = await res.json()
     const list = (data.series ?? []) as Series[]
     setSeriesList(list)
-    if (list.length > 0 && !selectedSeriesId) {
-      setSelectedSeriesId(list[0].id)
-    }
-  }, [selectedSeriesId])
+    setSelectedSeriesId((prev) => prev || list[0]?.id || '')
+  }, [])
 
   const fetchPosts = useCallback(async () => {
     const res = await fetch('/api/admin/posts')

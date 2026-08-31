@@ -345,7 +345,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - `ai_pulse_signals` 三维评分 schema（insight / actionable / influence 0-10），`scripts/score-signals-v1.mjs` 规则打分，PM2 定时任务每小时/每晚自动跑
 - `ai_pulse_signals` 时间语义：`signal_date`（归属日）/ `created_at`（入库）/ `updated_at`（更新）
 - `/intels` 页 SignalHighlights（三维 top 信号卡片）与 SignalFeed（日历驱动信号列表）
-- 后台管理端（`/admin`）：文章元数据编辑、精选管理、专题（系列）创建与排序
+- 后台管理端（`/admin`）：文章元数据编辑、精选管理、专题（系列）创建与排序；文章列表支持标题/slug 搜索 + 类型/状态筛选（数据已在 SSR 阶段全量加载，纯客户端过滤）；顶部三块统计（文章总数 / 待发 Newsletter / 精选 N/3）可点击直接跳转到对应筛选结果，「待发 Newsletter」= 已发布且在 `ai_pulse_email_sends` 里从未出现过的文章（`admin/page.tsx` 额外拉一次全表 `story_id` 去重，量小时够用，量大后应换成 DB 视图/RPC）；删除 / 精选操作补了失败反馈（`res.ok` 判断 + 按行 loading + 错误提示条，原来失败和成功界面上长得一模一样）；专题编排面板（`SeriesManager`）改为按需挂载——只有真正点开「专题编排」tab 才会拉取数据，且修了一个 `useCallback` 依赖 bug（原来切换选中的专题会连带把全部文章重新拉一遍）；`/admin/upload`（图片上传取 Markdown）接入了顶部导航，此前是没有任何链接指向的孤儿页；删除了零引用且指向已不存在路由的死代码 `AdminActions.tsx`，以及和 `/admin?tab=series` 完全重复的独立页面 `/admin/series`（2026-08-31）
 - 用户控制台（`/dashboard`）：本月 AI 额度（数字 + 进度条，月份标签取自 `currentPeriod()`，与余额求和窗口同源）、我的订单（`ai_pulse_orders`，deck 标题批量解析，deck 下架后回落到原始 slug 不丢单）、账号（邮箱只读，用户名 / 密码就地展开修改）；管理员额外显示「管理员」徽章和「管理后台」入口。桌面端两张概览卡并排、订单列表整行铺开，DOM 顺序即移动端顺序（额度 → 订单 → 账号），靠显式 grid 定位换列而不重排标签。只有账号表单和退出按钮是 client 组件，额度与订单纯服务端渲染
 - 控制台不再有的两块（2026-08-31 精简）：Agent 创建/轮换/撤销（连同 `/api/agents/*` 路由一并删除，Key 改由 `scripts/issue-agent-key.mjs` 由站点管理员签发）、我的文章（`/my/posts` 及 `/api/my/posts/*` 删除）。`ai_pulse_agents` 表和 `resolveAuthor()` 保留——`/api/posts`、`/api/signals`、`/api/upload` 的 bearer 认证仍然依赖它
 - 后台文章工作流（`/admin/new`、`/admin/edit/[slug]`）：创建文章、编辑 Markdown 正文、预览、保存草稿、发布和撤回

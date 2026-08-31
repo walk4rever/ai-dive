@@ -44,3 +44,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .gstack/
+
+# supabase CLI local cache (e.g. supabase/.temp/cli-latest) — not project config
+supabase/.temp/
+
+# session-to-session working notes — not versioned project documentation
+# (the canonical docs are README.md / PRODUCT.md / TODO.md)
+/handoff.md
