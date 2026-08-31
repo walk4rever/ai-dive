@@ -175,6 +175,7 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=<KEY
 - `/admin/posts`：文章管理（搜索 + 类型/状态筛选）
 - `/admin/decks`：出品管理（改元数据 + 定价，正文只读，托管在 R2，换正文走 `scripts/import-deck.mjs`）
 - `/admin/users`：用户管理（列表 + 管理员角色切换 + 删除账号，见下方「当前能力」）
+- `/admin/subscribers`：订阅管理（只读，看 `ai_pulse_subscribers` 的确认/待确认/退订状态，没有任何操作按钮）
 - `/admin/series`：专题编排
 - `/admin/upload`：图片上传取 Markdown
 - `/admin/new`：管理员新建文章

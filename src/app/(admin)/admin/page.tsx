@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createServiceClient } from '@/lib/supabase/server'
 import { fetchAdminPostsData } from '@/lib/admin/posts'
 import { fetchAdminDecks } from '@/lib/admin/decks'
+import { fetchAdminSubscribers } from '@/lib/admin/subscribers'
 import { getTypeLabel } from '@/lib/content'
 import { Card } from '@/components/ui/Card'
 
@@ -28,9 +29,10 @@ function StatLink({ label, value, href }: { label: string; value: string | numbe
 
 export default async function AdminOverviewPage() {
   const supabase = await createServiceClient()
-  const [{ posts, sentStoryIds }, decks] = await Promise.all([
+  const [{ posts, sentStoryIds }, decks, subscribers] = await Promise.all([
     fetchAdminPostsData(supabase),
     fetchAdminDecks(supabase),
+    fetchAdminSubscribers(supabase),
   ])
   const sentIds = new Set(sentStoryIds)
 
@@ -38,14 +40,16 @@ export default async function AdminOverviewPage() {
   const pendingNewsletterCount = posts.filter((p) => p.status === 'published' && !sentIds.has(p.id)).length
   const recentPosts = posts.filter((p) => p.status === 'published').slice(0, 8)
   const unpricedDeckCount = decks.filter((d) => d.status === 'published' && d.price_cents === null).length
+  const activeSubscriberCount = subscribers.filter((s) => s.status === 'active').length
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatLink label="文章总数" value={posts.length} href="/admin/posts" />
         <StatLink label="待发 Newsletter" value={pendingNewsletterCount} href="/admin/posts?filter=pending" />
         <StatLink label="精选" value={`${featuredCount} / 3`} href="/admin/posts?filter=featured" />
         <StatLink label="未定价出品" value={`${unpricedDeckCount} / ${decks.length}`} href="/admin/decks" />
+        <StatLink label="已订阅" value={activeSubscriberCount} href="/admin/subscribers" />
       </div>
 
       <Card kicker="最近发布">
