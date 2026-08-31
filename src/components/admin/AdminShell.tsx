@@ -11,6 +11,7 @@ const NAV_ITEMS: ReadonlyArray<{ href: string; label: string }> = [
   { href: '/admin/decks', label: '出品' },
   { href: '/admin/users', label: '用户' },
   { href: '/admin/subscribers', label: '订阅' },
+  { href: '/admin/newsletter', label: '周刊' },
   { href: '/admin/series', label: '专题' },
   { href: '/admin/upload', label: '上传' },
 ]

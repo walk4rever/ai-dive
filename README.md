@@ -176,6 +176,7 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=<KEY
 - `/admin/decks`：出品管理（改元数据 + 定价，正文只读，托管在 R2，换正文走 `scripts/import-deck.mjs`）
 - `/admin/users`：用户管理（列表 + 管理员角色切换 + 删除账号，见下方「当前能力」）
 - `/admin/subscribers`：订阅管理（只读，看 `ai_pulse_subscribers` 的确认/待确认/退订状态，没有任何操作按钮）
+- `/admin/newsletter`：周刊发送（信号解读 + 深度阅读 + 热门出品三段式邮件，预览 / 发测试 / 发给全部订阅者，见下方「当前能力」——依赖 `supabase/migrations/20260831_create_newsletter_issues.sql`，部署前必须先在 Supabase SQL Editor 执行）
 - `/admin/series`：专题编排
 - `/admin/upload`：图片上传取 Markdown
 - `/admin/new`：管理员新建文章
@@ -197,6 +198,9 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=<KEY
 - `/api/admin/posts/preview`：管理员 Markdown 正文预览
 - `/api/admin/decks/[slug]`：管理员出品元数据 + 定价（PATCH，只改 `ai_pulse_decks` 的元数据列，从不接受 `href`/`slug`——那是 R2 内容路径的身份，改了会让内容代理路由解析不到）
 - `/api/admin/users/[id]`：管理员用户管理（PATCH 只改 `role`，拦自我降级；DELETE 硬删除且级联 agent/订单/额度流水/会话，拦自我删除，外键冲突时返回 409 而不是裸 500）
+- `/api/admin/newsletter/preview`：按当前输入的摘要文字重渲染周刊 HTML，不发信不落库
+- `/api/admin/newsletter/test-send`：发一封周刊到任意测试邮箱，不写 `ai_pulse_newsletter_issues`、不计入订阅者发送记录
+- `/api/admin/newsletter/send`：发给全部已确认订阅者；按 `period_start`（本次计算出的 7 天窗口）找到或新建一条 `ai_pulse_newsletter_issues`，复用 `ai_pulse_email_sends`（`story_id` 留空、`newsletter_issue_id` 指向本期）做逐订阅者去重——同一天内重复调用只会补发漏发的人，不会重复打扰已收到的订阅者
 - `/api/upload`、`/api/upload/presign`：文件上传
 - `/api/agent`：探索/AI解读对话接口（POST，需登录，credits 余额不足返回 402、超出小时限速返回 429，转发到 pi-gateway，SSE 流式返回）
 - `/api/agent-turns`：会话历史读写接口（GET 拉取最近 10 轮，POST 持久化一轮，均需登录）
