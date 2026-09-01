@@ -171,7 +171,7 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=<KEY
 - `/archive`：内容归档
 - `/series`：专题列表
 - `/decks`：出品（幻灯片 / 报告 / 交互式解读，元数据存于 `ai_pulse_decks` 表，导入见上文 4c；列表页公开，正文按定价走鉴权，管理员免付费，见"当前能力"）
-- `/admin`：管理员总览（可点统计卡 + 最近发布列表）
+- `/admin`：管理员总览（可点统计卡 + 近 7 日新增注册/订阅/成交订单趋势，对比上一个 7 天窗口）
 - `/admin/posts`：文章管理（搜索 + 类型/状态筛选）
 - `/admin/decks`：出品管理（改元数据 + 定价，正文只读，托管在 R2，换正文走 `scripts/import-deck.mjs`）
 - `/admin/users`：用户管理（列表 + 管理员角色切换 + 删除账号，见下方「当前能力」）

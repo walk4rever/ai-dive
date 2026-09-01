@@ -3,14 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { fetchAdminPostsData } from '@/lib/admin/posts'
 import { fetchAdminDecks } from '@/lib/admin/decks'
 import { fetchAdminSubscribers } from '@/lib/admin/subscribers'
-import { getTypeLabel } from '@/lib/content'
-import { Card } from '@/components/ui/Card'
-
-function formatDate(value: string | null) {
-  if (!value) return '未发布'
-  const d = new Date(value)
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
-}
+import { fetchAdminOverviewTrends, type OverviewTrend } from '@/lib/admin/overview-metrics'
 
 /** A stat tile that's also a link straight into the filtered list — the P0 version of
  *  this (the three boxes at the top of the old single-page console) had the same
@@ -27,18 +20,38 @@ function StatLink({ label, value, href }: { label: string; value: string | numbe
   )
 }
 
+/** Unlike StatLink (a snapshot), this shows whether the number is moving — last 7
+ *  days against the 7 days before, so a flat "已订阅: 342" total can't hide a dead
+ *  week. */
+function TrendTile({ trend }: { trend: OverviewTrend }) {
+  const diff = trend.current - trend.previous
+  const diffLabel = diff === 0 ? '与上周持平' : `${diff > 0 ? '+' : ''}${diff} 较上周`
+  const diffClass = diff > 0 ? 'text-[var(--accent)]' : diff < 0 ? 'text-[var(--subtle)]' : 'text-[var(--muted)]'
+
+  return (
+    <div className="rounded-[var(--radius-lg)] border border-[var(--border)] p-6">
+      <p className="kicker">{trend.label}</p>
+      <p className="mt-2 font-serif text-3xl font-medium">{trend.current}</p>
+      <div className="mt-2 flex items-baseline gap-2 text-sm">
+        <span className={diffClass}>{diffLabel}</span>
+        {trend.detail && <span className="text-[var(--muted)]">· {trend.detail}</span>}
+      </div>
+    </div>
+  )
+}
+
 export default async function AdminOverviewPage() {
   const supabase = await createServiceClient()
-  const [{ posts, sentStoryIds }, decks, subscribers] = await Promise.all([
+  const [{ posts, sentStoryIds }, decks, subscribers, trends] = await Promise.all([
     fetchAdminPostsData(supabase),
     fetchAdminDecks(supabase),
     fetchAdminSubscribers(supabase),
+    fetchAdminOverviewTrends(supabase),
   ])
   const sentIds = new Set(sentStoryIds)
 
   const featuredCount = posts.filter((p) => p.featured).length
   const pendingNewsletterCount = posts.filter((p) => p.status === 'published' && !sentIds.has(p.id)).length
-  const recentPosts = posts.filter((p) => p.status === 'published').slice(0, 8)
   const unpricedDeckCount = decks.filter((d) => d.status === 'published' && d.price_cents === null).length
   const activeSubscriberCount = subscribers.filter((s) => s.status === 'active').length
 
@@ -52,26 +65,11 @@ export default async function AdminOverviewPage() {
         <StatLink label="已订阅" value={activeSubscriberCount} href="/admin/subscribers" />
       </div>
 
-      <Card kicker="最近发布">
-        {recentPosts.length === 0 ? (
-          <p className="mt-4 text-sm text-[var(--muted)]">还没有发布任何文章。</p>
-        ) : (
-          <div className="mt-2 divide-y divide-[var(--border-subtle)]">
-            {recentPosts.map((post) => (
-              <div key={post.id} className="py-3 flex items-center gap-4">
-                <p className="date w-20 shrink-0">{formatDate(post.published_at)}</p>
-                <p className="kicker w-12 shrink-0">{getTypeLabel(post.content_type)}</p>
-                <Link
-                  href={`/admin/edit/${post.slug}`}
-                  className="min-w-0 flex-1 truncate text-sm hover:text-[var(--accent)] transition-colors"
-                >
-                  {post.title}
-                </Link>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {trends.map((trend) => (
+          <TrendTile key={trend.label} trend={trend} />
+        ))}
+      </div>
     </div>
   )
 }
