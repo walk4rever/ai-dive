@@ -57,6 +57,11 @@ export default async function AdminOverviewPage() {
 
   return (
     <div className="space-y-6">
+      <div className="mb-2">
+        <p className="kicker">System Overview</p>
+        <p className="font-serif text-2xl font-medium tracking-tight mt-1">运行总览</p>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatLink label="文章总数" value={posts.length} href="/admin/posts" />
         <StatLink label="待发 Newsletter" value={pendingNewsletterCount} href="/admin/posts?filter=pending" />

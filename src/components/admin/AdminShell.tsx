@@ -3,7 +3,8 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { signOut } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
+import { Logo } from '@/components/Logo'
 
 const NAV_ITEMS: ReadonlyArray<{ href: string; label: string }> = [
   { href: '/admin', label: '总览' },
@@ -29,6 +30,7 @@ function isActive(pathname: string | null, href: string) {
 export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
+  const { data: session } = useSession()
 
   async function handleLogout() {
     await signOut({ redirect: false })
@@ -38,21 +40,35 @@ export function AdminShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-[var(--background)] p-4 sm:p-6 lg:p-10">
       <div className="max-w-6xl mx-auto">
-        <header className="flex flex-wrap items-start justify-between gap-6 pb-6 mb-6 border-b border-[var(--border)]">
-          <div>
-            <p className="kicker mb-2" style={{ color: 'var(--accent)' }}>Admin Console</p>
-            <h1 className="font-serif text-3xl md:text-4xl font-medium tracking-tight">管理后台</h1>
+        <header className="flex items-center justify-between pb-4 mb-6 border-b border-[var(--border)]">
+          <div className="flex items-center gap-2.5">
+            <Link href="/" className="hover:opacity-85 transition-opacity" title="返回前台首页">
+              <Logo size={22} showWordmark={true} />
+            </Link>
+            <span className="text-[var(--ring)] select-none font-light">/</span>
+            <span className="text-[11px] px-2 py-0.5 rounded-[var(--radius-sm)] bg-[var(--surface-sand)] text-[var(--foreground-soft)] font-mono font-medium tracking-wide">
+              ADMIN
+            </span>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            {session?.user?.email && (
+              <span className="hidden sm:inline-block text-xs text-[var(--muted)] font-mono">
+                {session.user.email}
+              </span>
+            )}
             <Link
               href="/"
-              className="rounded-[var(--radius-md)] border border-[var(--border)] px-3.5 py-2 text-sm text-[var(--foreground-soft)] transition-colors hover:border-[var(--ring)] hover:text-[var(--accent)]"
+              target="_blank"
+              className="inline-flex items-center gap-1 rounded-[var(--radius-md)] border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--foreground-soft)] transition-colors hover:border-[var(--ring)] hover:text-[var(--accent)]"
+              title="在新标签页中打开站点"
             >
-              首页
+              <span>查看站点</span>
+              <span aria-hidden className="text-[10px]">↗</span>
             </Link>
             <button
               onClick={handleLogout}
-              className="rounded-[var(--radius-md)] border border-[var(--border)] px-3.5 py-2 text-sm text-[var(--foreground-soft)] transition-colors hover:border-[var(--ring)] hover:text-[var(--accent)]"
+              className="rounded-[var(--radius-md)] border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--muted)] transition-colors hover:border-[var(--ring)] hover:text-[var(--error)]"
             >
               退出
             </button>
