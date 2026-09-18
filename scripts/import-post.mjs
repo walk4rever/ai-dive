@@ -235,6 +235,7 @@ function toAuthorSlug(value) {
 function toAuthorDisplay(value) {
   const raw = asNonEmptyString(value)
   if (!raw) return null
+  if (/^x@/i.test(raw)) return raw
   const key = raw.toLowerCase().replace(/[-_]+/g, ' ').replace(/\s+/g, ' ')
   const overrides = {
     '20vc': '20VC',

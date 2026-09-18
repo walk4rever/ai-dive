@@ -12,4 +12,9 @@ describe('author identity helpers', () => {
     expect(toAuthorDisplay('twiml-ai')).toBe('TWIML AI')
     expect(toAuthorDisplay('leopold-aschenbrenner')).toBe('Leopold Aschenbrenner')
   })
+
+  it('keeps X handles verbatim', () => {
+    expect(toAuthorDisplay('X@servasyy_ai')).toBe('X@servasyy_ai')
+    expect(toAuthorDisplay('x@waterloo_intern')).toBe('x@waterloo_intern')
+  })
 })

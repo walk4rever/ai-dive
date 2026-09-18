@@ -21,6 +21,7 @@ export function toAuthorSlug(value: string | null | undefined): string | null {
 export function toAuthorDisplay(value: string | null | undefined): string | null {
   if (!value?.trim()) return null
   const raw = value.trim()
+  if (/^x@/i.test(raw)) return raw
   const override = DISPLAY_OVERRIDES[normalizeAuthorKey(raw)]
   if (override) return override
   return raw
