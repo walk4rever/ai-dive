@@ -111,7 +111,7 @@ export default async function PostPage({ params }: Props) {
     <article>
       <ArticleToc headings={headings} />
       {(post.content_type === 'dive' || post.content_type === 'insight') && <BackToTop />}
-      <ArticleChatPanel slug={post.slug} title={post.title}>
+      <ArticleChatPanel slug={post.slug} title={post.title} author={authorLabel}>
         {header}
         <MermaidContent className="prose" html={post.content} />
         {share}

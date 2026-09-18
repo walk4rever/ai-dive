@@ -5,10 +5,12 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { ComponentPropsWithoutRef, ClipboardEvent } from 'react'
 import { useSession } from 'next-auth/react'
+import { Sparkles, Share2, Check } from 'lucide-react'
 import { useAgentChat, TOOL_META } from '@/hooks/useAgentChat'
 import { loginHref } from '@/lib/auth/client'
 import { handleClipboardImages, MessageImages, PendingImageChips, useImageLightbox } from '@/components/AgentChatImages'
 import { CopyMessageButton } from '@/components/AgentChatCopyButton'
+import { buildHighlightShareText } from '@/lib/highlight-share'
 
 // Query param the "AI解读" trigger appends to the login redirect so the
 // panel can reopen itself once the reader is back on this article.
@@ -49,6 +51,7 @@ interface QuoteButtonState {
 interface ArticleChatPanelProps {
   slug: string
   title: string
+  author?: string | null
   children: ReactNode
 }
 
@@ -84,15 +87,19 @@ function extractSelectionText(range: Range): string {
   return container.textContent?.trim() ?? ''
 }
 
-export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProps) {
+export function ArticleChatPanel({ slug, title, author, children }: ArticleChatPanelProps) {
   const articleRef = useRef<HTMLDivElement>(null)
   const messageListRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const quoteButtonRef = useRef<HTMLButtonElement>(null)
+  const quoteButtonRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
   const [maximized, setMaximized] = useState(false)
   const [quoteButton, setQuoteButton] = useState<QuoteButtonState | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
   const pendingArticleScrollRef = useRef<number | null>(null)
+  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const { status } = useSession()
   const isDesktop = useIsDesktop()
   const docked = open && isDesktop
@@ -180,21 +187,37 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
   useEffect(() => {
     function handleSelectionChange() {
       const selection = window.getSelection()
-      if (!selection || selection.isCollapsed || selection.rangeCount === 0) return
+      if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
+        setQuoteButton(null)
+        setCopied(false)
+        return
+      }
 
       const range = selection.getRangeAt(0)
-      if (!articleRef.current?.contains(range.commonAncestorContainer)) return
+      if (!articleRef.current?.contains(range.commonAncestorContainer)) {
+        setQuoteButton(null)
+        setCopied(false)
+        return
+      }
 
       const text = extractSelectionText(range)
-      if (!text) return
+      if (!text) {
+        setQuoteButton(null)
+        setCopied(false)
+        return
+      }
 
       const rect = range.getBoundingClientRect()
-      setQuoteButton({ text, top: rect.top - 40, left: rect.left + rect.width / 2 })
+      const isNearTop = rect.top < 52
+      const top = isNearTop ? rect.bottom + 10 : rect.top - 44
+      const left = Math.max(110, Math.min(window.innerWidth - 110, rect.left + rect.width / 2))
+      setQuoteButton({ text, top, left })
     }
 
     function handlePointerDown(e: PointerEvent) {
       if (quoteButtonRef.current && !quoteButtonRef.current.contains(e.target as Node)) {
         setQuoteButton(null)
+        setCopied(false)
       }
     }
 
@@ -203,6 +226,8 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
     return () => {
       document.removeEventListener('selectionchange', handleSelectionChange)
       document.removeEventListener('pointerdown', handlePointerDown)
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current)
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current)
     }
   }, [])
 
@@ -254,8 +279,33 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
     const quoted = quoteButton.text.length > 400 ? quoteButton.text.slice(0, 400) + '…' : quoteButton.text
     setInput(`关于这段：「${quoted}」\n\n`)
     setQuoteButton(null)
+    setCopied(false)
     window.getSelection()?.removeAllRanges()
     requestAnimationFrame(() => inputRef.current?.focus())
+  }
+
+  async function handleShareQuote() {
+    if (!quoteButton?.text) return
+    const shareText = buildHighlightShareText({
+      title,
+      slug,
+      quoteText: quoteButton.text,
+      author,
+    })
+
+    const success = await copyToClipboard(shareText)
+    if (success) {
+      setCopied(true)
+      setToastMessage('已复制高光分享文案')
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current)
+      copyTimeoutRef.current = setTimeout(() => {
+        setCopied(false)
+      }, 2000)
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current)
+      toastTimeoutRef.current = setTimeout(() => {
+        setToastMessage(null)
+      }, 2400)
+    }
   }
 
   return (
@@ -432,16 +482,68 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
       </div>
 
       {quoteButton && (
-        <button
+        <div
           ref={quoteButtonRef}
-          type="button"
+          className="fixed z-40 flex items-center gap-1 rounded-full shadow-lg"
+          style={{
+            top: quoteButton.top,
+            left: quoteButton.left,
+            transform: 'translateX(-50%)',
+            background: '#ffffff',
+            border: '1px solid var(--border)',
+            padding: '4px',
+          }}
           onMouseDown={(e) => e.preventDefault()}
-          onClick={askAboutQuote}
-          className="fixed z-40 -translate-x-1/2 rounded-full px-3 py-1.5 text-xs font-medium shadow-lg transition-transform hover:scale-105"
-          style={{ top: quoteButton.top, left: quoteButton.left, background: 'var(--accent)', color: '#faf9f5' }}
         >
-          问 AI 这段 →
-        </button>
+          <button
+            type="button"
+            onClick={askAboutQuote}
+            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors hover:bg-gray-50"
+            style={{ color: 'var(--accent)' }}
+            title="使用 AI 解读所选段落"
+          >
+            <Sparkles size={13} strokeWidth={2} />
+            <span>AI解读</span>
+          </button>
+
+          <span className="h-4 w-px" style={{ background: 'var(--border)' }} aria-hidden="true" />
+
+          <button
+            type="button"
+            onClick={handleShareQuote}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${copied ? 'bg-green-50' : 'hover:bg-gray-50'}`}
+            style={{ color: copied ? '#16a34a' : '#87867f' }}
+            title="复制高光分享文案"
+          >
+            {copied ? (
+              <>
+                <Check size={13} strokeWidth={2.4} />
+                <span>已复制</span>
+              </>
+            ) : (
+              <>
+                <Share2 size={13} strokeWidth={2} />
+                <span>高光分享</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
+      {toastMessage && (
+        <div
+          className="fixed bottom-20 left-1/2 z-50 flex items-center gap-2 rounded-full px-4 py-2 shadow-lg"
+          style={{
+            transform: 'translateX(-50%)',
+            background: '#141413',
+            color: '#faf9f5',
+          }}
+          role="status"
+          aria-live="polite"
+        >
+          <Check size={14} strokeWidth={2.4} />
+          <span className="text-sm">{toastMessage}</span>
+        </div>
       )}
 
       {!open && (
@@ -458,4 +560,32 @@ export function ArticleChatPanel({ slug, title, children }: ArticleChatPanelProp
       {lightbox.node}
     </>
   )
+}
+
+async function copyToClipboard(text: string): Promise<boolean> {
+  if (typeof navigator !== 'undefined' && navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text)
+      return true
+    } catch {
+      // fallback to execCommand below
+    }
+  }
+  try {
+    const textArea = document.createElement('textarea')
+    textArea.value = text
+    textArea.style.position = 'fixed'
+    textArea.style.left = '-999999px'
+    textArea.style.top = '-999999px'
+    textArea.setAttribute('readonly', '')
+    document.body.appendChild(textArea)
+    textArea.focus()
+    textArea.select()
+    const successful = document.execCommand('copy')
+    textArea.remove()
+    return successful
+  } catch (err) {
+    console.error('[highlight-share] clipboard copy failed', err)
+    return false
+  }
 }
