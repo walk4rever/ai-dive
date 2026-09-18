@@ -28,7 +28,7 @@ export function buildHighlightShareText({
 
   // 作者信息（如果有且不是默认值）
   const hasDistinctAuthor = author?.trim() && author.trim() !== 'AI-DIVE' && author.trim() !== '编辑部'
-  const authorCiting = hasDistinctAuthor ? ` · ${author.trim()}` : ''
+  const authorCiting = hasDistinctAuthor ? ` · ${author!.trim()}` : ''
   const citation = `—— 摘自${safeTitle}${authorCiting}`
 
   // 格式化引用文本（去除多余空行）

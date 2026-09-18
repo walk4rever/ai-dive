@@ -5,7 +5,6 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { ComponentPropsWithoutRef, ClipboardEvent } from 'react'
 import { useSession } from 'next-auth/react'
-import { Sparkles, Share2, Check } from 'lucide-react'
 import { useAgentChat, TOOL_META } from '@/hooks/useAgentChat'
 import { loginHref } from '@/lib/auth/client'
 import { handleClipboardImages, MessageImages, PendingImageChips, useImageLightbox } from '@/components/AgentChatImages'
@@ -26,6 +25,27 @@ const MaximizeIcon = () => (
 const MinimizeIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
     <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
+const SparklesIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+    <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3zM19 12l.75 2.25L22 15l-2.25.75L19 18l-.75-2.25L16 15l2.25-.75L19 12z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
+const ShareIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+    <circle cx="18" cy="5" r="3" stroke="currentColor" strokeWidth="2" />
+    <circle cx="6" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+    <circle cx="18" cy="19" r="3" stroke="currentColor" strokeWidth="2" />
+    <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" stroke="currentColor" strokeWidth="2" />
+  </svg>
+)
+
+const CheckIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+    <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 )
 
@@ -502,7 +522,7 @@ export function ArticleChatPanel({ slug, title, author, children }: ArticleChatP
             style={{ color: 'var(--accent)' }}
             title="使用 AI 解读所选段落"
           >
-            <Sparkles size={13} strokeWidth={2} />
+            <SparklesIcon />
             <span>AI解读</span>
           </button>
 
@@ -517,12 +537,12 @@ export function ArticleChatPanel({ slug, title, author, children }: ArticleChatP
           >
             {copied ? (
               <>
-                <Check size={13} strokeWidth={2.4} />
+                <CheckIcon />
                 <span>已复制</span>
               </>
             ) : (
               <>
-                <Share2 size={13} strokeWidth={2} />
+                <ShareIcon />
                 <span>高光分享</span>
               </>
             )}
@@ -541,7 +561,7 @@ export function ArticleChatPanel({ slug, title, author, children }: ArticleChatP
           role="status"
           aria-live="polite"
         >
-          <Check size={14} strokeWidth={2.4} />
+          <CheckIcon />
           <span className="text-sm">{toastMessage}</span>
         </div>
       )}
