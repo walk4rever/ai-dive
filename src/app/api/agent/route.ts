@@ -7,7 +7,11 @@ import { deriveContextKey, fetchRecentTurns } from '@/lib/agent-context'
 import { resolveArticleSlug } from '@/lib/resolve-article-slug'
 import { ensureFreeGrant, getBalance, recordSpend, withinHourlyLimit } from '@/lib/credits'
 
-export const maxDuration = 90
+// A multi-tool question can take 60-80s; the previous 90s/85s timeout pair left
+// insufficient headroom and severed the stream mid-answer. Vercel's Pro ceiling
+// is 300s; the abort below sits just under it so a genuine overrun still unwinds
+// here instead of the platform killing the function.
+export const maxDuration = 300
 
 const GATEWAY_URL = process.env.AI_DIVE_AGENT_GATEWAY_URL
 const AGENT_SECRET = process.env.AI_DIVE_AGENT_SECRET
@@ -77,7 +81,7 @@ export async function POST(req: NextRequest) {
       'X-Agent-Secret': AGENT_SECRET,
     },
     body: JSON.stringify({ message: body.message, userId: body.userId, articleSlug, images, history }),
-    signal: AbortSignal.any([req.signal, AbortSignal.timeout(85_000)]),
+    signal: AbortSignal.any([req.signal, AbortSignal.timeout(290_000)]),
   })
 
   if (!upstream.ok) {

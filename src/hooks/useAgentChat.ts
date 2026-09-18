@@ -18,6 +18,10 @@ export interface AgentMessage {
   text: string
   toolCalls?: ToolCall[]
   error?: boolean
+  /** The stream ended without a terminal `done` event (proxy timeout, dropped
+   *  connection), or `done` reported the model was cut off by max_tokens. The text
+   *  present is real but unfinished — distinct from `error`, where there is no answer. */
+  incomplete?: boolean
   images?: ImageAttachment[]
   imageUrls?: string[]
 }
@@ -134,6 +138,12 @@ export function useAgentChat({ sessionStorageKey, articleSlug, initialMessages }
     // Accumulated outside React state (which updates asynchronously) so the persist
     // call below always sees the full streamed text, not a stale closure snapshot.
     let assistantText = ''
+    let hadError = false
+    // A severed stream (proxy timeout, network drop) closes the reader with no
+    // terminal event, which is indistinguishable from a clean finish unless we
+    // track it — that gap is what made a cut-off answer look like a complete one.
+    let sawTerminal = false
+    let truncated = false
 
     try {
       // A stop click cancels the gateway session in the background so the UI can
@@ -213,30 +223,47 @@ export function useAgentChat({ sessionStorageKey, articleSlug, initialMessages }
                     : m
                 )
               )
+            } else if (eventType === 'done') {
+              sawTerminal = true
+              truncated = data.truncated === true
             } else if (eventType === 'error') {
               const msg = typeof data.message === 'string' ? data.message : '未知错误'
               setMessages((prev) => prev.map((m, i) => (i === assistantIndex ? { ...m, text: msg, error: true } : m)))
+              hadError = true
+              sawTerminal = true
             }
             eventType = ''
           }
         }
       }
 
-      if (assistantText.trim()) persistTurn('assistant', assistantText)
+      if (!hadError) {
+        if (!sawTerminal || truncated) {
+          setMessages((prev) =>
+            prev.map((m, i) => (i === assistantIndex ? { ...m, incomplete: true } : m))
+          )
+        }
+        // Persisted either way: the partial answer is real work the user can read,
+        // and keeping it in ChatTurn is what lets a follow-up pick up where it stopped.
+        persistTurn('assistant', assistantText)
+      }
     } catch (err) {
-      const aborted = (err as Error).name === 'AbortError'
-      setMessages((prev) =>
-        prev.map((m, i) => {
-          if (i !== assistantIndex) return m
-          // Whatever streamed in before the abort is worth keeping on screen —
-          // it's already what gets persisted below, so overwriting it with a bare
-          // "已中止" just threw away a real (if incomplete) answer the user could
-          // still read. Only fall back to the placeholder when nothing streamed.
-          if (aborted) return m.text ? m : { ...m, text: '已中止', error: true }
-          return { ...m, text: (err as Error).message || '连接失败', error: true }
-        })
-      )
-      if (assistantText.trim()) persistTurn('assistant', assistantText)
+      if ((err as Error).name !== 'AbortError') {
+        setMessages((prev) =>
+          prev.map((m, i) =>
+            i === assistantIndex
+              ? { ...m, text: (err as Error).message || '连接失败', error: true }
+              : m
+          )
+        )
+      } else {
+        setMessages((prev) =>
+          prev.map((m, i) =>
+            i === assistantIndex && !m.text ? { ...m, text: '已中止', error: true } : m
+          )
+        )
+        if (assistantText) persistTurn('assistant', assistantText)
+      }
     } finally {
       setStreaming(false)
       abortRef.current = null

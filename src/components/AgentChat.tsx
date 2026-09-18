@@ -178,6 +178,11 @@ export function AgentChat({ initialMessages }: AgentChatProps = {}) {
                                   {msg.text}
                                 </ReactMarkdown>
                               </div>
+                              {msg.incomplete && (
+                                <div className="text-xs mt-2 px-2 py-1 rounded" style={{ color: '#87867f', background: '#faf9f5', border: '1px solid var(--border)' }}>
+                                  ⚠️ 回答未完成（超时或连接中断），你可以继续提问让 AI 补充
+                                </div>
+                              )}
                               {!msg.error && <CopyMessageButton text={msg.text} />}
                             </>
                           )
