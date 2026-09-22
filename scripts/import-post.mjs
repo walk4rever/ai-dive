@@ -226,14 +226,23 @@ function asNonEmptyString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : ''
 }
 
-function toAuthorSlug(value) {
+function stripWikilinks(value) {
   const raw = asNonEmptyString(value)
+  if (!raw) return ''
+  return raw
+    .replace(/\[\[(?:[^\]|]+\|)?([^\]]+)\]\]/g, '$1')
+    .replace(/[\[\]]/g, '')
+    .trim()
+}
+
+function toAuthorSlug(value) {
+  const raw = stripWikilinks(value)
   if (!raw) return null
   return raw.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, '-').replace(/^-+|-+$/g, '') || null
 }
 
 function toAuthorDisplay(value) {
-  const raw = asNonEmptyString(value)
+  const raw = stripWikilinks(value)
   if (!raw) return null
   if (/^x@/i.test(raw)) return raw
   const key = raw.toLowerCase().replace(/[-_]+/g, ' ').replace(/\s+/g, ' ')
@@ -242,6 +251,8 @@ function toAuthorDisplay(value) {
     'twiml ai': 'TWIML AI',
     'ai dive': 'AI-DIVE',
     'the a16z show': 'The a16z Show',
+    'rafa': 'RAFA',
+    'r129': 'R129',
   }
   if (overrides[key]) return overrides[key]
   return raw.replace(/[-_]+/g, ' ').split(/\s+/).map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')

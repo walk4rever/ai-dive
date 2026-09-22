@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { Post } from '@/types'
 import { getTypeLabel, getSourceLabel } from '@/lib/content'
+import { toAuthorDisplay } from '@/lib/author'
 
 type ListPost = Pick<
   Post,
@@ -42,7 +43,7 @@ export function ArticleListItem({
   showSource = false,
   coverUrl,
 }: ArticleListItemProps) {
-  const sourceLabel = showSource ? (post.author_display ?? getSourceLabel(post.author_slug ?? null)) : null
+  const sourceLabel = showSource ? (toAuthorDisplay(post.author_display) ?? getSourceLabel(post.author_slug ?? null)) : null
   const dateParts = formatDateParts(post.published_at)
 
   return (

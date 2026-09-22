@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getTypeLabel } from '@/lib/content'
+import { toAuthorDisplay } from '@/lib/author'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { BackButton } from '@/components/BackButton'
@@ -49,15 +50,6 @@ function formatPublishedAt(value: string | null) {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 }
 
-function formatAuthorLabel(authorSlug: string | null) {
-  if (!authorSlug) return '编辑部'
-  if (authorSlug === 'rafa') return 'RAFA'
-  return authorSlug
-    .split('-')
-    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-    .join(' ')
-}
-
 export default async function PostPage({ params }: Props) {
   const { slug } = await params
   const supabase = await createClient()
@@ -72,7 +64,7 @@ export default async function PostPage({ params }: Props) {
   if (!post) notFound()
 
   const contentTypeLabel = getTypeLabel(post.content_type)
-  const authorLabel = post.author_display ?? formatAuthorLabel(post.author_slug)
+  const authorLabel = toAuthorDisplay(post.author_display) ?? toAuthorDisplay(post.author_slug) ?? '编辑部'
   const headings = extractHeadings(post.content)
 
   const header = (

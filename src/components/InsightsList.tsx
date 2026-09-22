@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import type { Post } from '@/types'
 import { getSourceLabel } from '@/lib/content'
+import { toAuthorDisplay } from '@/lib/author'
 import { ArticleListItem } from '@/components/ArticleListItem'
 import { ListPageHeader } from '@/components/ListPageHeader'
 
@@ -18,7 +19,7 @@ interface InsightsListProps {
 const ALL = '__all__'
 
 function sourceOf(post: ListPost): string {
-  return post.author_display ?? getSourceLabel(post.author_slug) ?? '未知'
+  return toAuthorDisplay(post.author_display) ?? getSourceLabel(post.author_slug) ?? '未知'
 }
 
 export function InsightsList({ posts }: InsightsListProps) {

@@ -27,7 +27,7 @@ Powered by [Air7.fun](https://air7.fun)
 - 管理后台：编辑文章元数据、发布状态、精选状态和专题编排
 - Newsletter 批量发送、退订处理和发送记录
 - R2 文件上传（包括大文件 presigned upload）
-- Vault Markdown → Supabase 内容导入脚本
+- Vault Markdown → Supabase 内容导入脚本与作者名规范化：自动剥离 Obsidian 双链语法（如 `[[20VC]]` 规范为 `20VC`），洞见与文章列表统一格式化作者名
 - 管理员标记：`ai_pulse_users.role`（`user` / `admin`），登录时读入 next-auth JWT（`src/lib/auth.ts`），管住 `/admin`、`/api/admin/*`，并绕过 `/decks` 付费墙。提升某个账号：`UPDATE ai_pulse_users SET role = 'admin' WHERE email = '...';`（该列历史上是直接在生产库手工加的，`supabase/migrations/20260831_users_role.sql` 已把定义补回仓库）
 - `/decks`（出品）付费墙：列表页公开可浏览（不再需要登录），正文按 `ai_pulse_decks.price_cents` 走鉴权代理路由（`/decks/[slug]/[...path]`）——未定价的 deck 对所有人开放，定价后的 deck 需要登录 + 有 `paid` 状态的 `ai_pulse_orders` 记录才能访问（`role = 'admin'` 的账号免购买，列表页标记为「管理员」）；定价未购买的 deck 在列表页显示支付宝购买按钮，点击后创建 `pending` 订单并跳转支付宝收银台。支付走**支付宝官方电脑网站支付**（`alipay.trade.page.pay`，公钥模式 / RSA2，`src/lib/payments/alipay.ts`），签名与网关连通性已用只读查单接口对真实商户号验证通过；易支付聚合通道保留给微信支付（尚无凭证）。首篇定价 deck 为「推理工程实战手册」¥19.90，其余 7 篇仍未定价
 - Signal 注入 API：`POST /api/signals`，支持单条或批量 upsert 到 `ai_pulse_signals`（可选 `signal_date`；不传默认 UTC+8 当天）
