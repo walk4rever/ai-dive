@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import type { Post } from '@/types'
 import { getSourceLabel } from '@/lib/content'
 import { toAuthorDisplay } from '@/lib/author'
@@ -29,17 +29,10 @@ function sourceOf(post: ListPost): string {
 
 export function InsightsList({ posts, selectedSource: initialSource, page: initialPage, perPage }: InsightsListProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const [selected, setSelected] = useState(initialSource || ALL)
-  const [currentPage, setCurrentPage] = useState(initialPage)
 
-  // Sync state with URL params
-  useEffect(() => {
-    const sourceParam = searchParams.get('source')
-    const pageParam = searchParams.get('page')
-    setSelected(sourceParam || ALL)
-    setCurrentPage(pageParam ? Math.max(1, Number(pageParam)) : 1)
-  }, [searchParams])
+  // Derive state directly from props instead of useState + useEffect
+  const selected = initialSource || ALL
+  const currentPage = initialPage
 
   const sources = useMemo(() => {
     const counts = new Map<string, number>()
