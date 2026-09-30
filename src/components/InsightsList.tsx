@@ -1,11 +1,13 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import type { Post } from '@/types'
 import { getSourceLabel } from '@/lib/content'
 import { toAuthorDisplay } from '@/lib/author'
 import { ArticleListItem } from '@/components/ArticleListItem'
 import { ListPageHeader } from '@/components/ListPageHeader'
+import { Pagination } from '@/components/Pagination'
 
 type ListPost = Pick<
   Post,
@@ -14,6 +16,9 @@ type ListPost = Pick<
 
 interface InsightsListProps {
   posts: ListPost[]
+  selectedSource: string | null
+  page: number
+  perPage: number
 }
 
 const ALL = '__all__'
@@ -22,8 +27,19 @@ function sourceOf(post: ListPost): string {
   return toAuthorDisplay(post.author_display) ?? getSourceLabel(post.author_slug) ?? '未知'
 }
 
-export function InsightsList({ posts }: InsightsListProps) {
-  const [selected, setSelected] = useState(ALL)
+export function InsightsList({ posts, selectedSource: initialSource, page: initialPage, perPage }: InsightsListProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [selected, setSelected] = useState(initialSource || ALL)
+  const [currentPage, setCurrentPage] = useState(initialPage)
+
+  // Sync state with URL params
+  useEffect(() => {
+    const sourceParam = searchParams.get('source')
+    const pageParam = searchParams.get('page')
+    setSelected(sourceParam || ALL)
+    setCurrentPage(pageParam ? Math.max(1, Number(pageParam)) : 1)
+  }, [searchParams])
 
   const sources = useMemo(() => {
     const counts = new Map<string, number>()
@@ -36,6 +52,23 @@ export function InsightsList({ posts }: InsightsListProps) {
 
   const filtered = selected === ALL ? posts : posts.filter((post) => sourceOf(post) === selected)
 
+  // Pagination
+  const totalFiltered = filtered.length
+  const totalPages = Math.ceil(totalFiltered / perPage)
+  const startIndex = (currentPage - 1) * perPage
+  const endIndex = startIndex + perPage
+  const paginatedPosts = filtered.slice(startIndex, endIndex)
+
+  const handleSourceChange = (source: string) => {
+    const params = new URLSearchParams()
+    if (source !== ALL) params.set('source', source)
+    // Reset to page 1 when changing source
+    const query = params.toString()
+    router.push(query ? `/insights?${query}` : '/insights')
+  }
+
+  const queryParams: Record<string, string> = selected !== ALL ? { source: selected } : {}
+
   return (
     <div>
       <ListPageHeader
@@ -45,11 +78,11 @@ export function InsightsList({ posts }: InsightsListProps) {
         filters={
           posts.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              <PillButton active={selected === ALL} onClick={() => setSelected(ALL)}>
+              <PillButton active={selected === ALL} onClick={() => handleSourceChange(ALL)}>
                 全部 ({posts.length})
               </PillButton>
               {sources.map(([label, count]) => (
-                <PillButton key={label} active={selected === label} onClick={() => setSelected(label)}>
+                <PillButton key={label} active={selected === label} onClick={() => handleSourceChange(label)}>
                   {label} ({count})
                 </PillButton>
               ))}
@@ -60,14 +93,25 @@ export function InsightsList({ posts }: InsightsListProps) {
       {posts.length === 0 ? (
         <p className="py-8 text-sm text-[var(--muted)]">洞见内容即将发布。</p>
       ) : (
-        <div className="divide-y divide-[var(--border-subtle)]">
-          {filtered.map((post) => (
-            <ArticleListItem key={post.id} post={post} showSource />
-          ))}
-          {filtered.length === 0 && (
-            <p className="py-8 text-sm text-[var(--muted)]">没有匹配的内容。</p>
+        <>
+          <div className="divide-y divide-[var(--border-subtle)]">
+            {paginatedPosts.map((post) => (
+              <ArticleListItem key={post.id} post={post} showSource />
+            ))}
+            {paginatedPosts.length === 0 && (
+              <p className="py-8 text-sm text-[var(--muted)]">没有匹配的内容。</p>
+            )}
+          </div>
+          {totalFiltered > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              total={totalFiltered}
+              basePath="/insights"
+              queryParams={queryParams}
+            />
           )}
-        </div>
+        </>
       )}
     </div>
   )
