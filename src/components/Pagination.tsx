@@ -22,42 +22,36 @@ export function Pagination({ currentPage, totalPages, total, basePath, queryPara
   if (totalPages <= 1) return null
 
   return (
-    <div className="py-8">
-      <p className="text-sm text-[var(--muted)] text-center mb-4">
-        共 {total} 篇 · 第 {currentPage} / {totalPages} 页
-      </p>
-
-      <div className="flex items-center justify-center gap-4">
-        {hasPrevPage ? (
-          <Link
-            href={buildPageUrl(currentPage - 1)}
-            className="px-4 py-2 text-sm font-medium text-[var(--foreground)] border border-[var(--border)] rounded-md hover:bg-[var(--accent-light)] hover:text-[var(--accent)] transition-colors"
-          >
-            ← 上一页
-          </Link>
-        ) : (
-          <span className="px-4 py-2 text-sm font-medium text-[var(--muted)] border border-[var(--border-subtle)] rounded-md cursor-not-allowed opacity-50">
-            ← 上一页
-          </span>
-        )}
-
-        <span className="text-sm text-[var(--foreground-soft)]">
-          {currentPage} / {totalPages}
+    <div className="py-8 flex items-center justify-center gap-4">
+      {hasPrevPage ? (
+        <Link
+          href={buildPageUrl(currentPage - 1)}
+          className="px-4 py-2 text-sm font-medium text-[var(--foreground)] border border-[var(--border)] rounded-md hover:bg-[var(--accent-light)] hover:text-[var(--accent)] transition-colors"
+        >
+          ← 上一页
+        </Link>
+      ) : (
+        <span className="px-4 py-2 text-sm font-medium text-[var(--muted)] border border-[var(--border-subtle)] rounded-md cursor-not-allowed opacity-50">
+          ← 上一页
         </span>
+      )}
 
-        {hasNextPage ? (
-          <Link
-            href={buildPageUrl(currentPage + 1)}
-            className="px-4 py-2 text-sm font-medium text-[var(--foreground)] border border-[var(--border)] rounded-md hover:bg-[var(--accent-light)] hover:text-[var(--accent)] transition-colors"
-          >
-            下一页 →
-          </Link>
-        ) : (
-          <span className="px-4 py-2 text-sm font-medium text-[var(--muted)] border border-[var(--border-subtle)] rounded-md cursor-not-allowed opacity-50">
-            下一页 →
-          </span>
-        )}
-      </div>
+      <span className="text-sm text-[var(--muted)]">
+        共 {total} 篇 · 第 {currentPage} / {totalPages} 页
+      </span>
+
+      {hasNextPage ? (
+        <Link
+          href={buildPageUrl(currentPage + 1)}
+          className="px-4 py-2 text-sm font-medium text-[var(--foreground)] border border-[var(--border)] rounded-md hover:bg-[var(--accent-light)] hover:text-[var(--accent)] transition-colors"
+        >
+          下一页 →
+        </Link>
+      ) : (
+        <span className="px-4 py-2 text-sm font-medium text-[var(--muted)] border border-[var(--border-subtle)] rounded-md cursor-not-allowed opacity-50">
+          下一页 →
+        </span>
+      )}
     </div>
   )
 }
