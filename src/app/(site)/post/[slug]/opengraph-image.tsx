@@ -36,13 +36,40 @@ export default async function Image({ params }: Props) {
     >
       <div
         style={{
-          fontSize: 15,
-          color: '#999',
-          letterSpacing: '0.25em',
-          textTransform: 'uppercase',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
         }}
       >
-        AI-DIVE
+        <svg width="36" height="36" viewBox="0 0 512 512">
+          <rect width="512" height="512" rx="112" fill="#c96442" />
+          <path
+            d="M 88 174 L 418 108 L 192 408"
+            fill="none"
+            stroke="#ffffff"
+            strokeWidth="58"
+            strokeLinecap="round"
+          />
+          <line
+            x1="142"
+            y1="258"
+            x2="348"
+            y2="258"
+            stroke="#ffffff"
+            strokeWidth="42"
+            strokeLinecap="round"
+          />
+        </svg>
+        <span
+          style={{
+            fontSize: 22,
+            fontWeight: 700,
+            color: '#141413',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          AI-DIVE
+        </span>
       </div>
       <div>
         <div

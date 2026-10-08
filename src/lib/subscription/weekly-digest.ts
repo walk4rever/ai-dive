@@ -343,7 +343,20 @@ export function buildWeeklyDigestHtml({ data, summary, siteUrl, unsubscribeUrl }
       <table role="presentation" width="${CONTENT_WIDTH}" cellpadding="0" cellspacing="0" style="width:${CONTENT_WIDTH}px;max-width:100%;background:${COLOR.background};">
         <tr><td style="padding:44px ${SIDE_PAD}px 30px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
-            <td>${kicker('AI-DIVE 周刊')}</td>
+            <td>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="vertical-align:middle;padding-right:8px;line-height:0;">
+                    <a href="${esc(siteUrl)}" style="text-decoration:none;display:inline-block;">
+                      <img src="${esc(siteUrl)}/logo.png" width="18" height="18" alt="AI-DIVE" style="display:block;border:0;outline:none;border-radius:4px;" />
+                    </a>
+                  </td>
+                  <td style="vertical-align:middle;">
+                    ${kicker('AI-DIVE 周刊')}
+                  </td>
+                </tr>
+              </table>
+            </td>
             <td align="right" style="font-family:${SANS};font-size:13px;color:${COLOR.subtle};white-space:nowrap;">${esc(issueLabel)}</td>
           </tr></table>
           <h1 style="margin:2px 0 0;font-family:${SERIF};font-size:34px;font-weight:600;line-height:1.25;color:${COLOR.foreground};">本周 AI 信号与深度</h1>

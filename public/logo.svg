@@ -11,6 +11,7 @@
         stroke-linejoin="miter"
         stroke-miterlimit="10"/>
 
+  <!-- The "A" crossbar -->
   <line x1="142" y1="258" x2="348" y2="258"
         stroke="#ffffff"
         stroke-width="42"
