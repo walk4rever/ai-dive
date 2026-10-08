@@ -4,6 +4,10 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { resolveAuthor } from '@/lib/api-auth'
 import { getTodayYmd, parseYmd } from '@/lib/timezone'
 
+export const runtime = 'nodejs'
+export const maxDuration = 60
+export const preferredRegion = 'sin1'
+
 type SourceType = 'x' | 'github' | 'arxiv' | 'a16z' | 'techcrunch' | 'ithome' | 'yc' | 'web'
 
 function inferSourceType(url: string): SourceType {

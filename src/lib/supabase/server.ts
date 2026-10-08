@@ -2,6 +2,11 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { getSupabaseEnv } from './env'
 
+const fetchWithTimeout: typeof fetch = (input, init) => {
+  const signal = init?.signal ?? AbortSignal.timeout(15000)
+  return fetch(input, { ...init, signal })
+}
+
 export async function createClient() {
   const cookieStore = await cookies()
   const { url, anonKey, hasPublicEnv } = getSupabaseEnv()
@@ -25,6 +30,9 @@ export async function createClient() {
             cookieStore.set(name, value, options)
           )
         },
+      },
+      global: {
+        fetch: fetchWithTimeout,
       },
     }
   )
@@ -53,6 +61,9 @@ export async function createServiceClient() {
             cookieStore.set(name, value, options)
           )
         },
+      },
+      global: {
+        fetch: fetchWithTimeout,
       },
     }
   )
