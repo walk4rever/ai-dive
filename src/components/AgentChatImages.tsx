@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useState, type ClipboardEvent } from 'react'
 import type { ImageAttachment } from '@/hooks/useAgentChat'
 import { fileToImageAttachment, isSupportedImageFile } from '@/lib/downscale-image'
@@ -43,9 +44,12 @@ export function PendingImageChips({ images, onRemove }: PendingImageChipsProps) 
     <div className="flex gap-2 mb-2 flex-wrap">
       {images.map((img, i) => (
         <div key={i} className="relative flex-shrink-0" style={{ width: '48px', height: '48px' }}>
-          <img
+          <Image
             src={imageSrc(img)}
             alt=""
+            width={48}
+            height={48}
+            unoptimized
             className="w-full h-full object-cover"
             style={{ borderRadius: '8px', border: '1px solid var(--border)' }}
           />
@@ -88,10 +92,13 @@ export function MessageImages({ images = [], imageUrls = [], onOpen }: MessageIm
   return (
     <div className="flex gap-2 mb-2 flex-wrap justify-end">
       {sources.map((src, i) => (
-        <img
+        <Image
           key={i}
           src={src}
           alt=""
+          width={200}
+          height={120}
+          unoptimized
           onClick={() => onOpen(src)}
           className="cursor-zoom-in"
           style={{
