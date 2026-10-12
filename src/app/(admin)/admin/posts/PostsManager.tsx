@@ -5,9 +5,9 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { getTypeLabel } from '@/lib/content'
 import type { AdminPost } from '@/lib/admin/posts'
+import { matchesPostListStatus, type PostListStatusFilter } from '@/lib/admin/post-list-filter'
 import { Card } from '@/components/ui/Card'
 
-type StatusFilter = 'all' | 'draft' | 'published'
 type TypeFilter = 'all' | 'dive' | 'intel' | 'insight'
 /** 'all' shows everything the other filters allow; 'featured' and 'pending' are the
  *  quick filters the overview page's stat tiles link into (?filter=pending etc.) —
@@ -44,7 +44,7 @@ function PostsManagerInner({ initialPosts, sentStoryIds }: PostsManagerProps) {
 
   const [query, setQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [statusFilter, setStatusFilter] = useState<PostListStatusFilter>('all')
   const [quickFilter, setQuickFilter] = useState<QuickFilter>(initialQuick)
   const [page, setPage] = useState(1)
   const pageSize = 50
@@ -113,7 +113,7 @@ function PostsManagerInner({ initialPosts, sentStoryIds }: PostsManagerProps) {
     return posts.filter((post) => {
       if (q && !post.title.toLowerCase().includes(q) && !post.slug.toLowerCase().includes(q)) return false
       if (typeFilter !== 'all' && post.content_type !== typeFilter) return false
-      if (statusFilter !== 'all' && post.status !== statusFilter) return false
+      if (!matchesPostListStatus(post, statusFilter)) return false
       if (quickFilter === 'featured' && !post.featured) return false
       if (quickFilter === 'pending' && (post.status !== 'published' || sentIds.has(post.id))) return false
       return true
@@ -195,12 +195,13 @@ function PostsManagerInner({ initialPosts, sentStoryIds }: PostsManagerProps) {
         </select>
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+          onChange={(e) => setStatusFilter(e.target.value as PostListStatusFilter)}
           className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm outline-none focus:border-[var(--foreground)] transition"
         >
           <option value="all">全部状态</option>
           <option value="draft">草稿</option>
           <option value="published">发布</option>
+          <option value="featured">精选</option>
         </select>
         {quickFilter !== 'all' && (
           <span className="flex items-center gap-2 rounded-full px-3 py-2 text-xs kicker text-[var(--accent)] border border-[var(--accent)] border-opacity-40">
