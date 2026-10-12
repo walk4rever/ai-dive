@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 
 const inputClass =
-  'w-full border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-base rounded-xl outline-none focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(201,100,66,0.15)] transition placeholder:text-[var(--subtle)]'
+  'w-full border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-base rounded-xl outline-none focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(196,58,69,0.15)] transition placeholder:text-[var(--subtle)]'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
@@ -106,7 +106,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={status === 'loading'}
-              className="w-full bg-[var(--accent)] text-[#faf9f5] py-3 text-base font-medium rounded-xl hover:bg-[var(--accent-coral)] transition-colors disabled:opacity-50 shadow-[0_0_0_1px_var(--accent),0_4px_12px_rgba(201,100,66,0.2)]"
+              className="w-full bg-[var(--accent)] text-[#faf9f5] py-3 text-base font-medium rounded-xl hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50 shadow-[0_0_0_1px_var(--accent),0_4px_12px_rgba(196,58,69,0.2)]"
             >
               {status === 'loading' ? '处理中...' : '注册'}
             </button>

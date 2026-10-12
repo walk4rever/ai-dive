@@ -88,7 +88,7 @@ export function AgentChat({ initialMessages }: AgentChatProps = {}) {
                   }}
                   onMouseEnter={e => {
                     e.currentTarget.style.borderColor = 'var(--accent)'
-                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(201,100,66,0.07)'
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(196,58,69,0.07)'
                   }}
                   onMouseLeave={e => {
                     e.currentTarget.style.borderColor = 'var(--border)'
@@ -232,7 +232,7 @@ export function AgentChat({ initialMessages }: AgentChatProps = {}) {
             }}
             onFocus={e => {
               e.currentTarget.style.borderColor = 'var(--accent)'
-              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(201,100,66,0.1)'
+              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(196,58,69,0.1)'
             }}
             onBlur={e => {
               e.currentTarget.style.borderColor = 'var(--border)'

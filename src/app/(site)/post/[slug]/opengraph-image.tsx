@@ -42,7 +42,7 @@ export default async function Image({ params }: Props) {
         }}
       >
         <svg width="36" height="36" viewBox="0 0 512 512">
-          <rect width="512" height="512" rx="112" fill="#c96442" />
+          <rect width="512" height="512" rx="112" fill="#c43a45" />
           <path
             d="M 88 174 L 418 108 L 192 408"
             fill="none"

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- AI-DIVE Terracotta (#c96442) Squircle background -->
-  <rect width="512" height="512" rx="112" fill="#c96442"/>
+  <!-- AI-DIVE restrained Chinese red (#c43a45) squircle background -->
+  <rect width="512" height="512" rx="112" fill="#c43a45"/>
 
   <!-- Air7.fun "7 in flight" / "A" in Pure White -->
   <path d="M 88 174 L 418 108 L 192 408"

@@ -231,7 +231,7 @@ const COLOR = {
   foregroundSoft: '#3d3d3a',
   muted: '#5e5d59',
   subtle: '#87867f',
-  accent: '#c96442',
+  accent: '#c43a45',
   border: '#e8e6dc',
   borderSubtle: '#f0eee6',
 } as const

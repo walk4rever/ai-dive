@@ -29,7 +29,7 @@ export function ErrorContent({ error, reset }: ErrorContentProps) {
         <div className="mt-10 flex flex-wrap justify-center gap-4">
           <button
             onClick={reset}
-            className="inline-flex items-center bg-[var(--accent)] text-[#faf9f5] px-6 py-3 rounded-xl text-base font-medium hover:bg-[var(--accent-coral)] transition-colors shadow-[0_0_0_1px_var(--accent),0_4px_12px_rgba(201,100,66,0.2)]"
+            className="inline-flex items-center bg-[var(--accent)] text-[#faf9f5] px-6 py-3 rounded-xl text-base font-medium hover:bg-[var(--accent-hover)] transition-colors shadow-[0_0_0_1px_var(--accent),0_4px_12px_rgba(196,58,69,0.2)]"
           >
             重试
           </button>

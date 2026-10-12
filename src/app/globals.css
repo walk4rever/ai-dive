@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 /*
-  AI早知道 — Claude-inspired warm editorial
-  Core tokens follow DESIGN.md (Anthropic warm parchment + terracotta + serif).
+  AI早知道 — warm editorial
+  Core tokens follow DESIGN.md (warm parchment + restrained Chinese red + serif).
 */
 
 :root {
@@ -22,8 +22,10 @@
   --silver: #b0aea5;          /* Warm Silver (on dark) */
 
   /* Brand */
-  --accent: #c96442;          /* Terracotta — primary CTA */
-  --accent-coral: #d97757;    /* Coral — secondary emphasis */
+  --accent: #c43a45;          /* Restrained Chinese red — primary brand color */
+  --accent-hover: #a92e39;    /* Darker red — hover on light surfaces */
+  --accent-on-dark: #eb8b91;  /* Light red — text accents on dark surfaces */
+  --accent-light: #f8e9e9;    /* Pale red — soft tags and hover surfaces */
 
   /* Borders & rings */
   --border: #e8e6dc;          /* Border Warm */
@@ -90,7 +92,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::selection {
-  background: #f0d8c9;
+  background: var(--accent-light);
   color: var(--foreground);
 }
 
@@ -263,7 +265,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .prose [data-highlighted-line] {
-  background: rgba(201, 100, 66, 0.08);
+  background: rgba(196, 58, 69, 0.08);
   margin: 0 -1.5rem;
   padding: 0 1.5rem;
   display: block;
@@ -309,7 +311,7 @@ h1, h2, h3, h4, h5, h6 {
   text-underline-offset: 3px;
   text-decoration-thickness: 1px;
 }
-.prose a:hover { color: var(--accent-coral); }
+.prose a:hover { color: var(--accent-hover); }
 
 .prose img {
   max-width: 100%;
@@ -493,12 +495,12 @@ body:has(.agent-screen) footer {
 }
 
 .prose .callout-value {
-  background: rgba(201, 100, 66, 0.06);
+  background: rgba(196, 58, 69, 0.06);
   border-color: var(--accent);
 }
 .prose .callout-value .callout-label {
-  color: #7c2d12;
-  background: rgba(201, 100, 66, 0.15);
+  color: var(--accent-hover);
+  background: rgba(196, 58, 69, 0.15);
 }
 
 .prose .callout-inverse {

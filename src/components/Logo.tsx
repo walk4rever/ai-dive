@@ -8,7 +8,7 @@ interface LogoProps {
  * AI-DIVE logo mark
  *
  * Air7.fun unified brand "7 in flight / A" mark
- * Container: Terracotta (#c96442) Squircle (rx 112)
+ * Container: Restrained Chinese red (#c43a45) Squircle (rx 112)
  * Mark: Pure White (#ffffff) 7-in-flight path + A-crossbar
  */
 export function Logo({ size = 26, showWordmark = true, className = '' }: LogoProps) {
@@ -23,8 +23,8 @@ export function Logo({ size = 26, showWordmark = true, className = '' }: LogoPro
         aria-hidden="true"
         className="shrink-0"
       >
-        {/* Terracotta (#c96442) Squircle background */}
-        <rect width="512" height="512" rx="112" fill="#c96442" />
+        {/* Restrained Chinese red (#c43a45) squircle background */}
+        <rect width="512" height="512" rx="112" fill="#c43a45" />
 
         {/* Air7.fun "7 in flight" / "A" in Pure White */}
         <path

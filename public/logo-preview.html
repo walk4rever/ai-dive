@@ -1,564 +1,565 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>AI-DIVE Logo 方案设计与场景对比预览</title>
-<style>
-  :root {
-    --bg-parchment: #f5f4ed;
-    --bg-ivory: #faf9f5;
-    --text-primary: #141413;
-    --text-secondary: #5e5d59;
-    --text-subtle: #87867f;
-    --border-warm: #e8e6dc;
-    --border-subtle: #f0eee6;
-    --accent-terracotta: #c96442;
-    --accent-coral: #d97757;
-    --near-black: #141413;
-    --apple-blue: #0071e3;
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <title>AI-DIVE 品牌红色预览</title>
+  <style>
+    :root {
+      --canvas: #f5f4ed;
+      --paper: #faf9f5;
+      --ink: #141413;
+      --body: #4d4c48;
+      --muted: #6d6b65;
+      --line: #e8e6dc;
+      --line-soft: #f0eee6;
+      --radius: 18px;
+    }
 
-  * { box-sizing: border-box; }
+    * { box-sizing: border-box; }
 
-  body {
-    margin: 0;
-    padding: 32px 24px 80px;
-    font-family: -apple-system, BlinkMacSystemFont, "Noto Sans SC", "PingFang SC", system-ui, sans-serif;
-    background: var(--bg-parchment);
-    color: var(--text-primary);
-    line-height: 1.5;
-  }
+    body {
+      margin: 0;
+      padding: 44px 28px 64px;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans SC", "PingFang SC", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
 
-  .container {
-    max-width: 1040px;
-    margin: 0 auto;
-  }
+    .page { width: min(1320px, 100%); margin: 0 auto; }
 
-  header.intro {
-    margin-bottom: 36px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--border-warm);
-  }
+    .intro {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 32px;
+      padding-bottom: 26px;
+      border-bottom: 1px solid var(--line);
+    }
 
-  h1 {
-    font-family: "Noto Serif SC", "Source Han Serif SC", Georgia, serif;
-    font-size: 28px;
-    font-weight: 600;
-    margin: 0 0 8px;
-    letter-spacing: -0.02em;
-  }
+    .eyebrow {
+      margin: 0 0 12px;
+      color: #77756e;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
 
-  .intro p {
-    color: var(--text-secondary);
-    font-size: 14px;
-    margin: 0;
-  }
+    h1 {
+      margin: 0;
+      font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", Georgia, serif;
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 500;
+      line-height: 1.2;
+    }
 
-  .section-title {
-    font-size: 16px;
-    font-weight: 600;
-    margin: 32px 0 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+    .intro-copy {
+      max-width: 430px;
+      margin: 0;
+      color: var(--body);
+      font-size: 15px;
+      line-height: 1.75;
+    }
 
-  .section-title .tag {
-    font-size: 11px;
-    font-weight: 500;
-    padding: 2px 8px;
-    border-radius: 999px;
-    background: var(--border-warm);
-    color: var(--text-secondary);
-  }
+    .assumption {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0 28px;
+      padding: 12px 15px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(250, 249, 245, .72);
+      color: var(--body);
+      font-size: 13px;
+      line-height: 1.5;
+    }
 
-  .card {
-    background: var(--bg-ivory);
-    border: 1px solid var(--border-warm);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-  }
+    .assumption strong { color: var(--ink); font-weight: 600; }
 
-  .grid-2 {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  @media (min-width: 768px) {
-    .grid-2 { grid-template-columns: 1fr 1fr; }
-  }
+    .approved-dot {
+      flex: 0 0 auto;
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      background: #c43a45;
+      box-shadow: inset 0 0 0 1px rgba(20, 20, 19, .08);
+    }
 
-  /* Nav Simulation */
-  .nav-sim {
-    background: var(--bg-ivory);
-    border: 1px solid var(--border-warm);
-    border-radius: 12px;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-  }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      align-items: stretch;
+    }
 
-  .brand-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-decoration: none;
-    color: var(--text-primary);
-  }
+    .option {
+      --accent: #c43a45;
+      --accent-hover: #a92e39;
+      --tint: #f8e9e9;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: 0 8px 26px rgba(20, 20, 19, .035);
+    }
 
-  .wordmark {
-    font-family: "Noto Serif SC", "Source Han Serif SC", Georgia, serif;
-    font-weight: 600;
-    font-size: 19px;
-    letter-spacing: -0.02em;
-    line-height: 1;
-  }
+    .option.wine {
+      --accent: #842b3a;
+      --accent-hover: #702331;
+      --tint: #f1e5e7;
+    }
 
-  .nav-links {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    font-size: 13.5px;
-    color: #4d4c48;
-  }
-  .nav-links .active {
-    color: var(--text-primary);
-    font-weight: 600;
-  }
-  .nav-links .divider {
-    color: var(--border-warm);
-    user-select: none;
-  }
+    .option.bright {
+      --accent: #d9363e;
+      --accent-hover: #bd2932;
+      --tint: #fbe8e8;
+    }
 
-  .nav-user {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--accent-terracotta);
-    padding: 4px 12px;
-    border: 1px solid var(--border-warm);
-    border-radius: 8px;
-    background: var(--bg-parchment);
-  }
+    .option-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 21px 21px 17px;
+      border-bottom: 1px solid var(--line-soft);
+    }
 
-  /* Multi-scale swatch */
-  .scale-row {
-    display: flex;
-    align-items: flex-end;
-    gap: 32px;
-    flex-wrap: wrap;
-    padding: 20px 0;
-  }
+    .option-number {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .08em;
+    }
 
-  .scale-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-  }
-  .scale-item span {
-    font-size: 11px;
-    font-mono: true;
-    color: var(--text-subtle);
-  }
+    .option h2 {
+      margin: 0;
+      font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", Georgia, serif;
+      font-size: 21px;
+      font-weight: 500;
+    }
 
-  /* Browser tab sim */
-  .browser-bar {
-    border-radius: 10px;
-    padding: 10px 14px 0;
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-  .browser-bar.light {
-    background: #e2e2e7;
-  }
-  .browser-bar.dark {
-    background: #202124;
-  }
+    .recommend {
+      flex: 0 0 auto;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: var(--tint);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+    }
 
-  .tab {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
-    border-radius: 8px 8px 0 0;
-    font-size: 12px;
-    max-width: 220px;
-  }
-  .browser-bar.light .tab {
-    background: #ffffff;
-    color: #1f1f1f;
-  }
-  .browser-bar.dark .tab {
-    background: #323639;
-    color: #f1f3f4;
-  }
+    .hex {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+    }
 
-  /* Email header simulation */
-  .email-box {
-    max-width: 520px;
-    margin: 0 auto;
-    background: #ffffff;
-    border: 1px solid #e5e5e7;
-    border-radius: 12px;
-    padding: 24px 28px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-  }
+    .swatch {
+      width: 13px;
+      height: 13px;
+      border-radius: 4px;
+      background: var(--accent);
+    }
 
-  .badge-rec {
-    display: inline-block;
-    background: #fbf0ec;
-    color: var(--accent-terracotta);
-    border: 1px solid rgba(201,100,66,0.25);
-    font-size: 11px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 6px;
-    margin-left: 8px;
-  }
-</style>
+    .site-preview {
+      flex: 1;
+      padding: 16px 17px 18px;
+    }
+
+    .mock-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 38px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex: 0 0 auto;
+    }
+
+    .brand svg { display: block; width: 26px; height: 26px; }
+
+    .wordmark {
+      font-family: "Noto Serif SC", "Source Han Serif SC", Georgia, serif;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: .01em;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: clamp(7px, 1.2vw, 14px);
+      color: #55534e;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .nav-links .active { color: var(--accent); font-weight: 600; }
+
+    .subscribe {
+      flex: 0 0 auto;
+      padding: 6px 9px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #f5f4ed;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .article {
+      padding: 26px 3px 22px;
+    }
+
+    .category {
+      margin: 0 0 11px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .04em;
+    }
+
+    .article h3 {
+      max-width: 360px;
+      margin: 0;
+      font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", Georgia, serif;
+      font-size: clamp(20px, 2vw, 24px);
+      font-weight: 500;
+      line-height: 1.42;
+      text-wrap: pretty;
+    }
+
+    .summary {
+      margin: 12px 0 0;
+      color: var(--body);
+      font-size: 13px;
+      line-height: 1.75;
+    }
+
+    .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: 15px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .meta-rule { width: 18px; height: 1px; background: var(--line); }
+
+    .preview-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line-soft);
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      padding: 0 14px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .button:hover { background: var(--accent-hover); }
+
+    .text-link {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .option-foot {
+      padding: 15px 20px 18px;
+      border-top: 1px solid var(--line-soft);
+      background: rgba(245, 244, 237, .48);
+    }
+
+    .description {
+      min-height: 44px;
+      margin: 0;
+      color: var(--body);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .palette {
+      display: flex;
+      gap: 7px;
+      margin-top: 13px;
+    }
+
+    .palette-chip {
+      flex: 1;
+      min-width: 0;
+      height: 24px;
+      border-radius: 5px;
+      background: var(--accent);
+    }
+
+    .palette-chip.hover { background: var(--accent-hover); }
+    .palette-chip.tint { background: var(--tint); border: 1px solid rgba(20, 20, 19, .04); }
+    .palette-chip.paper { background: var(--paper); border: 1px solid var(--line); }
+    .palette-chip.ink { background: var(--ink); }
+
+    .scale-check {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 13px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .scale-icons { display: flex; align-items: center; gap: 8px; }
+    .scale-icons svg { display: block; }
+
+    .endnote {
+      margin: 19px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 1000px) {
+      .options { grid-template-columns: 1fr; max-width: 680px; margin: 0 auto; }
+      .site-preview { padding-right: 22px; padding-left: 22px; }
+      .article h3 { max-width: 520px; }
+      .description { min-height: auto; }
+    }
+
+    @media (max-width: 620px) {
+      body { padding: 29px 16px 44px; }
+      .intro { display: block; }
+      .intro-copy { margin-top: 14px; font-size: 14px; }
+      .assumption { align-items: flex-start; }
+      .nav-links { gap: 8px; font-size: 11px; }
+      .wordmark { font-size: 15px; }
+      .brand { gap: 5px; }
+      .brand svg { width: 24px; height: 24px; }
+      .mock-nav { gap: 7px; }
+    }
+
+    @media (max-width: 390px) {
+      .nav-links { gap: 6px; font-size: 10px; }
+      .subscribe { padding: 5px 7px; }
+    }
+  </style>
 </head>
 <body>
-
-<div class="container">
-  <header class="intro">
-    <h1>AI-DIVE 统一 Logo 视觉方案对比</h1>
-    <p>传承 Air7.fun 家族“7 in flight / A”起飞折线构型，对比方案 B2（陶土红专属色）与方案 B1（近炭黑出版物风）在各真实场景的视觉表现。</p>
-  </header>
-
-  <!-- 1. 真实导航栏对比 -->
-  <div class="section-title">
-    <span>1. 真实导航条环境模拟（Navbar Simulation）</span>
-    <span class="tag">高度 26px 微标 + 衬线字标</span>
-  </div>
-
-  <div class="grid-2">
-    <!-- B2 方案 -->
-    <div>
-      <div style="margin-bottom: 8px; font-weight: 600; font-size: 14px; display: flex; align-items: center;">
-        <span>官方 Logo：Terracotta 陶土红（#c96442）</span>
-        <span class="badge-rec">✓ 已采纳 · 统一品牌标</span>
+  <main class="page">
+    <header class="intro">
+      <div>
+        <p class="eyebrow">AI-DIVE · Brand color study</p>
+        <h1>把品牌红放进真实页面里看</h1>
       </div>
-      <div class="nav-sim">
-        <div class="brand-group">
-          <!-- B2 Mark -->
-          <svg width="26" height="26" viewBox="0 0 512 512" fill="none">
-            <rect width="512" height="512" rx="112" fill="#c96442"/>
-            <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="10"/>
-            <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-          </svg>
-          <span class="wordmark">AI-DIVE</span>
-        </div>
-        <div class="nav-links">
-          <span class="active">情报</span>
-          <span>深度</span>
-          <span>洞见</span>
-          <span class="divider">｜</span>
-          <span>专题</span>
-          <span>探索</span>
-          <span>出品</span>
-        </div>
-        <div class="nav-user">订阅</div>
-      </div>
-      <div style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.6;">
-        <strong>特点：</strong>与右侧「订阅」按钮及正文 Kicker 标签形成同色系闭环，具有极高辨识度与温度感。
-      </div>
-    </div>
-
-    <!-- B1 方案 -->
-    <div>
-      <div style="margin-bottom: 8px; font-weight: 600; font-size: 14px;">
-        方案 B1：Anthropic Near Black 近炭黑（#141413）
-      </div>
-      <div class="nav-sim">
-        <div class="brand-group">
-          <!-- B1 Mark -->
-          <svg width="26" height="26" viewBox="0 0 512 512" fill="none">
-            <rect width="512" height="512" rx="112" fill="#141413"/>
-            <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#faf9f5" stroke-width="58" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="10"/>
-            <line x1="142" y1="258" x2="348" y2="258" stroke="#faf9f5" stroke-width="42" stroke-linecap="round"/>
-          </svg>
-          <span class="wordmark">AI-DIVE</span>
-        </div>
-        <div class="nav-links">
-          <span class="active">情报</span>
-          <span>深度</span>
-          <span>洞见</span>
-          <span class="divider">｜</span>
-          <span>专题</span>
-          <span>探索</span>
-          <span>出品</span>
-        </div>
-        <div class="nav-user">订阅</div>
-      </div>
-      <div style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.6;">
-        <strong>特点：</strong>与字标融为纯黑系经典出版物风格，克制沉稳，绝不喧宾夺主。
-      </div>
-    </div>
-  </div>
-
-  <!-- 参考对照：现有旧“早”标 vs Air7 Apple Blue -->
-  <div class="card" style="margin-top: 16px; padding: 16px 20px;">
-    <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px;">参考对照组（现状与姊妹站）：</div>
-    <div style="display: flex; gap: 32px; flex-wrap: wrap; align-items: center;">
-      <!-- 旧版早字标 -->
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
-          <rect width="32" height="32" rx="7" fill="#1E1E1A" />
-          <rect x="7" y="5" width="18" height="11" rx="1" stroke="#F5F4F0" stroke-width="2" />
-          <line x1="7" y1="10.5" x2="25" y2="10.5" stroke="#F5F4F0" stroke-width="2" />
-          <line x1="4" y1="20" x2="28" y2="20" stroke="#F5F4F0" stroke-width="2" />
-          <line x1="16" y1="20" x2="16" y2="27" stroke="#F5F4F0" stroke-width="2" stroke-linecap="round" />
-        </svg>
-        <span style="font-size: 13px; color: var(--text-subtle);">当前旧标（早期“早”字抽象，细线在小尺寸辨识弱）</span>
-      </div>
-      <!-- Buffett-Tribe 蓝标 -->
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <svg width="26" height="26" viewBox="0 0 512 512" fill="none">
-          <rect width="512" height="512" rx="112" fill="#0071e3"/>
-          <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="10"/>
-          <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-        </svg>
-        <span style="font-size: 13px; color: var(--text-subtle);">Buffett-Tribe 标（Air7 Apple Blue #0071e3，投资科技风）</span>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- 2. 浏览器标签页 Favicon 穿透力测试 -->
-  <div class="section-title">
-    <span>2. 浏览器标签页 Favicon 辨识度测试（16px / 20px）</span>
-    <span class="tag">高对比度环境验证</span>
-  </div>
-
-  <div class="grid-2">
-    <!-- 浅色浏览器环境 -->
-    <div class="card" style="margin-bottom: 0;">
-      <div style="font-size: 13px; font-weight: 600; margin-bottom: 12px;">Light Mode 浏览器 Tab 栏</div>
-      <div class="browser-bar light">
-        <!-- B2 Tab -->
-        <div class="tab">
-          <svg width="16" height="16" viewBox="0 0 512 512" style="flex-shrink:0;">
-            <rect width="512" height="512" rx="112" fill="#c96442"/>
-            <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round" stroke-linejoin="miter"/>
-            <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-          </svg>
-          <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">AI-DIVE (B2 陶土红)</span>
-        </div>
-        <!-- B1 Tab -->
-        <div class="tab" style="background: rgba(255,255,255,0.6);">
-          <svg width="16" height="16" viewBox="0 0 512 512" style="flex-shrink:0;">
-            <rect width="512" height="512" rx="112" fill="#141413"/>
-            <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round" stroke-linejoin="miter"/>
-            <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-          </svg>
-          <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">AI-DIVE (B1 炭黑)</span>
-        </div>
-      </div>
-      <div style="font-size: 12px; color: var(--text-subtle);">
-        测试结果：两者在浅色背景下都具有极强的视觉焦点，陶土红的色相特征更独特。
-      </div>
-    </div>
-
-    <!-- 深色浏览器环境 -->
-    <div class="card" style="margin-bottom: 0;">
-      <div style="font-size: 13px; font-weight: 600; margin-bottom: 12px;">Dark Mode 浏览器 Tab 栏</div>
-      <div class="browser-bar dark">
-        <!-- B2 Tab -->
-        <div class="tab">
-          <svg width="16" height="16" viewBox="0 0 512 512" style="flex-shrink:0;">
-            <rect width="512" height="512" rx="112" fill="#c96442"/>
-            <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round" stroke-linejoin="miter"/>
-            <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-          </svg>
-          <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">AI-DIVE (B2 陶土红)</span>
-        </div>
-        <!-- B1 Tab -->
-        <div class="tab" style="background: rgba(255,255,255,0.08);">
-          <svg width="16" height="16" viewBox="0 0 512 512" style="flex-shrink:0;">
-            <rect width="512" height="512" rx="112" fill="#141413"/>
-            <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#faf9f5" stroke-width="58" stroke-linecap="round" stroke-linejoin="miter"/>
-            <line x1="142" y1="258" x2="348" y2="258" stroke="#faf9f5" stroke-width="42" stroke-linecap="round"/>
-          </svg>
-          <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">AI-DIVE (B1 炭黑)</span>
-        </div>
-      </div>
-      <div style="font-size: 12px; color: var(--text-subtle);">
-        测试结果：深色背景下，陶土红的色块辨识度明显胜过黑色底标（深色 Tab 上黑底容易被同化）。
-      </div>
-    </div>
-  </div>
-
-
-  <!-- 3. 多尺寸阶梯渲染测试 -->
-  <div class="section-title">
-    <span>3. 多尺度梯度渲染（16px ~ 128px）</span>
-    <span class="tag">检查微小尺寸下的起飞折线清晰度</span>
-  </div>
-
-  <div class="card">
-    <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px; color: var(--accent-terracotta);">
-      B2 方案（Terracotta 陶土红 #c96442）多尺寸表现：
-    </div>
-    <div class="scale-row">
-      <div class="scale-item">
-        <svg width="16" height="16" viewBox="0 0 512 512">
-          <rect width="512" height="512" rx="112" fill="#c96442"/>
-          <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round"/>
-          <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-        </svg>
-        <span>16px (Tab)</span>
-      </div>
-
-      <div class="scale-item">
-        <svg width="24" height="24" viewBox="0 0 512 512">
-          <rect width="512" height="512" rx="112" fill="#c96442"/>
-          <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round"/>
-          <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-        </svg>
-        <span>24px (Nav)</span>
-      </div>
-
-      <div class="scale-item">
-        <svg width="32" height="32" viewBox="0 0 512 512">
-          <rect width="512" height="512" rx="112" fill="#c96442"/>
-          <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round"/>
-          <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-        </svg>
-        <span>32px (Icon)</span>
-      </div>
-
-      <div class="scale-item">
-        <svg width="48" height="48" viewBox="0 0 512 512">
-          <rect width="512" height="512" rx="112" fill="#c96442"/>
-          <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round"/>
-          <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-        </svg>
-        <span>48px</span>
-      </div>
-
-      <div class="scale-item">
-        <svg width="64" height="64" viewBox="0 0 512 512">
-          <rect width="512" height="512" rx="112" fill="#c96442"/>
-          <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round"/>
-          <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-        </svg>
-        <span>64px</span>
-      </div>
-
-      <div class="scale-item">
-        <svg width="108" height="108" viewBox="0 0 512 512">
-          <rect width="512" height="512" rx="112" fill="#c96442"/>
-          <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round"/>
-          <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-        </svg>
-        <span>108px (App Icon)</span>
-      </div>
-    </div>
-
-    <div style="border-top: 1px dashed var(--border-warm); margin: 20px 0 16px;"></div>
-
-    <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px; color: var(--near-black);">
-      B1 方案（Anthropic Near Black 近炭黑 #141413）多尺寸表现：
-    </div>
-    <div class="scale-row">
-      <div class="scale-item">
-        <svg width="16" height="16" viewBox="0 0 512 512">
-          <rect width="512" height="512" rx="112" fill="#141413"/>
-          <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round"/>
-          <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-        </svg>
-        <span>16px (Tab)</span>
-      </div>
-
-      <div class="scale-item">
-        <svg width="24" height="24" viewBox="0 0 512 512">
-          <rect width="512" height="512" rx="112" fill="#141413"/>
-          <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round"/>
-          <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-        </svg>
-        <span>24px (Nav)</span>
-      </div>
-
-      <div class="scale-item">
-        <svg width="32" height="32" viewBox="0 0 512 512">
-          <rect width="512" height="512" rx="112" fill="#141413"/>
-          <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round"/>
-          <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-        </svg>
-        <span>32px (Icon)</span>
-      </div>
-
-      <div class="scale-item">
-        <svg width="48" height="48" viewBox="0 0 512 512">
-          <rect width="512" height="512" rx="112" fill="#141413"/>
-          <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round"/>
-          <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-        </svg>
-        <span>48px</span>
-      </div>
-
-      <div class="scale-item">
-        <svg width="64" height="64" viewBox="0 0 512 512">
-          <rect width="512" height="512" rx="112" fill="#141413"/>
-          <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round"/>
-          <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-        </svg>
-        <span>64px</span>
-      </div>
-
-      <div class="scale-item">
-        <svg width="108" height="108" viewBox="0 0 512 512">
-          <rect width="512" height="512" rx="112" fill="#141413"/>
-          <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round"/>
-          <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-        </svg>
-        <span>108px (App Icon)</span>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- 4. 邮件模版场景模拟 -->
-  <div class="section-title">
-    <span>4. 订阅更新邮件头部效果模拟（Email Template Simulation）</span>
-    <span class="tag">标准白底邮件客户端场景</span>
-  </div>
-
-  <div class="card" style="background: var(--bg-parchment);">
-    <div class="email-box">
-      <!-- 邮件头 -->
-      <div style="border-bottom: 1px solid #f0f0f2; padding-bottom: 16px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <!-- Email Logo (选用 B2 陶土红) -->
-          <svg width="22" height="22" viewBox="0 0 512 512">
-            <rect width="512" height="512" rx="112" fill="#c96442"/>
-            <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round"/>
-            <line x1="142" y1="258" x2="348" y2="258" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-          </svg>
-          <span style="font-family: 'Noto Serif SC', Georgia, serif; font-weight: 600; font-size: 16px; color: #141413;">AI-DIVE</span>
-        </div>
-        <span style="font-size: 11px; color: #8e8e93; font-family: monospace;">WEEKLY DIGEST</span>
-      </div>
-
-      <h2 style="font-family: 'Noto Serif SC', Georgia, serif; font-size: 20px; font-weight: 600; margin: 0 0 12px; color: #141413; line-height: 1.35;">
-        超越提示词工程：从 Harness 视角理解现代 Agent 系统架构
-      </h2>
-      <p style="font-size: 14px; line-height: 1.7; color: #48484a; margin: 0 0 20px;">
-        不是追逐所有 AI 热点，而是解释真正重要的架构演进。本期精选我们拆解了评估驱动开发（EDD）的核心思想...
+      <p class="intro-copy">
+        保留现有的暖白底色、衬线标题和 Logo 图形，只替换主强调色。
+        下方按同一套导航与文章内容对比三种红色。
       </p>
-      <a href="#" style="display: inline-block; background: #c96442; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 13.5px; font-weight: 500;">
-        阅读全文 →
-      </a>
+    </header>
+
+    <div class="assumption">
+      <span class="approved-dot" aria-hidden="true"></span>
+      <span><strong>已选方案</strong>　克制中国红 <code>#C43A45</code>，用于 Logo 与品牌重点；悬停和浅底状态使用配套红色。</span>
     </div>
-  </div>
 
-</div>
+    <section class="options" aria-label="三种品牌红对比">
+      <article class="option china">
+        <header class="option-head">
+          <div>
+            <span class="option-number">方向 01 · 推荐</span>
+            <h2>克制中国红</h2>
+            <div class="hex"><span class="swatch"></span>#C43A45</div>
+          </div>
+          <span class="recommend">首选</span>
+        </header>
+        <div class="site-preview">
+          <div class="mock-nav">
+            <div class="brand">
+              <svg viewBox="0 0 512 512" fill="none" aria-hidden="true">
+                <rect width="512" height="512" rx="112" fill="var(--accent)"/>
+                <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#fff" stroke-width="58" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="10"/>
+                <line x1="142" y1="258" x2="348" y2="258" stroke="#fff" stroke-width="42" stroke-linecap="round"/>
+              </svg>
+              <span class="wordmark">AI-DIVE</span>
+            </div>
+            <nav class="nav-links" aria-label="预览导航">
+              <span class="active">情报</span><span>深度</span><span>洞见</span>
+            </nav>
+            <span class="subscribe">订阅</span>
+          </div>
+          <div class="article">
+            <p class="category">深度研究 · Agent 工程</p>
+            <h3>真正重要的 AI 变化，值得看得更深</h3>
+            <p class="summary">每周精选技术演进与架构实践，解释变化背后的原因，以及它对工程师意味着什么。</p>
+            <div class="article-meta"><span>AI-DIVE 编辑部</span><span class="meta-rule"></span><span>每周更新</span></div>
+          </div>
+          <div class="preview-actions">
+            <span class="button">阅读本期</span>
+            <span class="text-link">查看全部专题 →</span>
+          </div>
+        </div>
+        <footer class="option-foot">
+          <p class="description">红里带一点暖，辨识度够，但不会压过文章。和现有米白底、衬线标题衔接最自然。</p>
+          <div class="palette" aria-label="配色样本">
+            <span class="palette-chip" title="主色"></span>
+            <span class="palette-chip hover" title="悬停色"></span>
+            <span class="palette-chip tint" title="浅底色"></span>
+            <span class="palette-chip paper" title="暖白底"></span>
+            <span class="palette-chip ink" title="正文色"></span>
+          </div>
+          <div class="scale-check">
+            <span>小尺寸 Logo</span>
+            <span class="scale-icons" aria-label="16、24、32 像素">
+              <svg width="16" height="16" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="var(--accent)"/><path d="M88 174 418 108 192 408" fill="none" stroke="#fff" stroke-width="58" stroke-linecap="round"/><line x1="142" y1="258" x2="348" y2="258" stroke="#fff" stroke-width="42" stroke-linecap="round"/></svg>
+              <svg width="24" height="24" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="var(--accent)"/><path d="M88 174 418 108 192 408" fill="none" stroke="#fff" stroke-width="58" stroke-linecap="round"/><line x1="142" y1="258" x2="348" y2="258" stroke="#fff" stroke-width="42" stroke-linecap="round"/></svg>
+              <svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="var(--accent)"/><path d="M88 174 418 108 192 408" fill="none" stroke="#fff" stroke-width="58" stroke-linecap="round"/><line x1="142" y1="258" x2="348" y2="258" stroke="#fff" stroke-width="42" stroke-linecap="round"/></svg>
+            </span>
+          </div>
+        </footer>
+      </article>
 
+      <article class="option wine">
+        <header class="option-head">
+          <div>
+            <span class="option-number">方向 02 · 沉稳</span>
+            <h2>深酒红</h2>
+            <div class="hex"><span class="swatch"></span>#842B3A</div>
+          </div>
+        </header>
+        <div class="site-preview">
+          <div class="mock-nav">
+            <div class="brand">
+              <svg viewBox="0 0 512 512" fill="none" aria-hidden="true">
+                <rect width="512" height="512" rx="112" fill="var(--accent)"/>
+                <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#fff" stroke-width="58" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="10"/>
+                <line x1="142" y1="258" x2="348" y2="258" stroke="#fff" stroke-width="42" stroke-linecap="round"/>
+              </svg>
+              <span class="wordmark">AI-DIVE</span>
+            </div>
+            <nav class="nav-links" aria-label="预览导航">
+              <span class="active">情报</span><span>深度</span><span>洞见</span>
+            </nav>
+            <span class="subscribe">订阅</span>
+          </div>
+          <div class="article">
+            <p class="category">深度研究 · Agent 工程</p>
+            <h3>真正重要的 AI 变化，值得看得更深</h3>
+            <p class="summary">每周精选技术演进与架构实践，解释变化背后的原因，以及它对工程师意味着什么。</p>
+            <div class="article-meta"><span>AI-DIVE 编辑部</span><span class="meta-rule"></span><span>每周更新</span></div>
+          </div>
+          <div class="preview-actions">
+            <span class="button">阅读本期</span>
+            <span class="text-link">查看全部专题 →</span>
+          </div>
+        </div>
+        <footer class="option-foot">
+          <p class="description">成熟、安静，像一本长期刊物。Logo 很稳，但整体会更偏严肃出版，活力也相对收敛。</p>
+          <div class="palette" aria-label="配色样本">
+            <span class="palette-chip" title="主色"></span>
+            <span class="palette-chip hover" title="悬停色"></span>
+            <span class="palette-chip tint" title="浅底色"></span>
+            <span class="palette-chip paper" title="暖白底"></span>
+            <span class="palette-chip ink" title="正文色"></span>
+          </div>
+          <div class="scale-check">
+            <span>小尺寸 Logo</span>
+            <span class="scale-icons" aria-label="16、24、32 像素">
+              <svg width="16" height="16" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="var(--accent)"/><path d="M88 174 418 108 192 408" fill="none" stroke="#fff" stroke-width="58" stroke-linecap="round"/><line x1="142" y1="258" x2="348" y2="258" stroke="#fff" stroke-width="42" stroke-linecap="round"/></svg>
+              <svg width="24" height="24" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="var(--accent)"/><path d="M88 174 418 108 192 408" fill="none" stroke="#fff" stroke-width="58" stroke-linecap="round"/><line x1="142" y1="258" x2="348" y2="258" stroke="#fff" stroke-width="42" stroke-linecap="round"/></svg>
+              <svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="var(--accent)"/><path d="M88 174 418 108 192 408" fill="none" stroke="#fff" stroke-width="58" stroke-linecap="round"/><line x1="142" y1="258" x2="348" y2="258" stroke="#fff" stroke-width="42" stroke-linecap="round"/></svg>
+            </span>
+          </div>
+        </footer>
+      </article>
+
+      <article class="option bright">
+        <header class="option-head">
+          <div>
+            <span class="option-number">方向 03 · 明快</span>
+            <h2>亮朱红</h2>
+            <div class="hex"><span class="swatch"></span>#D9363E</div>
+          </div>
+        </header>
+        <div class="site-preview">
+          <div class="mock-nav">
+            <div class="brand">
+              <svg viewBox="0 0 512 512" fill="none" aria-hidden="true">
+                <rect width="512" height="512" rx="112" fill="var(--accent)"/>
+                <path d="M 88 174 L 418 108 L 192 408" fill="none" stroke="#fff" stroke-width="58" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="10"/>
+                <line x1="142" y1="258" x2="348" y2="258" stroke="#fff" stroke-width="42" stroke-linecap="round"/>
+              </svg>
+              <span class="wordmark">AI-DIVE</span>
+            </div>
+            <nav class="nav-links" aria-label="预览导航">
+              <span class="active">情报</span><span>深度</span><span>洞见</span>
+            </nav>
+            <span class="subscribe">订阅</span>
+          </div>
+          <div class="article">
+            <p class="category">深度研究 · Agent 工程</p>
+            <h3>真正重要的 AI 变化，值得看得更深</h3>
+            <p class="summary">每周精选技术演进与架构实践，解释变化背后的原因，以及它对工程师意味着什么。</p>
+            <div class="article-meta"><span>AI-DIVE 编辑部</span><span class="meta-rule"></span><span>每周更新</span></div>
+          </div>
+          <div class="preview-actions">
+            <span class="button">阅读本期</span>
+            <span class="text-link">查看全部专题 →</span>
+          </div>
+        </div>
+        <footer class="option-foot">
+          <p class="description">最醒目、最有数字产品感。适合突出活动与订阅，但页面里出现频率高时会更抢眼。</p>
+          <div class="palette" aria-label="配色样本">
+            <span class="palette-chip" title="主色"></span>
+            <span class="palette-chip hover" title="悬停色"></span>
+            <span class="palette-chip tint" title="浅底色"></span>
+            <span class="palette-chip paper" title="暖白底"></span>
+            <span class="palette-chip ink" title="正文色"></span>
+          </div>
+          <div class="scale-check">
+            <span>小尺寸 Logo</span>
+            <span class="scale-icons" aria-label="16、24、32 像素">
+              <svg width="16" height="16" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="var(--accent)"/><path d="M88 174 418 108 192 408" fill="none" stroke="#fff" stroke-width="58" stroke-linecap="round"/><line x1="142" y1="258" x2="348" y2="258" stroke="#fff" stroke-width="42" stroke-linecap="round"/></svg>
+              <svg width="24" height="24" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="var(--accent)"/><path d="M88 174 418 108 192 408" fill="none" stroke="#fff" stroke-width="58" stroke-linecap="round"/><line x1="142" y1="258" x2="348" y2="258" stroke="#fff" stroke-width="42" stroke-linecap="round"/></svg>
+              <svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="var(--accent)"/><path d="M88 174 418 108 192 408" fill="none" stroke="#fff" stroke-width="58" stroke-linecap="round"/><line x1="142" y1="258" x2="348" y2="258" stroke="#fff" stroke-width="42" stroke-linecap="round"/></svg>
+            </span>
+          </div>
+        </footer>
+      </article>
+    </section>
+
+    <p class="endnote">
+      页面展示已选方案及另外两种备选色的视觉对比；实际站点主题以已选的克制中国红为准。
+    </p>
+  </main>
 </body>
 </html>

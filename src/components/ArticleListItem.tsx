@@ -95,7 +95,7 @@ export function ArticleListItem({
         {(sourceLabel || showType) && (
           <div className="flex items-center gap-3 shrink-0 pt-1">
             {sourceLabel && (
-              <span className="text-[0.65rem] font-medium tracking-wide text-[var(--accent)] bg-[var(--accent-light)] border border-[rgba(201,100,66,0.15)] px-2 py-0.5 rounded-full">
+              <span className="text-[0.65rem] font-medium tracking-wide text-[var(--accent)] bg-[var(--accent-light)] border border-[rgba(196,58,69,0.15)] px-2 py-0.5 rounded-full">
                 {sourceLabel}
               </span>
             )}

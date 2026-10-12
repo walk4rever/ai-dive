@@ -116,7 +116,7 @@ function SeriesCard({ item }: { item: SeriesItem }) {
       className="group flex flex-col gap-2 bg-white/5 hover:bg-white/10 transition-colors rounded-2xl p-6 border border-white/10"
     >
       <div className="flex items-start justify-between gap-4">
-        <h3 className="font-serif text-lg font-medium text-[#faf9f5] leading-snug group-hover:text-[var(--accent-coral)] transition-colors">
+        <h3 className="font-serif text-lg font-medium text-[#faf9f5] leading-snug group-hover:text-[var(--accent-on-dark)] transition-colors">
           {item.name}
         </h3>
         <span className="shrink-0 text-xs text-[#b0aea5] mt-1">{item.postCount} 篇</span>
@@ -239,8 +239,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       {seriesList.length > 0 && (
         <section className="mb-20 -mx-6 bg-[#141413] px-8 md:px-12 py-16 md:py-20 rounded-3xl">
           <div className="flex items-baseline justify-between mb-8">
-            <p className="kicker" style={{ color: 'var(--accent-coral)' }}>按专题浏览</p>
-            <Link href="/series" className="kicker text-[#b0aea5] hover:text-[var(--accent-coral)] transition-colors">
+            <p className="kicker" style={{ color: 'var(--accent-on-dark)' }}>按专题浏览</p>
+            <Link href="/series" className="kicker text-[#b0aea5] hover:text-[var(--accent-on-dark)] transition-colors">
               全部专题 →
             </Link>
           </div>

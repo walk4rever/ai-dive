@@ -79,7 +79,7 @@ export default async function SeriesPage() {
                 <a
                   key={topic.id}
                   href={`#${topic.id}`}
-                  className="group flex items-baseline justify-between text-sm py-1.5 border-b border-dashed border-[var(--border-subtle)] hover:border-[var(--accent-coral)] transition-colors duration-200"
+                  className="group flex items-baseline justify-between text-sm py-1.5 border-b border-dashed border-[var(--border-subtle)] hover:border-[var(--accent-hover)] transition-colors duration-200"
                 >
                   <div className="flex items-baseline gap-2 min-w-0">
                     <span className="font-mono text-xs text-[var(--subtle)]">
@@ -93,7 +93,7 @@ export default async function SeriesPage() {
                     <span className="font-mono text-xs text-[var(--muted)] shrink-0">
                       {items.length} 篇
                     </span>
-                    <span className="text-[var(--subtle)] group-hover:text-[var(--accent-coral)] transition-transform duration-200 group-hover:translate-x-0.5 text-xs">
+                    <span className="text-[var(--subtle)] group-hover:text-[var(--accent-hover)] transition-transform duration-200 group-hover:translate-x-0.5 text-xs">
                       →
                     </span>
                   </div>

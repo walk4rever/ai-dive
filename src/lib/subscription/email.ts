@@ -55,7 +55,7 @@ export function buildPostEmailHtml({
       <p style="font-size: 15px; line-height: 1.8; color: #4d4c48; margin: 0 0 24px;">
         ${post.excerpt || '新内容已发布，点击下方按钮阅读全文。'}
       </p>
-      <a href="${postUrl}" style="display: inline-block; padding: 11px 22px; background: #c96442; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
+      <a href="${postUrl}" style="display: inline-block; padding: 11px 22px; background: #c43a45; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
         阅读全文 →
       </a>
       <p style="font-size: 12px; color: #87867f; line-height: 1.7; margin: 32px 0 0; border-top: 1px solid #eeede8; padding-top: 16px;">
