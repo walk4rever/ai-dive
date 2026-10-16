@@ -5,7 +5,6 @@ import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { BackButton } from '@/components/BackButton'
 import { MermaidContent } from '@/components/MermaidContent'
-import { WechatShare } from '@/components/WechatShare'
 import { ArticleChatPanel } from '@/components/ArticleChatPanel'
 import { ArticleToc } from '@/components/ArticleToc'
 import { BackToTop } from '@/components/BackToTop'
@@ -91,14 +90,6 @@ export default async function PostPage({ params }: Props) {
     </>
   )
 
-  const share = (
-    <WechatShare
-      title={post.title}
-      description={post.excerpt ?? ''}
-      imageUrl={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://ai.air7.fun'}/post/${post.slug}/opengraph-image`}
-    />
-  )
-
   return (
     <article>
       <ArticleToc headings={headings} />
@@ -106,7 +97,6 @@ export default async function PostPage({ params }: Props) {
       <ArticleChatPanel slug={post.slug} title={post.title} author={authorLabel}>
         {header}
         <MermaidContent className="prose" html={post.content} />
-        {share}
       </ArticleChatPanel>
     </article>
   )

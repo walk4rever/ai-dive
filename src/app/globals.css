@@ -162,6 +162,12 @@ h1, h2, h3, h4, h5, h6 {
   scroll-margin-top: 5rem;
 }
 
+.prose h2:first-child {
+  padding-top: 0;
+  border-top: none;
+  margin-top: 0;
+}
+
 .prose h3 {
   font-family: "Noto Serif SC", Georgia, serif;
   font-size: 1.25rem;
