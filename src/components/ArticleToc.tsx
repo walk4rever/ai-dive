@@ -67,27 +67,43 @@ export function ArticleToc({ headings }: ArticleTocProps) {
 
       {open && (
         <nav
-          className="mt-2 max-h-[70vh] w-72 overflow-y-auto rounded-2xl p-4 shadow-lg"
+          className="mt-2 max-h-[70vh] w-80 overflow-y-auto rounded-2xl p-4 shadow-xl"
           style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
           aria-label="文章目录"
         >
-          <p className="kicker mb-3" style={{ color: 'var(--accent)' }}>目录</p>
-          <ul className="flex flex-col gap-1">
-            {headings.map((heading) => (
-              <li key={heading.id}>
-                <button
-                  type="button"
-                  onClick={() => goTo(heading.id)}
-                  className="block w-full py-1.5 text-left text-sm leading-snug transition-colors hover:text-[var(--accent)]"
-                  style={{
-                    color: 'var(--muted)',
-                    paddingLeft: heading.level === 3 ? '1rem' : 0,
-                  }}
+          <div className="mb-2.5 flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+            <p className="kicker" style={{ color: 'var(--accent)' }}>目录</p>
+            <span className="text-[11px] text-[var(--subtle)] tracking-wider">
+              {headings.length} 个小节
+            </span>
+          </div>
+          <ul className="flex flex-col">
+            {headings.map((heading, idx) => {
+              const isH2 = heading.level === 2
+              const isH3 = heading.level === 3
+              const isH4 = heading.level === 4
+
+              return (
+                <li
+                  key={heading.id}
+                  className={isH2 && idx > 0 ? 'mt-2.5 pt-1.5 border-t border-[var(--border-subtle)]/70' : ''}
                 >
-                  {heading.text}
-                </button>
-              </li>
-            ))}
+                  <button
+                    type="button"
+                    onClick={() => goTo(heading.id)}
+                    className={[
+                      'group flex w-full text-left transition-all duration-150 py-1.5 px-2 rounded-r-md',
+                      'hover:bg-[var(--surface-sand)]/50',
+                      isH2 && 'text-sm font-medium text-[var(--foreground)] hover:text-[var(--accent)]',
+                      isH3 && 'ml-2 text-[13px] text-[var(--muted)] border-l-2 border-[var(--border)] pl-2.5 hover:border-[var(--accent)] hover:text-[var(--accent)]',
+                      isH4 && 'ml-5 text-xs text-[var(--subtle)] border-l-2 border-[var(--border-subtle)] pl-2.5 hover:border-[var(--accent)] hover:text-[var(--accent)]',
+                    ].filter(Boolean).join(' ')}
+                  >
+                    <span className="leading-snug">{heading.text}</span>
+                  </button>
+                </li>
+              )
+            })}
           </ul>
         </nav>
       )}

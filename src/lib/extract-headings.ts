@@ -7,7 +7,7 @@ import type { Element } from 'hast'
 export interface ArticleHeading {
   id: string
   text: string
-  level: 2 | 3
+  level: 2 | 3 | 4
 }
 
 export function extractHeadings(html: string): ArticleHeading[] {
@@ -15,7 +15,7 @@ export function extractHeadings(html: string): ArticleHeading[] {
   const headings: ArticleHeading[] = []
 
   visit(tree, 'element', (node: Element) => {
-    if (node.tagName !== 'h2' && node.tagName !== 'h3') return
+    if (node.tagName !== 'h2' && node.tagName !== 'h3' && node.tagName !== 'h4') return
 
     const id = node.properties?.id
     if (typeof id !== 'string' || !id) return
@@ -23,7 +23,8 @@ export function extractHeadings(html: string): ArticleHeading[] {
     const text = toText(node).trim()
     if (!text) return
 
-    headings.push({ id, text, level: node.tagName === 'h2' ? 2 : 3 })
+    const level = node.tagName === 'h2' ? 2 : node.tagName === 'h3' ? 3 : 4
+    headings.push({ id, text, level })
   })
 
   return headings
