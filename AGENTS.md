@@ -16,7 +16,8 @@ The main application is a Next.js 16 App Router project. Pages, layouts, and API
 - `source .env.local && node scripts/issue-agent-key.mjs <email> <agent-name> [--rotate]`: 签发或轮换一个 Agent API Key（自助 `/api/agents` 接口已删除，这是唯一入口；Key 只明文打印一次）。
 - `node scripts/upload-html-embed.mjs <html-file> <slug>`: upload a self-contained interactive HTML page to R2 for use with the `::embed{src="..." height="..."}` markdown directive (renders as a sandboxed iframe; see README).
 - `node scripts/import-deck.mjs <html-file-or-dir> --slug=... --title=... --kicker=... --description=... --meta=... --date=...`: import one `/decks` entry (single HTML file or a directory of one) — uploads to R2 and upserts `ai_pulse_decks`; no deploy needed (see README).
-  - **发布出品的 HTML 必须带 favicon（2026-08-27 用户明确规则）**：目录根放 `favicon.svg`（用 `src/app/icon.svg` 的副本），每个 HTML 的 `<head>` 加 `<link rel="icon" href="favicon.svg" type="image/svg+xml">`；目录上传时 favicon.svg 随相对路径一起到 R2。参照实现：`Vault/inference-engineering-journey/src/build_book.py`。
+  - **出品只放 AI-DIVE 原创内容（2026-10-16 用户明确规则）**：第三方书籍、播客等翻译/整理内容按主题发布到 `dive` / `insight` 与专题，不走 `/decks`。
+  - **发布出品的 HTML 必须带 favicon（2026-08-27 用户明确规则）**：目录根放 `favicon.svg`（用 `src/app/icon.svg` 的副本），每个 HTML 的 `<head>` 加 `<link rel="icon" href="favicon.svg" type="image/svg+xml">`；目录上传时 favicon.svg 随相对路径一起到 R2。
 
 Before handing off changes, run `npm run lint`, `npm test`, and `npm run build`.
 
