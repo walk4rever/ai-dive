@@ -9,7 +9,7 @@ Powered by [Air7.fun](https://air7.fun)
 ## 当前能力
 
 - 极简首页：精选文章、最新文章、专题入口和每日 Signals
-- 文章详情页：适合中文长文阅读的 editorial 排版；情报/深度/洞见发布即全文可读，不再有付费墙
+- 文章详情页：适合中文长文阅读的 editorial 排版；情报/深度/洞见发布即全文可读，不再有付费墙；深度/洞见页底提供专题内上一篇/下一篇，非专题文章回退到同栏目前后篇
 - 文章目录导航：H2/H3 数量 ≥3 篇的文章左上角显示悬浮目录按钮，点开面板可跳转到对应章节
 - 回到顶部：`dive`/`insight` 文章滚动超过一屏后左下角出现悬浮按钮，点击回到文章顶部
 - `/wiki`：Quartz 静态知识库子站，挂在 `ai.air7fun.com/wiki/`
@@ -25,7 +25,7 @@ Powered by [Air7.fun](https://air7.fun)
 - 文章 AI解读 面板支持最大化/还原（header 图标按钮，原地撑满视口，不丢对话状态），标题统一为单行 `AI解读 · {文章标题}`
 - 文章高光分享：选中正文段落后弹出工具栏（AI解读 + 高光分享），点击「高光分享」复制分享文案（引用段落 + 标题引用 + 原文链接 + 品牌 slogan），适合社交媒体分享
 - Agent 对话超时优化：后端超时从 90s 提升到 300s，支持多工具调用复杂场景；前端追踪流完整性，超时切断时显示 incomplete 提示并保留已回答内容
-- 管理后台：编辑文章元数据、发布状态、精选状态和专题编排
+- 管理后台：编辑文章元数据、发布状态、精选状态和专题编排（一篇文章只属于一个专题，支持调整专题内顺序）
 - Newsletter 批量发送、退订处理和发送记录
 - R2 文件上传（包括大文件 presigned upload）
 - Vault Markdown → Supabase 内容导入脚本与作者名规范化：自动剥离 Obsidian 双链语法（如 `[[20VC]]` 规范为 `20VC`），洞见与文章列表统一格式化作者名
@@ -87,7 +87,7 @@ cp .env.example .env.local
 
 ### 3. 初始化数据库
 
-首次初始化时，在 Supabase SQL Editor 中执行 `supabase/schema.sql`。已有环境按文件名中的时间顺序执行 `supabase/migrations/` 下尚未执行的迁移，不要反复执行整份 schema。部署本版本前必须执行 `20260804_add_author_display.sql`。
+首次初始化时，在 Supabase SQL Editor 中执行 `supabase/schema.sql`。已有环境按文件名中的时间顺序执行 `supabase/migrations/` 下尚未执行的迁移，不要反复执行整份 schema。部署本版本前必须执行 `20260804_add_author_display.sql` 和 `20261017_single_topic_with_order.sql`。
 
 当前 schema 会创建以下表：
 

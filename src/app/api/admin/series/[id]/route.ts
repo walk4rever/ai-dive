@@ -56,7 +56,15 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
   const { id } = await params
   const supabase = await createServiceClient()
   const { error } = await supabase.from('ai_pulse_topics').delete().eq('id', id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    if (error.code === '23503') {
+      return NextResponse.json(
+        { error: '请先移除专题内的文章，再删除专题。' },
+        { status: 409 }
+      )
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
 
   return NextResponse.json({ ok: true })
 }

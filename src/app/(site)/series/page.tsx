@@ -19,7 +19,8 @@ interface StoryRow {
   slug: string
   title: string
   published_at: string | null
-  topic_ids: string[]
+  topic_id: string
+  topic_order: number
 }
 
 function formatDate(value: string | null | undefined) {
@@ -38,10 +39,12 @@ export default async function SeriesPage() {
       .order('created_at', { ascending: false }),
     supabase
       .from('ai_pulse_stories')
-      .select('id, slug, title, published_at, topic_ids')
+      .select('id, slug, title, published_at, topic_id, topic_order')
       .eq('status', 'published')
-      .not('topic_ids', 'eq', '{}')
-      .order('published_at', { ascending: true }),
+      .not('topic_id', 'is', null)
+      .order('topic_id', { ascending: true })
+      .order('topic_order', { ascending: true })
+      .order('id', { ascending: true }),
   ])
 
   const topicList = (topics ?? []) as TopicItem[]
@@ -49,11 +52,9 @@ export default async function SeriesPage() {
 
   const grouped = new Map<string, StoryRow[]>()
   for (const story of storyList) {
-    for (const topicId of story.topic_ids) {
-      const list = grouped.get(topicId) ?? []
-      list.push(story)
-      grouped.set(topicId, list)
-    }
+    const list = grouped.get(story.topic_id) ?? []
+    list.push(story)
+    grouped.set(story.topic_id, list)
   }
   const visibleStoryCount = new Set(
     topicList.flatMap((topic) => (grouped.get(topic.id) ?? []).map((story) => story.id))

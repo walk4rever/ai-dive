@@ -1,13 +1,19 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getTypeLabel } from '@/lib/content'
 import { toAuthorDisplay } from '@/lib/author'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { BackButton } from '@/components/BackButton'
+import { ArticleNavigation } from '@/components/ArticleNavigation'
 import { MermaidContent } from '@/components/MermaidContent'
 import { ArticleChatPanel } from '@/components/ArticleChatPanel'
 import { ArticleToc } from '@/components/ArticleToc'
 import { BackToTop } from '@/components/BackToTop'
+import {
+  buildColumnNavigation,
+  buildTopicNavigation,
+  type ArticleNavigationData,
+} from '@/lib/article-navigation'
 import { extractHeadings } from '@/lib/extract-headings'
 
 interface Props {
@@ -65,6 +71,50 @@ export default async function PostPage({ params }: Props) {
   const contentTypeLabel = getTypeLabel(post.content_type)
   const authorLabel = toAuthorDisplay(post.author_display) ?? toAuthorDisplay(post.author_slug) ?? '编辑部'
   const headings = extractHeadings(post.content)
+  let navigation: ArticleNavigationData | null = null
+
+  if (post.content_type === 'dive' || post.content_type === 'insight') {
+    const navSupabase = await createServiceClient()
+
+    if (post.topic_id) {
+      const [{ data: topic }, { data: topicStories }] = await Promise.all([
+        navSupabase
+          .from('ai_pulse_topics')
+          .select('id, name')
+          .eq('id', post.topic_id)
+          .maybeSingle(),
+        navSupabase
+          .from('ai_pulse_stories')
+          .select('id, slug, title, topic_order')
+          .eq('status', 'published')
+          .eq('topic_id', post.topic_id)
+          .order('topic_order', { ascending: true })
+          .order('id', { ascending: true }),
+      ])
+
+      if (topic) {
+        navigation = buildTopicNavigation(topicStories ?? [], post.id, topic)
+      }
+    }
+
+    if (!navigation) {
+      const { data: columnStories } = await navSupabase
+        .from('ai_pulse_stories')
+        .select('id, slug, title, published_at, created_at')
+        .eq('status', 'published')
+        .eq('content_type', post.content_type)
+        .order('published_at', { ascending: false })
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
+
+      navigation = buildColumnNavigation(
+        columnStories ?? [],
+        post.id,
+        post.content_type,
+        contentTypeLabel
+      )
+    }
+  }
 
   const header = (
     <>
@@ -97,6 +147,7 @@ export default async function PostPage({ params }: Props) {
       <ArticleChatPanel slug={post.slug} title={post.title} author={authorLabel}>
         {header}
         <MermaidContent className="prose" html={post.content} />
+        {navigation && <ArticleNavigation navigation={navigation} />}
       </ArticleChatPanel>
     </article>
   )

@@ -19,10 +19,13 @@ interface AdminPost {
   content_type: string
   status: string
   published_at: string | null
+  topic_id: string | null
+  topic_order: number | null
 }
 
 interface SeriesPost {
   post_id: string
+  order_index: number
   joined_at: string
   post: AdminPost
 }
@@ -212,11 +215,34 @@ export function SeriesManager() {
     await fetchSeriesPosts(selectedSeries.id)
   }
 
+  async function movePost(postId: string, direction: 'up' | 'down') {
+    if (!selectedSeries) return
+    setSaving(true)
+
+    const res = await fetch(`/api/admin/series/${selectedSeries.id}/posts/${postId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ direction }),
+    })
+
+    const data = await res.json().catch(() => null)
+    if (!res.ok) {
+      alert(data?.error ?? '调整顺序失败')
+      setSaving(false)
+      return
+    }
+
+    await fetchSeriesPosts(selectedSeries.id)
+    setSaving(false)
+  }
+
   if (loading) {
     return <p className="text-sm text-[var(--muted)] p-8">加载中...</p>
   }
 
-  const postOptions = allPosts.filter((post) => !seriesPosts.some((item) => item.post_id === post.id))
+  const postOptions = allPosts.filter(
+    (post) => post.topic_id === null && !seriesPosts.some((item) => item.post_id === post.id)
+  )
 
   return (
     <Card className="space-y-6">
@@ -324,6 +350,9 @@ export function SeriesManager() {
 
               <div className="pb-4 border-b border-[var(--border-subtle)]">
                 <p className="kicker mb-3">加入文章</p>
+                <p className="text-xs text-[var(--muted)] mb-3">
+                  每篇文章只能属于一个专题；加入后可在下方调整专题内的阅读顺序。
+                </p>
                 <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3">
                   <select
                     value={selectedPostId}
@@ -350,20 +379,45 @@ export function SeriesManager() {
               <div>
                 <p className="kicker mb-3">专题文章</p>
                 <div className="divide-y divide-[var(--border-subtle)]">
-                  {seriesPosts.map((item) => (
-                    <div key={item.post_id} className="py-3 grid grid-cols-[1fr_auto] gap-3 items-center">
+                  {seriesPosts.map((item, index) => (
+                    <div key={item.post_id} className="py-3 grid grid-cols-[auto_1fr_auto] gap-3 items-center">
+                      <span className="kicker w-8" style={{ color: 'var(--accent)' }}>
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
                       <div className="min-w-0">
                         <p className="text-sm leading-snug truncate">{item.post.title}</p>
                         <p className="text-xs text-[var(--muted)] mt-1">
                           {getTypeLabel(item.post.content_type)} · {item.post.slug} · {formatDate(item.post.published_at)}
                         </p>
                       </div>
-                      <button
-                        onClick={() => { void removeFromSeries(item.post_id) }}
-                        className="kicker text-[var(--muted)] hover:text-red-500 transition-colors"
-                      >
-                        移除
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={() => { void movePost(item.post_id, 'up') }}
+                            disabled={saving || index === 0}
+                            aria-label={`上移「${item.post.title}」`}
+                            className="rounded border border-[var(--border)] px-2 py-1 text-xs text-[var(--muted)] transition-colors hover:border-[var(--foreground)] disabled:opacity-30"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { void movePost(item.post_id, 'down') }}
+                            disabled={saving || index === seriesPosts.length - 1}
+                            aria-label={`下移「${item.post.title}」`}
+                            className="rounded border border-[var(--border)] px-2 py-1 text-xs text-[var(--muted)] transition-colors hover:border-[var(--foreground)] disabled:opacity-30"
+                          >
+                            ↓
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => { void removeFromSeries(item.post_id) }}
+                          className="kicker text-[var(--muted)] hover:text-red-500 transition-colors"
+                        >
+                          移除
+                        </button>
+                      </div>
                     </div>
                   ))}
                   {seriesPosts.length === 0 && (

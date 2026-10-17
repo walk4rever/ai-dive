@@ -14,7 +14,8 @@ export interface Post {
   status: PostStatus
   content_type: PostContentType
   featured: boolean
-  topic_ids: string[]
+  topic_id: string | null
+  topic_order: number | null
   signal_ids: string[]
   author_slug: string | null
   author_display: string | null

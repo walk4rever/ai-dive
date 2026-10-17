@@ -166,9 +166,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       .order('created_at', { ascending: false }),
     serviceSupabase
       .from('ai_pulse_stories')
-      .select('topic_ids')
+      .select('topic_id')
       .eq('status', 'published')
-      .not('topic_ids', 'eq', '{}'),
+      .not('topic_id', 'is', null),
     supabase
       .from('ai_pulse_signals')
       .select('id, url, source_type, source_name, title, description, signal_date, status, metadata, reason, insight, actionable, influence, created_at, updated_at')
@@ -184,9 +184,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   const countMap = new Map<string, number>()
   for (const row of (storiesWithTopics ?? [])) {
-    for (const topicId of (row.topic_ids ?? [])) {
-      countMap.set(topicId, (countMap.get(topicId) ?? 0) + 1)
-    }
+    if (!row.topic_id) continue
+    countMap.set(row.topic_id, (countMap.get(row.topic_id) ?? 0) + 1)
   }
   const seriesList: SeriesItem[] = (topicsData ?? []).map((s) => ({
     ...s,

@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS ai_pulse_stories (
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
   content_type TEXT NOT NULL DEFAULT 'intel' CHECK (content_type IN ('intel', 'dive', 'insight')),
   featured BOOLEAN NOT NULL DEFAULT false,
-  topic_ids UUID[] NOT NULL DEFAULT '{}',
+  topic_id UUID,
+  topic_order INTEGER,
   signal_ids UUID[] NOT NULL DEFAULT '{}',
   author_slug TEXT,
   author_display TEXT,
@@ -18,7 +19,11 @@ CREATE TABLE IF NOT EXISTS ai_pulse_stories (
   agent_id UUID,
   published_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT ai_pulse_stories_topic_presence_check CHECK (
+    (topic_id IS NULL AND topic_order IS NULL)
+    OR (topic_id IS NOT NULL AND topic_order > 0)
+  )
 );
 
 -- AI Pulse topics table (renamed from ai_pulse_series)
@@ -29,6 +34,10 @@ CREATE TABLE IF NOT EXISTS ai_pulse_topics (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE ai_pulse_stories
+  ADD CONSTRAINT ai_pulse_stories_topic_id_fkey
+    FOREIGN KEY (topic_id) REFERENCES ai_pulse_topics(id) ON DELETE RESTRICT;
 
 -- AI Pulse signals table (raw intelligence from sources)
 CREATE TABLE IF NOT EXISTS ai_pulse_signals (
@@ -151,6 +160,71 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION public.move_topic_story(
+  p_topic_id uuid,
+  p_story_id uuid,
+  p_direction text
+)
+RETURNS void
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+DECLARE
+  v_current_order integer;
+  v_neighbor_id uuid;
+  v_neighbor_order integer;
+  v_temp_order integer;
+BEGIN
+  IF p_direction NOT IN ('up', 'down') THEN
+    RAISE EXCEPTION 'Invalid direction' USING ERRCODE = '22023';
+  END IF;
+
+  SELECT topic_order
+  INTO v_current_order
+  FROM ai_pulse_stories
+  WHERE id = p_story_id
+    AND topic_id = p_topic_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Story is not in this topic' USING ERRCODE = 'P0002';
+  END IF;
+
+  IF p_direction = 'up' THEN
+    SELECT id, topic_order
+    INTO v_neighbor_id, v_neighbor_order
+    FROM ai_pulse_stories
+    WHERE topic_id = p_topic_id
+      AND topic_order < v_current_order
+    ORDER BY topic_order DESC
+    LIMIT 1;
+  ELSE
+    SELECT id, topic_order
+    INTO v_neighbor_id, v_neighbor_order
+    FROM ai_pulse_stories
+    WHERE topic_id = p_topic_id
+      AND topic_order > v_current_order
+    ORDER BY topic_order ASC
+    LIMIT 1;
+  END IF;
+
+  IF v_neighbor_id IS NULL THEN
+    RETURN;
+  END IF;
+
+  SELECT COALESCE(MAX(topic_order), 0) + 1
+  INTO v_temp_order
+  FROM ai_pulse_stories
+  WHERE topic_id = p_topic_id;
+
+  UPDATE ai_pulse_stories SET topic_order = v_temp_order WHERE id = p_story_id;
+  UPDATE ai_pulse_stories SET topic_order = v_current_order WHERE id = v_neighbor_id;
+  UPDATE ai_pulse_stories SET topic_order = v_neighbor_order WHERE id = p_story_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.move_topic_story(uuid, uuid, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.move_topic_story(uuid, uuid, text) TO service_role;
+
 CREATE TRIGGER ai_pulse_stories_updated_at
   BEFORE UPDATE ON ai_pulse_stories
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
@@ -192,6 +266,7 @@ CREATE POLICY "Public read published ai_pulse_decks" ON ai_pulse_decks
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_stories_status_published_at ON ai_pulse_stories (status, published_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_stories_content_type_published_at ON ai_pulse_stories (content_type, published_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_stories_featured_published_at ON ai_pulse_stories (featured, published_at DESC) WHERE status = 'published';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_pulse_stories_topic_order ON ai_pulse_stories (topic_id, topic_order) WHERE topic_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_topics_created_at ON ai_pulse_topics (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_signals_status ON ai_pulse_signals (status);
 CREATE INDEX IF NOT EXISTS idx_ai_pulse_signals_score_status ON ai_pulse_signals (score_status);

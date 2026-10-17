@@ -13,6 +13,7 @@ interface StoryRow {
   content_type: string
   status: string
   published_at: string | null
+  topic_order: number
 }
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
@@ -25,15 +26,16 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
   const { data, error } = await supabase
     .from('ai_pulse_stories')
-    .select('id, slug, title, content_type, status, published_at')
-    .contains('topic_ids', [id])
-    .order('published_at', { ascending: false })
+    .select('id, slug, title, content_type, status, published_at, topic_order')
+    .eq('topic_id', id)
+    .order('topic_order', { ascending: true })
+    .order('id', { ascending: true })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   const posts = ((data ?? []) as StoryRow[]).map((story) => ({
     post_id: story.id,
-    order_index: 0,
+    order_index: story.topic_order,
     joined_at: story.published_at ?? '',
     post: story,
   }))
@@ -57,7 +59,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
   const { data: story, error: fetchError } = await supabase
     .from('ai_pulse_stories')
-    .select('id, topic_ids')
+    .select('id, topic_id')
     .eq('id', storyId)
     .single()
 
@@ -65,17 +67,39 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: 'Story not found' }, { status: 404 })
   }
 
-  const currentIds: string[] = story.topic_ids ?? []
-  if (currentIds.includes(topicId)) {
+  if (story.topic_id === topicId) {
     return NextResponse.json({ error: 'Story already in this topic' }, { status: 409 })
   }
+  if (story.topic_id) {
+    return NextResponse.json({ error: 'Story already belongs to another topic' }, { status: 409 })
+  }
+
+  const { data: lastStory, error: orderError } = await supabase
+    .from('ai_pulse_stories')
+    .select('topic_order')
+    .eq('topic_id', topicId)
+    .order('topic_order', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (orderError) return NextResponse.json({ error: orderError.message }, { status: 500 })
+
+  const nextOrder = (lastStory?.topic_order ?? 0) + 1
 
   const { error } = await supabase
     .from('ai_pulse_stories')
-    .update({ topic_ids: [...currentIds, topicId] })
+    .update({ topic_id: topicId, topic_order: nextOrder })
     .eq('id', storyId)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    if (error.code === '23505') {
+      return NextResponse.json({ error: 'Topic order changed, please retry' }, { status: 409 })
+    }
+    if (error.code === '23503') {
+      return NextResponse.json({ error: 'Topic not found' }, { status: 404 })
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
 
-  return NextResponse.json({ ok: true }, { status: 201 })
+  return NextResponse.json({ ok: true, topic_order: nextOrder }, { status: 201 })
 }

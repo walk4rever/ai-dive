@@ -13,7 +13,7 @@ export async function GET() {
   const supabase = await createServiceClient()
   const { data: posts, error } = await supabase
     .from('ai_pulse_stories')
-    .select('id, slug, title, content_type, author_slug, author_display, status, featured, published_at')
+    .select('id, slug, title, content_type, author_slug, author_display, status, featured, published_at, topic_id, topic_order')
     .order('published_at', { ascending: false })
     .order('created_at', { ascending: false })
 
