@@ -55,6 +55,9 @@ export default async function SeriesPage() {
       grouped.set(topicId, list)
     }
   }
+  const visibleStoryCount = new Set(
+    topicList.flatMap((topic) => (grouped.get(topic.id) ?? []).map((story) => story.id))
+  ).size
 
   return (
     <div>
@@ -62,7 +65,7 @@ export default async function SeriesPage() {
         kicker="Topics"
         title="专题"
         description="围绕核心议题展开结构化深度探索；通过编织零散的技术线索与行业脉络，还原宏大背景下的系统工程全貌。"
-        count={storyList.length}
+        count={visibleStoryCount}
         hideBorder
       />
 
