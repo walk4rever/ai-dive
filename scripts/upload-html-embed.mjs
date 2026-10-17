@@ -124,8 +124,14 @@ function injectResizeReporter(rawHtml) {
 })();
 </script>`
 
-  if (/<\/body>/i.test(rawHtml)) {
-    return rawHtml.replace(/<\/body>/i, `${script}\n</body>`)
+  const lower = rawHtml.toLowerCase()
+  const bodyClose = lower.lastIndexOf('</body>')
+  const scriptClose = lower.lastIndexOf('</script>')
+  // Only treat </body> as real when it sits outside any script element —
+  // template literals inside <script> often contain a literal '</body></html>',
+  // and injecting there closes the outer <script> early, spilling JS into the page.
+  if (bodyClose !== -1 && bodyClose > scriptClose) {
+    return `${rawHtml.slice(0, bodyClose)}${script}\n${rawHtml.slice(bodyClose)}`
   }
   return `${rawHtml}\n${script}`
 }
