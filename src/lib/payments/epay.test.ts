@@ -136,26 +136,55 @@ describe('createEpayProvider().verifyCallback', () => {
 })
 
 describe('createEpayProvider().queryStatus', () => {
-  it('is true when the order API reports status 1', async () => {
+  it('returns the verified trade when the order API reports status 1', async () => {
     const provider = createEpayProvider(config)
-    const fetchSpy = vi.fn(async () => new Response(JSON.stringify({ status: 1 }), { status: 200 }))
+    const fetchSpy = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          status: 1,
+          out_trade_no: 'order-1',
+          trade_no: 'txn-1',
+          money: '19.90',
+        }),
+        { status: 200 }
+      )
+    )
     global.fetch = fetchSpy as unknown as typeof fetch
 
-    await expect(provider.queryStatus('order-1')).resolves.toBe(true)
-    expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining('act=order'))
+    await expect(provider.queryStatus('order-1')).resolves.toEqual({
+      outTradeNo: 'order-1',
+      providerOrderId: 'txn-1',
+      amountCents: 1990,
+    })
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining('act=order'),
+      expect.anything()
+    )
   })
 
-  it('is false when the order API reports status 0', async () => {
+  it('returns null when the order API reports status 0', async () => {
     const provider = createEpayProvider(config)
     global.fetch = vi.fn(async () => new Response(JSON.stringify({ status: 0 }), { status: 200 })) as unknown as typeof fetch
 
-    await expect(provider.queryStatus('order-1')).resolves.toBe(false)
+    await expect(provider.queryStatus('order-1')).resolves.toBeNull()
   })
 
-  it('is false on a non-ok HTTP response', async () => {
+  it('returns null when the paid response omits the amount', async () => {
+    const provider = createEpayProvider(config)
+    global.fetch = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ status: 1, out_trade_no: 'order-1', trade_no: 'txn-1' }), {
+          status: 200,
+        })
+    ) as unknown as typeof fetch
+
+    await expect(provider.queryStatus('order-1')).resolves.toBeNull()
+  })
+
+  it('returns null on a non-ok HTTP response', async () => {
     const provider = createEpayProvider(config)
     global.fetch = vi.fn(async () => new Response('', { status: 500 })) as unknown as typeof fetch
 
-    await expect(provider.queryStatus('order-1')).resolves.toBe(false)
+    await expect(provider.queryStatus('order-1')).resolves.toBeNull()
   })
 })

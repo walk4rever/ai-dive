@@ -30,7 +30,7 @@ Powered by [Air7.fun](https://air7.fun)
 - R2 文件上传（包括大文件 presigned upload）
 - Vault Markdown → Supabase 内容导入脚本与作者名规范化：自动剥离 Obsidian 双链语法（如 `[[20VC]]` 规范为 `20VC`），洞见与文章列表统一格式化作者名
 - 管理员标记：`ai_pulse_users.role`（`user` / `admin`），登录时读入 next-auth JWT（`src/lib/auth.ts`），管住 `/admin`、`/api/admin/*`，并绕过 `/decks` 付费墙。提升某个账号：`UPDATE ai_pulse_users SET role = 'admin' WHERE email = '...';`（该列历史上是直接在生产库手工加的，`supabase/migrations/20260831_users_role.sql` 已把定义补回仓库）
-- `/decks`（出品）付费墙：列表页公开可浏览（不再需要登录），正文按 `ai_pulse_decks.price_cents` 走鉴权代理路由（`/decks/[slug]/[...path]`）——未定价的 deck 对所有人开放，定价后的 deck 需要登录 + 有 `paid` 状态的 `ai_pulse_orders` 记录才能访问（`role = 'admin'` 的账号免购买，列表页标记为「管理员」）；定价未购买的 deck 在列表页显示支付宝购买按钮，点击后创建 `pending` 订单并跳转支付宝收银台。支付走**支付宝官方电脑网站支付**（`alipay.trade.page.pay`，公钥模式 / RSA2，`src/lib/payments/alipay.ts`），签名与网关连通性已用只读查单接口对真实商户号验证通过；易支付聚合通道保留给微信支付（尚无凭证）。首篇定价 deck 为「推理工程实战手册」¥19.90，其余 7 篇仍未定价
+- `/decks`（出品）付费墙：列表页公开可浏览（不再需要登录），正文按 `ai_pulse_decks.price_cents` 走鉴权代理路由（`/decks/[slug]/[...path]`）——未定价的 deck 对所有人开放，定价后的 deck 需要登录 + 有 `paid` 状态的 `ai_pulse_orders` 记录才能访问（`role = 'admin'` 的账号免购买，列表页标记为「管理员」）；定价未购买的 deck 在列表页显示支付宝购买按钮，点击后创建或复用一笔 `pending` 订单并跳转支付宝收银台。支付走**支付宝官方电脑网站支付**（`alipay.trade.page.pay`，公钥模式 / RSA2，`src/lib/payments/alipay.ts`），签名与网关连通性已用只读查单接口对真实商户号验证通过；易支付聚合通道保留给微信支付（尚无凭证）。待支付订单在支付宝侧 30 分钟关单，本地 40 分钟后自动置为「已过期」；用户可在「我的订单」中删除记录，已支付订单只从列表隐藏，不影响内容访问和后台对账。首篇定价 deck 为「推理工程实战手册」¥19.90，其余 7 篇仍未定价
 - Signal 注入 API：`POST /api/signals`，支持单条或批量 upsert 到 `ai_pulse_signals`（可选 `signal_date`；不传默认 UTC+8 当天）
 - 域名迁移：已从 `ai.air7.fun` 迁移到 `ai.air7fun.com`，启用 Cloudflare CDN 加速，老域名 301 重定向到新域名
 
@@ -84,10 +84,11 @@ cp .env.example .env.local
 - `EMAIL_CONFIRMATION_TTL_SECONDS` 默认建议 `86400`，即 24 小时。
 - `NEXTAUTH_SECRET` 用于加密登录 session cookie，`openssl rand -base64 32` 生成；本地和线上必须各用一份独立的值，不能共用——泄露一份等于两边都能被伪造登录态。
 - `NEXTAUTH_URL` 填当前环境的站点地址（本地 `http://localhost:3000`，线上填实际域名）。
+- `CRON_SECRET` 保护 `/api/cron/expire-orders`；不配置时该路由只返回 401，用户打开控制台时的惰性过期仍然生效。
 
 ### 3. 初始化数据库
 
-首次初始化时，在 Supabase SQL Editor 中执行 `supabase/schema.sql`。已有环境按文件名中的时间顺序执行 `supabase/migrations/` 下尚未执行的迁移，不要反复执行整份 schema。部署本版本前必须执行 `20260804_add_author_display.sql` 和 `20261017_single_topic_with_order.sql`。
+首次初始化时，在 Supabase SQL Editor 中执行 `supabase/schema.sql`。已有环境按文件名中的时间顺序执行 `supabase/migrations/` 下尚未执行的迁移，不要反复执行整份 schema。部署本版本前必须执行 `20260804_add_author_display.sql`、`20261017_single_topic_with_order.sql` 和 `20261018_orders_lifecycle.sql`。
 
 当前 schema 会创建以下表：
 
@@ -210,6 +211,9 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=<KEY
 - `/api/agent-turns`：会话历史读写接口（GET 拉取最近 10 轮，POST 持久化一轮，均需登录）
 - `/decks/[slug]/[...path]`：出品正文鉴权代理（GET，未定价放行，定价后需登录 + 有 `paid` 订单或 `role = 'admin'`，从私有 R2 读取内容原样返回）
 - `/api/decks/[slug]/orders`：出品下单接口（POST，需登录，创建 `pending` 订单并返回支付通道的跳转链接）
+- `/api/orders/[id]`：删除订单（DELETE，需登录，只能操作自己的订单；已支付订单只写 `user_deleted_at`，待支付订单同时置为 `cancelled`）
+- `/api/orders/return`：支付完成后的浏览器返回落点（GET，先按订单号向通道查单并兜底同步，再 303 跳回 `/decks`）
+- `/api/cron/expire-orders`：每日清理超时 `pending` 订单（GET，需 `Authorization: Bearer $CRON_SECRET`；Vercel Cron 每天 03:17 调用）
 - `/api/orders/callback/alipay`：支付宝异步回调（POST 表单，RSA2 验签 + 校验 `app_id` 与金额后把订单标记为 `paid`，回纯文本 `success`；未配置 `ALIPAY_*` 时直接报错，不会静默失败）
 - `/api/orders/callback/epay`：易支付异步回调（GET，验签后把订单标记为 `paid`；未配置 `EPAY_*` 时直接报错，不会静默失败）
 

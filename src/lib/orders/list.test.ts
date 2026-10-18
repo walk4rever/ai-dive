@@ -18,6 +18,7 @@ function fakeSupabase(byTable: Record<string, FakeResult>) {
         select: () => builder,
         eq: () => builder,
         in: () => builder,
+        is: () => builder,
         order: () => builder,
         then: (resolve: (value: FakeResult) => void) => resolve(result),
       }
@@ -35,6 +36,8 @@ const paidOrder = {
   status: 'paid',
   created_at: '2026-08-27T00:00:00Z',
   paid_at: '2026-08-27T00:01:00Z',
+  cancelled_at: null,
+  cancel_reason: null,
 }
 
 describe('listUserOrders', () => {
@@ -53,6 +56,8 @@ describe('listUserOrders', () => {
         status: 'paid',
         createdAt: '2026-08-27T00:00:00Z',
         paidAt: '2026-08-27T00:01:00Z',
+        cancelledAt: null,
+        cancelReason: null,
       },
     ])
   })
@@ -74,6 +79,43 @@ describe('listUserOrders', () => {
     })
     const [order] = await listUserOrders(supabase, 'user-1')
     expect(order.status).toBe('pending')
+    expect(order.href).toBeNull()
+  })
+
+  it('keeps a cancelled checkout visible with its cancellation reason', async () => {
+    const supabase = fakeSupabase({
+      ai_pulse_orders: {
+        data: [
+          {
+            ...paidOrder,
+            status: 'cancelled',
+            paid_at: null,
+            cancelled_at: '2026-08-27T00:40:00Z',
+            cancel_reason: 'expired',
+          },
+        ],
+        error: null,
+      },
+      ai_pulse_decks: { data: [{ slug: 'k3-course', title: 'K3 课程', href: '/decks/k3-course/' }], error: null },
+    })
+
+    const [order] = await listUserOrders(supabase, 'user-1')
+    expect(order.status).toBe('cancelled')
+    expect(order.cancelReason).toBe('expired')
+    expect(order.href).toBeNull()
+  })
+
+  it('maps an unexpected status to unknown instead of casting it through', async () => {
+    const supabase = fakeSupabase({
+      ai_pulse_orders: {
+        data: [{ ...paidOrder, status: 'chargeback', paid_at: null }],
+        error: null,
+      },
+      ai_pulse_decks: { data: [], error: null },
+    })
+
+    const [order] = await listUserOrders(supabase, 'user-1')
+    expect(order.status).toBe('unknown')
     expect(order.href).toBeNull()
   })
 

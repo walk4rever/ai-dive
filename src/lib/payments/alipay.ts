@@ -97,6 +97,7 @@ export function createAlipayProvider(config: AlipayConfig): PaymentProvider {
           total_amount: centsToYuan(input.amountCents),
           subject: input.title,
           product_code: 'FAST_INSTANT_TRADE_PAY',
+          ...(input.timeoutMinutes ? { timeout_express: `${input.timeoutMinutes}m` } : {}),
         }),
         notify_url: input.notifyUrl,
         return_url: input.returnUrl,
@@ -130,7 +131,7 @@ export function createAlipayProvider(config: AlipayConfig): PaymentProvider {
       }
     },
 
-    async queryStatus(outTradeNo: string): Promise<boolean> {
+    async queryStatus(outTradeNo: string): Promise<CallbackResult | null> {
       const params = commonParams('alipay.trade.query', { out_trade_no: outTradeNo })
       const body = new URLSearchParams({ ...params, sign: sign(params, privateKey) })
 
@@ -138,15 +139,31 @@ export function createAlipayProvider(config: AlipayConfig): PaymentProvider {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8' },
         body: body.toString(),
+        signal: AbortSignal.timeout(5000),
       })
-      if (!res.ok) return false
+      if (!res.ok) return null
 
       const raw = await res.text()
       const node = verifyResponse(raw, 'alipay_trade_query_response', publicKey)
-      if (!node) return false
+      if (!node) return null
 
-      const status = (node as { trade_status?: string }).trade_status
-      return status === 'TRADE_SUCCESS' || status === 'TRADE_FINISHED'
+      const trade = node as {
+        trade_status?: string
+        out_trade_no?: string
+        trade_no?: string
+        total_amount?: string
+      }
+      if (trade.trade_status !== 'TRADE_SUCCESS' && trade.trade_status !== 'TRADE_FINISHED') {
+        return null
+      }
+      if (!trade.out_trade_no || !trade.trade_no || !trade.total_amount) return null
+      if (trade.out_trade_no !== outTradeNo) return null
+
+      return {
+        outTradeNo,
+        providerOrderId: trade.trade_no,
+        amountCents: Math.round(Number(trade.total_amount) * 100),
+      }
     },
   }
 }

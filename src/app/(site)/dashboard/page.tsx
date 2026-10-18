@@ -6,6 +6,8 @@ import { loginHref } from '@/lib/auth/client'
 import { createServiceClient } from '@/lib/supabase/server'
 import { currentPeriod, ensureFreeGrant, getBalance, FREE_MONTHLY_CREDITS } from '@/lib/credits'
 import { listUserOrders } from '@/lib/orders/list'
+import { expireStalePendingOrders } from '@/lib/orders/expire'
+import { syncRecentPendingOrders } from '@/lib/payments/sync'
 import { QuotaCard } from '@/components/dashboard/QuotaCard'
 import { OrdersCard } from '@/components/dashboard/OrdersCard'
 import { AccountCard } from '@/components/dashboard/AccountCard'
@@ -28,6 +30,10 @@ export default async function DashboardPage() {
   // rendering the console repeatedly is harmless; a failure here must not take the
   // page down, it just means the number is stale for one render.
   await ensureFreeGrant(supabase, session.user.id, period).catch(() => undefined)
+  await expireStalePendingOrders(supabase, session.user.id).catch(() => undefined)
+  // A user who closed the cashier may still have paid; reconcile a few recent
+  // pending rows before rendering them as "待支付".
+  await syncRecentPendingOrders(supabase, session.user.id).catch(() => undefined)
 
   const [{ data: profile }, credits, orders] = await Promise.all([
     supabase.from('ai_pulse_users').select('username').eq('id', session.user.id).single(),

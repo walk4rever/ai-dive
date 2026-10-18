@@ -149,7 +149,8 @@
 - [ ] **mock 支付 provider**（`PAYMENT_PROVIDER=mock` 开关）：实现同一个 `PaymentProvider` 接口，`createOrder` 返回一个本地假的确认页，`verifyCallback` 由本地手动触发——目的是在拿到真实商户号之前，把"下单 → 回调 → 订单变 paid → 内容解锁"这条完整链路自己先跑通、自己先发现 bug，而不是等注册好聚合商那天才第一次真实验证。这是现在最优先的一项，因为目前这条链路从写完到现在从没被完整跑过一次（真实调用、真实回调都没有）
 - [ ] `/decks/[slug]` 详情页：替掉现在"点了就是死链接 / 裸 JSON 403"这个粗糙状态，未定价 → 直接看；定价未购买 → 显示价格 + 购买按钮；已购买 → 显示内容
 - [x] 列表页装真正的购买按钮（`src/components/DeckBuyButton.tsx`）：调 `POST /api/decks/[slug]/orders` → 跳转 `payUrl`，401 时带 `next` 参数送去登录。因为拿到了真实支付宝商户号，直接跳过了上面的 mock provider，按钮只提供支付宝一种方式（微信没有凭证）
-- [ ] 用上已经写了但还没接的 `provider.queryStatus()`：`return_url` 落地页主动查一次订单状态并兜底同步——异步回调（`notify_url`）不保证送达及时（用户付完钱就关掉页面是常见情况），只靠回调会出现"钱付了但没解锁"的体验问题
+- [x] 用上已经写了但还没接的 `provider.queryStatus()`（2026-10-18）：支付宝 `return_url` 改到 `/api/orders/return?order=<id>`，落地前查单并走同一套 `markOrderPaid()` 金额校验；控制台渲染前也会对最近 3 笔 pending 订单兜底查单。查单返回值从 boolean 扩成 `CallbackResult | null`，避免绕过金额比对
+- [x] 订单生命周期收口（2026-10-18）：同一用户同一出品只允许一笔 pending，重复点击复用同一订单；支付宝下单显式 `timeout_express=30m`，本地 40 分钟后惰性过期 + 每日 cron 清理；`cancelled` 订单收到合法支付回调仍会重新置为 `paid`（钱到了以支付事实为准），避免过期与迟到回调互相覆盖；「我的订单」支持删除，已支付订单用 `user_deleted_at` 软删除，访问权限不受影响
 - [ ] `/my/orders` 页面：展示自己的购买记录（pending/paid），方便用户和我们自己排查问题
 
 ### 需要你做的（我这边做不了）

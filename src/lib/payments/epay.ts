@@ -78,13 +78,30 @@ export function createEpayProvider(config: EpayConfig): PaymentProvider {
       }
     },
 
-    async queryStatus(outTradeNo: string): Promise<boolean> {
+    async queryStatus(outTradeNo: string): Promise<CallbackResult | null> {
       const url = `${config.baseUrl}/api.php?act=order&pid=${encodeURIComponent(config.pid)}&key=${encodeURIComponent(config.key)}&out_trade_no=${encodeURIComponent(outTradeNo)}`
-      const res = await fetch(url)
-      if (!res.ok) return false
+      const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
+      if (!res.ok) return null
 
       const data = await res.json().catch(() => null)
-      return (data as { status?: number } | null)?.status === 1
+      const order = data as {
+        status?: number
+        out_trade_no?: string
+        trade_no?: string
+        money?: string
+      } | null
+      if (order?.status !== 1) return null
+      if (!order.out_trade_no || !order.trade_no || !order.money) return null
+      if (order.out_trade_no !== outTradeNo) return null
+
+      const amountCents = yuanToCents(order.money)
+      if (!Number.isFinite(amountCents)) return null
+
+      return {
+        outTradeNo,
+        providerOrderId: order.trade_no,
+        amountCents,
+      }
     },
   }
 }
