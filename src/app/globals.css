@@ -116,6 +116,23 @@ h1, h2, h3, h4, h5, h6 {
   font-variant-numeric: tabular-nums;
 }
 
+.signal-entry {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+
+.signal-entry:target,
+.signal-entry.is-targeted {
+  background: color-mix(in oklch, var(--background) 92%, var(--accent) 8%);
+  border-color: color-mix(in oklch, var(--border-subtle) 55%, var(--accent) 45%);
+}
+
+.signal-entry:target .signal-entry-title,
+.signal-entry.is-targeted .signal-entry-title {
+  color: var(--accent);
+}
+
 /* Shadow system — ring halos + whisper drop */
 .ring-shadow {
   box-shadow: 0 0 0 1px var(--ring);

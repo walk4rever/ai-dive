@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { intelDatePath } from '@/lib/intel-links'
 
 export interface IntelDay {
   date: string
@@ -20,6 +21,9 @@ interface Props {
   month: number
   days: IntelDay[]
   initialDate?: string
+  monthParam?: 'im' | 'm'
+  onDateNavigate?: () => void
+  className?: string
 }
 
 const DOW = ['一', '二', '三', '四', '五', '六', '日']
@@ -37,18 +41,25 @@ function pad(n: number) {
 }
 
 function shiftMonth(year: number, month: number, delta: number) {
-  const d = new Date(year, month - 1 + delta, 1)
-  return { year: d.getFullYear(), month: d.getMonth() + 1 }
+  const date = new Date(year, month - 1 + delta, 1)
+  return { year: date.getFullYear(), month: date.getMonth() + 1 }
 }
 
-export function IntelCalendar({ year, month, days, initialDate }: Props) {
+export function IntelCalendar({
+  year,
+  month,
+  days,
+  initialDate,
+  monthParam = 'm',
+  onDateNavigate,
+  className = '',
+}: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const byDate = new Map(days.map((d) => [d.date, d]))
-  const latest = days[0]?.date ?? null
+  const byDate = useMemo(() => new Map(days.map((day) => [day.date, day])), [days])
   const [selected, setSelected] = useState<string | null>(
-    initialDate && byDate.has(initialDate) ? initialDate : latest
+    initialDate && byDate.has(initialDate) ? initialDate : null
   )
 
   const total = daysInMonth(year, month)
@@ -57,24 +68,22 @@ export function IntelCalendar({ year, month, days, initialDate }: Props) {
   const prev = shiftMonth(year, month, -1)
   const next = shiftMonth(year, month, 1)
 
-  function goToMonth(y: number, m: number) {
+  function goToMonth(targetYear: number, targetMonth: number) {
     const params = new URLSearchParams(searchParams.toString())
-    params.set('m', `${y}-${pad(m)}`)
+    params.set(monthParam, `${targetYear}-${pad(targetMonth)}`)
     params.delete('d')
+    params.delete(monthParam === 'im' ? 'm' : 'im')
     router.push(`${pathname}?${params.toString()}`)
   }
 
   function goToDate(dateStr: string) {
     setSelected(dateStr)
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('d', dateStr)
-    router.push(`${pathname}?${params.toString()}`)
+    onDateNavigate?.()
+    router.push(intelDatePath(dateStr))
   }
 
   return (
-    <div
-      className="w-full sm:w-[280px] sm:shrink-0 border border-[var(--border-subtle)] rounded-2xl p-3 bg-white"
-    >
+    <div className={className}>
       <div className="flex items-center justify-between mb-2 px-1">
         <button
           type="button"
@@ -95,34 +104,35 @@ export function IntelCalendar({ year, month, days, initialDate }: Props) {
         </button>
       </div>
       <div className="grid grid-cols-7 gap-px">
-        {DOW.map((d) => (
-          <div key={d} className="text-center text-[0.6rem] font-medium tracking-widest uppercase text-[var(--muted)] py-1">
-            {d}
+        {DOW.map((day) => (
+          <div key={day} className="text-center text-[0.6rem] font-medium tracking-widest uppercase text-[var(--muted)] py-1">
+            {day}
           </div>
         ))}
-        {Array.from({ length: offset }).map((_, i) => (
-          <div key={`e${i}`} />
+        {Array.from({ length: offset }).map((_, index) => (
+          <div key={`empty-${index}`} />
         ))}
-        {Array.from({ length: total }).map((_, i) => {
-          const day = i + 1
+        {Array.from({ length: total }).map((_, index) => {
+          const day = index + 1
           const dateStr = `${year}-${pad(month)}-${pad(day)}`
-          const has = byDate.has(dateStr)
+          const hasSignals = byDate.has(dateStr)
           const isSelected = selected === dateStr
           return (
             <button
               key={day}
-              onClick={() => has && goToDate(dateStr)}
+              type="button"
+              onClick={() => hasSignals && goToDate(dateStr)}
               className={[
                 'flex flex-col items-center justify-center gap-0.5 rounded-md h-7 text-[0.72rem] transition-colors',
                 isSelected
                   ? 'bg-[var(--accent)] text-white'
-                  : has
+                  : hasSignals
                     ? 'hover:bg-[var(--accent-light)] cursor-pointer text-[var(--foreground)]'
                     : 'text-[var(--muted)] cursor-default',
               ].join(' ')}
             >
               {day}
-              {has && (
+              {hasSignals && (
                 <span className={`w-[3px] h-[3px] rounded-full ${isSelected ? 'bg-white/60' : 'bg-[var(--accent)]'}`} />
               )}
             </button>

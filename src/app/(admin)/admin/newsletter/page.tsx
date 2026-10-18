@@ -27,7 +27,7 @@ export default async function AdminNewsletterPage() {
   return (
     <NewsletterManager
       periodLabel={`${data.periodStart} – ${data.periodEnd}`}
-      signalCount={data.topSignals.length}
+      signalCount={data.latestSignals.length}
       postCount={data.recentPosts.length}
       deckCount={data.paidDecks.length}
       subscriberCount={subscriberCount ?? 0}

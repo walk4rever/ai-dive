@@ -350,9 +350,7 @@ Slug 是文章的永久标识符，发布后请勿修改。文章访问路径为
 
 `url` 是全局唯一键，同一 URL 只会被写入一次，后续重复注入不会更新任何字段。这意味着 Agent 多天重复扫描到同一条链接是安全的，不会改变原有的 `signal_date` 或内容。
 
-评分字段（`reason`、`insight`、`actionable`、`influence`）由专项 agent 写入，注入时不参与更新。
-
-信号显示在 `/intels` 页的 SignalFeed 和 SignalHighlights 中，读者可按日历日期切换。  
+信号显示在 `/intels/YYYY-MM-DD` 每日情报页的 SignalFeed 中，读者可通过右上角日历切换日期，或用页底的前一天/后一天导航。列表卡片会定位到当天页面的 `#signal-[id]` 条目，外部原文链接独立放在条目底部。首页展示全站最近入库的 3 条情报。
 信号归属日字段为 `signal_date`：可由注入方指定（用于补录历史信号），未传时服务端按 `Asia/Shanghai (UTC+8)` 默认当天。
 
 需要 Agent Key：`Authorization: Bearer <agent_api_key>`

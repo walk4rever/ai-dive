@@ -11,8 +11,7 @@
     "test:coverage": "vitest run --coverage",
     "import:post": "node scripts/import-post.mjs",
     "import:batch": "node scripts/import-batch.mjs",
-    "import:deck": "node scripts/import-deck.mjs",
-    "score:signals:v1": "node scripts/score-signals-v1.mjs"
+    "import:deck": "node scripts/import-deck.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1031.0",

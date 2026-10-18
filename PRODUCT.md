@@ -78,7 +78,7 @@
 
 | 类型 | 路由 | 说明 |
 |------|------|------|
-| `intel` | `/intels` | 每日 AI 信号精选，日历导航 |
+| `intel` | `/intels/YYYY-MM-DD` | 每日 AI 信号精选，日历导航，支持单条锚点 |
 | `dive` | `/dives` | 深度分析（产品/技术/案例），认知升级 |
 | `insight` | `/insights` | 围绕人 / 公司的洞见，商业模式与外部播客 |
 
@@ -235,24 +235,17 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - `created_at`：信号入库时间
 - `updated_at`：信号最近一次修改时间
 
-### 三维评分
-
-策展 agent 对每条信号打三个维度的分（0-10）：
-
-| 维度 | 字段 | 判断依据 |
-|------|------|---------|
-| 洞见 | `insight` | 原创性 / 重大发布 / 真知灼见 |
-| 实践 | `actionable` | 经验分享 / 案例 / 有可运行代码 |
-| 影响力 | `influence` | AI 热点 / 覆盖面 / 紧迫程度 |
-
-高分信号路由给对应专项 agent 生产 Story；低分信号归档或丢弃。
-
 ### /intels 页信号展示
 
-`/intels` 页消费 `ai_pulse_signals`，以日历为导航，展示：
+首页日历旁展示全站最近入库的 3 条信号。点击日历中的某个日期会进入对应的每日情报页。
 
-- **SignalHighlights**：每个维度得分最高的信号各一张卡片（共三张）
-- **SignalFeed**：当日完整信号列表，随日历点击切换（URL 参数 `?d=YYYY-MM-DD`）
+`/intels/YYYY-MM-DD` 每日情报页消费 `ai_pulse_signals`，展示：
+
+- **SignalFeed**：当日完整信号列表；每条信号使用 `#signal-[id]` 稳定锚点，原文链接独立放在条目底部
+- **日历浮层**：右上角日历按钮切换日期，月历中用圆点标出有情报的日期
+- **相邻日期导航**：页底跳转到最近一个有情报的前一天或后一天
+
+`/intels` 作为当天入口跳转到 `/intels/YYYY-MM-DD`；旧 `?d=YYYY-MM-DD` 链接会兼容跳转到对应日期页。
 
 ---
 
@@ -281,7 +274,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 #### Hero
 - 一句话定位
 - 简短副标题
-- Signals 日历与当日精选入口
+- Signals 日历与最新三条情报
 
 #### 专题
 - 最多展示 6 个已有专题及文章数量，采用紧凑的浅色卡片，大屏 3 列、中屏 2 列、手机 1 列
@@ -320,7 +313,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 
 - `ai_pulse_stories`：内容文章（原 `ai_pulse_posts`）
 - `ai_pulse_topics`：话题 / 系列（原 `ai_pulse_series`，junction 表已废弃，stories 通过 `topic_ids uuid[]` 关联）
-- `ai_pulse_signals`：从外部聚合器（aihot、HN、GitHub、arXiv）摄取的原始信号，含三维评分（洞见 / 实践 / 影响力 0-10）
+- `ai_pulse_signals`：从外部聚合器（aihot、HN、GitHub、arXiv）摄取的原始信号
 - `ai_pulse_distributions`：渠道发布记录（website / email / wechat / lark / xiaohongshu）
 - `ai_pulse_subscribers`：邮件订阅用户
 - `ai_pulse_email_sends`：邮件发送日志（`story_id` 关联 stories，原为 `post_id`）
@@ -344,9 +337,8 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - 独立的订阅确认结果页
 - Next.js + Supabase + Resend 的单仓库实现
 - Signal 注入 API（`POST /api/signals`），支持单条或批量（上限 100）upsert 到 `ai_pulse_signals`，冲突键为 `url`
-- `ai_pulse_signals` 三维评分 schema（insight / actionable / influence 0-10），`scripts/score-signals-v1.mjs` 规则打分，PM2 定时任务每小时/每晚自动跑
 - `ai_pulse_signals` 时间语义：`signal_date`（归属日）/ `created_at`（入库）/ `updated_at`（更新）
-- `/intels` 页 SignalHighlights（三维 top 信号卡片）与 SignalFeed（日历驱动信号列表）
+- `/intels/YYYY-MM-DD` 每日情报页：日历浮层、SignalFeed 与相邻日期导航，支持 `#signal-[id]` 条目定位；首页展示最近入库的 3 条情报
 - 后台管理端结构（2026-08-31 route group 拆分，2026-09-04 顶栏轻量品牌化重构）：`src/app/(admin)/admin/` 是独立的 Next.js route group，`(admin)/layout.tsx` 集中做一次 `session.user.role !== 'admin'` 检查（此前每个 admin 页面各自重复一遍），再套 `AdminShell`（顶栏采用紧凑品牌化 Header，集成 `Logo` + `/ ADMIN` 徽标、当前管理员邮箱及「查看站点 ↗」快捷入口，彻底移除了原先占高 120px+ 的冗余大标题，释放大量垂直视口；总览页对齐了 `System Overview / 运行总览` 区域标题；左侧竖导航，桌面 `md:grid-cols-[160px_1fr]`，移动端横向滚动 tab，同 `NavLinks` 的 active-link 判定思路）。公开站点同理拆进 `(site)/`，两个 group 各自的 `layout.tsx` 提供各自的 chrome，根 `layout.tsx` 收窄成只剩 `<html><body><Providers>`（`Providers`/`SessionProvider` 必须留在根层，因为站点导航和后台都调 `useSession()`/`signOut()`）；站点 chrome 被提炼成 `SiteChrome` 组件，因为 Next.js 的 not-found/error 边界只会被它物理嵌套所在的 layout 包裹——一个完全不匹配任何路由的路径（不会进入 `(site)/` 子树）必须靠根级 `app/not-found.tsx`/`app/error.tsx` 兜底，这两个文件手动 `<SiteChrome>` 包一层；`(site)/` 内部的 `notFound()`（如 `/post/[slug]`）则走 `(site)/not-found.tsx`，被 `(site)/layout.tsx` 自动包裹，两处共享 `NotFoundContent`/`ErrorContent` 组件避免内容长期维护出现两份漂移
 - 后台页面按运营对象拆分：`/admin` 总览（可点统计卡跳转到 `/admin/posts?filter=pending|featured` 直接命中筛选结果 + 近 7 日动态趋势卡片：新增注册/新增订阅/成交订单与 GMV，各自对比前一个 7 天窗口，`fetchAdminOverviewTrends()` 在 `src/lib/admin/overview-metrics.ts` 里一次性查 `ai_pulse_users`/`ai_pulse_subscribers`/`ai_pulse_orders` 三张表在 JS 里按时间窗口计数，数据量小时够用，涨到几千行以上应换成带日期过滤的 SQL count；原来的"最近发布"列表已删除，跟统计卡里的"文章总数"链接重复，没有额外信息量）、`/admin/posts` 文章管理（标题/slug 搜索 + 类型/状态筛选，「待发 Newsletter」= 已发布且从未出现在 `ai_pulse_email_sends` 里的文章，`fetchAdminPostsData()` 在 `src/lib/admin/posts.ts` 里被总览和文章管理两个页面共用，避免同一条统计口径写两遍；删除/精选操作有失败反馈：`res.ok` 判断 + 按行 loading + 错误提示条）、`/admin/series` 专题编排（现在是货真价实的独立路由，只有访问这个 URL 才会挂载和拉取数据——此前用 tab 切换 + 手动挂载时机补丁模拟同样效果，这次route 化之后那个补丁连同 tab 状态一起被删掉了）、`/admin/upload` 图片上传（接入左侧导航，此前是没有任何链接指向的孤儿页）。所有面板统一走 `src/components/ui/Card.tsx`（从控制台提升为通用组件）+ DESIGN.md 的边框/圆角 token，替掉了旧版 `color-mix` 染色背景和裸圆角；删除了零引用死代码 `AdminActions.tsx`（其 `handleLogout` 调用的 `/api/admin/login` 路由早已不存在）
 - 用户控制台（`/dashboard`）：本月 AI 额度（数字 + 进度条，月份标签取自 `currentPeriod()`，与余额求和窗口同源）、我的订单（`ai_pulse_orders`，deck 标题批量解析，deck 下架后回落到原始 slug 不丢单）、账号（邮箱只读，用户名 / 密码就地展开修改）；管理员额外显示「管理员」徽章和「管理后台」入口。桌面端两张概览卡并排、订单列表整行铺开，DOM 顺序即移动端顺序（额度 → 订单 → 账号），靠显式 grid 定位换列而不重排标签。只有账号表单和退出按钮是 client 组件，额度与订单纯服务端渲染
@@ -355,7 +347,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - 出品管理（`/admin/decks`、`/admin/decks/[slug]`，2026-08-31 新增）：只能改元数据（标题/类型/描述/元信息/发布日期/状态）和价格，正文永远不出现在表单里——正文托管在 R2，改正文走 `scripts/import-deck.mjs`，`PATCH /api/admin/decks/[slug]` 也在服务端硬性拒绝 `href`/`slug` 这两个字段。价格输入是整数元（如 `19.9`），新写的 `parsePriceYuanToCents()`（`src/lib/decks/access.ts`）把空白和显式填 `0` 都统一转成 `price_cents = NULL`（免费/未定价），不会存成字面意义的"¥0"——这是刻意的：现有付费墙判断只认 `price_cents === null` 才算免费，真存一个 0 会走到"要有 paid 订单"这条路，但支付宝/易支付这些通道对 0 元订单没有正常语义。`formatPrice()` 同一次改动里从"整数元省略小数点"改成了固定两位小数（`¥29` → `¥29.00`），这个函数是 `/decks`、`/dashboard` 订单列表、`/admin/decks` 共用的，所以三处展示一起变了
 - 用户管理（`/admin/users`，2026-08-31 新增）：列表（邮箱/用户名/角色/邮箱验证状态/注册时间/本月 AI 额度余额/出品订单数，额度和订单数都是一次性批量查询后在 JS 里按 `user_id` 归并，不是逐用户单独查）+ 管理员角色切换（图标按钮，盾牌图标 filled=管理员）+ 删除账号（垃圾桶图标，`ConfirmDeleteDialog` 要求手动输入目标邮箱才能点亮确认删除，比 `window.confirm()` 更难误触）。删除是硬删除：`ai_pulse_agents`/`orders`/`credit_ledger`/`user_sessions`/`chat_turns` 全部 `ON DELETE CASCADE` 跟着永久消失；`ai_pulse_stories.user_id` 没有级联，所以删除一个以自己身份发过文章的用户会被数据库外键挡住，API 把这种情况识别成 409 而不是甩一个裸 500。两条安全线全部在服务端：不能取消自己的管理员权限、不能删除自己的账号，前端也直接不渲染这两个按钮给自己那一行，不是只在点击后才报错。**角色变更不会让已登录会话立即失效**——`role` 写在登录时签发的 JWT 里，不逐请求查库校验，对方要等下次登录才会应用新角色，页面上有说明
 - 订阅管理（`/admin/subscribers`，2026-08-31 新增）：纯只读，看 `ai_pulse_subscribers` 的已确认/待确认/已退订状态和层级，没有任何操作按钮——发单篇文章的邮件仍然走 `/admin/posts` 编辑页原有的发送接口。`ai_pulse_subscribers` 和 `ai_pulse_users` 是两张完全独立的表，没有外键关联：前者是邮件订阅名单（只需要邮箱，不需要注册），后者是站内登录账号，同一个人的邮箱可能在两边各存一份互不知道对方的记录
-- 周刊发送（`/admin/newsletter`，2026-08-31 新增）：三段式邮件——信号解读（近 7 天评分过的信号里，按洞见/实践/影响三个维度各选一条最高分，复用 `/intels` 页 `SignalHighlights.tsx` 同一套算法，加一段管理员手写的解读摘要，目前没接 LLM 自动生成）、深度阅读（「深度」+「洞见」栏目最新 3 篇）、热门出品（当前全部已定价且已发布的出品）。三段内容全部实时查库拼出来，不缓存、不预先冻结——预览按钮点开看到的就是这一刻会发出去的东西。视觉上是站点暖色调色板的邮件安全子集：table 布局 + 全内联样式（邮件客户端不认 flexbox/grid），字体栈换成系统字体（网页字体在邮件里不可靠），680px 内容宽度、两侧 40px 留白，类型标签用描边胶囊而不是纯文字，跟后台其它模块的状态徽标是同一套视觉语言。落地页 `NewsletterManager` 提供「刷新预览」（iframe 内联渲染真实 HTML）、「发送测试」（任意邮箱，不落库、不计入发送记录）、「发送给全部订阅者」（真实群发，二次确认弹窗）。去重靠新表 `ai_pulse_newsletter_issues`（`supabase/migrations/20260831_create_newsletter_issues.sql`，**需要手动在 Supabase SQL Editor 执行**）：按当次计算出的 7 天窗口 `period_start` 查找或新建一期，复用既有的 `ai_pulse_email_sends` 表做逐订阅者发送记录（`story_id` 留空、新增的 `newsletter_issue_id` 列指向本期）——同一天内因为重试或手滑再点一次发送，只会补发还没收到的人，不会让已收到的订阅者收到第二封；隔天再发因为窗口右移会开一期新的，这是有意的行为，不是 bug。取消订阅链接是真实可点的：复用 `src/lib/subscription/links.ts` 的 `buildUnsubscribeUrl`，跟单篇文章的发送邮件用同一套签名（`EMAIL_CONFIRMATION_SECRET`）
+- 周刊发送（`/admin/newsletter`，2026-08-31 新增）：三段式邮件——信号解读（上一周最近入库的 3 条信号，加一段管理员手写的解读摘要，目前没接 LLM 自动生成）、深度阅读（「深度」+「洞见」栏目最新 3 篇）、热门出品（当前全部已定价且已发布的出品）。信号标题链接到站内每日情报条目，原文链接独立放在卡片底部。三段内容全部实时查库拼出来，不缓存、不预先冻结——预览按钮点开看到的就是这一刻会发出去的东西。视觉上是站点暖色调色板的邮件安全子集：table 布局 + 全内联样式（邮件客户端不认 flexbox/grid），字体栈换成系统字体（网页字体在邮件里不可靠），680px 内容宽度、两侧 40px 留白，类型标签用描边胶囊而不是纯文字，跟后台其它模块的状态徽标是同一套视觉语言。落地页 `NewsletterManager` 提供「刷新预览」（iframe 内联渲染真实 HTML）、「发送测试」（任意邮箱，不落库、不计入发送记录）、「发送给全部订阅者」（真实群发，二次确认弹窗）。去重靠新表 `ai_pulse_newsletter_issues`（`supabase/migrations/20260831_create_newsletter_issues.sql`，**需要手动在 Supabase SQL Editor 执行**）：按当次计算出的 7 天窗口 `period_start` 查找或新建一期，复用既有的 `ai_pulse_email_sends` 表做逐订阅者发送记录（`story_id` 留空、新增的 `newsletter_issue_id` 列指向本期）——同一天内因为重试或手滑再点一次发送，只会补发还没收到的人，不会让已收到的订阅者收到第二封；隔天再发因为窗口右移会开一期新的，这是有意的行为，不是 bug。取消订阅链接是真实可点的：复用 `src/lib/subscription/links.ts` 的 `buildUnsubscribeUrl`，跟单篇文章的发送邮件用同一套签名（`EMAIL_CONFIRMATION_SECRET`）
 - Agent 发布接口（`/api/posts`、`/api/signals`）
 - R2 文件上传接口（`/api/upload`、`/api/upload/presign`）
 - 系列页（`/series`）

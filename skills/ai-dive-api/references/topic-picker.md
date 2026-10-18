@@ -13,14 +13,13 @@ When the user says "帮我选题"、"今天有什么值得深写的"、"选题�
 ```bash
 GET https://ai.air7.fun/api/signals
   ?since={today-5d}          # YYYY-MM-DD, last 5 days
-  &insight_min=5             # quality floor (insight OR influence)
   &limit=60
   -H "Authorization: Bearer {agent_api_key}"
 ```
 
 Returns `{ signals: [...], count: N }`.
 
-If fewer than 5 signals are returned, expand the window (`since={today-14d}`) or lower the floor (`insight_min=3`).
+If fewer than 5 signals are returned, expand the window (`since={today-14d}`).
 
 ### 2. Recent Posts (for deduplication)
 
@@ -34,7 +33,6 @@ Extract `slug`, `title`, and note which topics were recently covered. Signals al
 ## Selection Algorithm
 
 **Step 1 — Filter**
-- Drop signals with `score_status != 'scored'` (not yet scored, no insight data).
 - Deprioritise signals whose topic is clearly covered in a recent post title.
 
 **Step 2 — Cluster by theme**
@@ -44,7 +42,6 @@ Group remaining candidates by shared topic. Two signals share a theme if they re
 
 | Factor | Weight |
 |---|---|
-| Max `insight` in cluster | high |
 | Cluster size (more signals = broader traction) | medium |
 | `source_type` depth potential: arxiv > github > hn > twitter | medium |
 | Freshness (`signal_date` closer to today) | medium |
@@ -94,4 +91,4 @@ Keep the report concise. 1–3 picks, no more. "备选" is optional; include onl
 - Never query Supabase directly. Always use the API endpoints above.
 - Never auto-create posts. Output the report only; the user decides what to write.
 - `signal_date` uses Asia/Shanghai (UTC+8). Treat "today" as Shanghai local date.
-- `insight_min` and `influence_min` are OR conditions on the server — passing `insight_min=5` returns signals where `insight >= 5` OR `influence >= 6` (server default).
+- Signals are returned newest-ingested first; apply your own editorial judgment when clustering and ranking.

@@ -1,8 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { addDaysYmd, getTodayYmd, parseYmd } from '@/lib/timezone'
+import { intelDatePath, signalAnchorId } from '@/lib/intel-links'
 
 export interface DigestSignal {
-  label: string
+  id: string
+  signalDate: string
   title: string
   description: string
   url: string
@@ -27,26 +29,18 @@ export interface DigestDeck {
 export interface WeeklyDigestData {
   periodStart: string
   periodEnd: string
-  topSignals: DigestSignal[]
+  latestSignals: DigestSignal[]
   recentPosts: DigestPost[]
   paidDecks: DigestDeck[]
 }
 
-const DIMENSIONS: ReadonlyArray<{ key: 'insight' | 'actionable' | 'influence'; label: string }> = [
-  { key: 'insight', label: '洞见' },
-  { key: 'actionable', label: '实践' },
-  { key: 'influence', label: '影响' },
-]
-
 interface RawSignal {
   id: string
+  signal_date: string
   title: string
   description: string
   url: string
   source_name: string | null
-  insight: number | null
-  actionable: number | null
-  influence: number | null
 }
 
 /** Last full calendar week (Monday–Sunday), not a rolling "today minus 7 days" —
@@ -76,21 +70,20 @@ export function lastCalendarWeek(): { periodStart: string; periodEnd: string } {
 
 /** Live data for last week — nothing here is cached or frozen at issue creation time,
  *  so a preview reflects whatever's actually in the DB right now for that window.
- *  信号解读 picks one signal per dimension (insight/actionable/influence), highest
- *  score wins — same algorithm as SignalHighlights.tsx on /intels, restricted to
- *  score_status='scored' so a just-ingested signal that hasn't been scored yet
- *  doesn't show up as a false zero. */
+ *  信号解读 shows the three most recently ingested signals from the week. */
 export async function fetchWeeklyDigestData(supabase: SupabaseClient): Promise<WeeklyDigestData> {
   const { periodStart, periodEnd } = lastCalendarWeek()
 
-  const [{ data: scoredSignals }, { data: posts }, { data: decks }] = await Promise.all([
+  const [{ data: signalRows }, { data: posts }, { data: decks }] = await Promise.all([
     supabase
       .from('ai_pulse_signals')
-      .select('id, title, description, url, source_name, insight, actionable, influence')
+      .select('id, signal_date, title, description, url, source_name')
       .eq('status', 'enabled')
-      .eq('score_status', 'scored')
       .gte('signal_date', periodStart)
-      .lte('signal_date', periodEnd),
+      .lte('signal_date', periodEnd)
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .limit(3),
     supabase
       .from('ai_pulse_stories')
       .select('slug, title, excerpt, content_type')
@@ -106,30 +99,19 @@ export async function fetchWeeklyDigestData(supabase: SupabaseClient): Promise<W
       .order('date', { ascending: false }),
   ])
 
-  const pool = (scoredSignals ?? []) as RawSignal[]
-  const excludeIds = new Set<string>()
-  const topSignals: DigestSignal[] = []
-  for (const { key, label } of DIMENSIONS) {
-    const candidates = pool
-      .filter((s) => !excludeIds.has(s.id) && typeof s[key] === 'number')
-      .sort((a, b) => (b[key] as number) - (a[key] as number))
-    const signal = candidates[0]
-    if (signal) {
-      excludeIds.add(signal.id)
-      topSignals.push({
-        label,
-        title: signal.title,
-        description: signal.description,
-        url: signal.url,
-        sourceName: signal.source_name,
-      })
-    }
-  }
+  const latestSignals = ((signalRows ?? []) as RawSignal[]).map((signal) => ({
+    id: signal.id,
+    signalDate: signal.signal_date,
+    title: signal.title,
+    description: signal.description,
+    url: signal.url,
+    sourceName: signal.source_name,
+  }))
 
   return {
     periodStart,
     periodEnd,
-    topSignals,
+    latestSignals,
     recentPosts: (posts ?? []).map((p) => ({
       slug: p.slug as string,
       title: p.title as string,
@@ -152,11 +134,8 @@ export interface WeekSignalForSummary {
   sourceName: string | null
 }
 
-/** The broader pool an LLM summarizes from — deliberately not the same 3 cards
- *  topSignals picks for display. Those 3 are "one highest score per dimension";
- *  a good weekly summary needs the week's actual spread of themes, not just its
- *  three most extreme outliers. Capped and sorted by combined score so a heavy week
- *  still gives the model the most substantive items first if it has to truncate. */
+/** The broader pool an LLM summarizes from, capped by recency so a heavy week
+ *  still gives the model a useful cross-section of what was ingested. */
 export async function fetchWeekSignalsForSummary(
   supabase: SupabaseClient,
   limit = 80
@@ -165,28 +144,21 @@ export async function fetchWeekSignalsForSummary(
 
   const { data } = await supabase
     .from('ai_pulse_signals')
-    .select('title, description, source_name, insight, actionable, influence')
+    .select('title, description, source_name')
     .eq('status', 'enabled')
-    .eq('score_status', 'scored')
     .gte('signal_date', periodStart)
     .lte('signal_date', periodEnd)
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(limit)
 
   const rows = (data ?? []) as Array<{
     title: string
     description: string
     source_name: string | null
-    insight: number | null
-    actionable: number | null
-    influence: number | null
   }>
 
-  rows.sort((a, b) => {
-    const scoreA = (a.insight ?? 0) + (a.actionable ?? 0) + (a.influence ?? 0)
-    const scoreB = (b.insight ?? 0) + (b.actionable ?? 0) + (b.influence ?? 0)
-    return scoreB - scoreA
-  })
-
-  return rows.slice(0, limit).map((r) => ({
+  return rows.map((r) => ({
     title: r.title,
     description: r.description,
     sourceName: r.source_name,
@@ -262,14 +234,19 @@ function sectionHeading(title: string, subtitle?: string): string {
   `
 }
 
-function signalCard(signal: DigestSignal): string {
+function signalCard(signal: DigestSignal, siteUrl: string): string {
   const trimmed = signal.description.length > 110 ? `${signal.description.slice(0, 110)}…` : signal.description
+  const intelUrl = `${siteUrl}${intelDatePath(signal.signalDate)}#${signalAnchorId(signal.id)}`
+  const dateLabel = `${Number(signal.signalDate.slice(5, 7))}.${signal.signalDate.slice(8, 10)}`
   return `
     <tr><td style="padding:22px 26px;border:1px solid ${COLOR.borderSubtle};background:${COLOR.background};border-radius:12px;">
-      <div style="margin:0 0 12px;">${pill(signal.label, COLOR.accent)}</div>
-      <a href="${esc(signal.url)}" style="display:block;font-family:${SANS};font-size:16px;font-weight:600;line-height:1.5;color:${COLOR.foreground};text-decoration:none;margin:0 0 8px;">${esc(signal.title)}</a>
+      <div style="margin:0 0 12px;">${pill(dateLabel, COLOR.accent)}</div>
+      <a href="${esc(intelUrl)}" style="display:block;font-family:${SANS};font-size:16px;font-weight:600;line-height:1.5;color:${COLOR.foreground};text-decoration:none;margin:0 0 8px;">${esc(signal.title)}</a>
       ${signal.description ? `<p style="margin:0 0 10px;font-family:${SANS};font-size:14px;line-height:1.75;color:${COLOR.muted};">${esc(trimmed)}</p>` : ''}
-      ${signal.sourceName ? `<p style="margin:0;font-family:${SANS};font-size:12px;color:${COLOR.subtle};">${esc(signal.sourceName)}</p>` : ''}
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+        <td style="font-family:${SANS};font-size:12px;color:${COLOR.subtle};">${signal.sourceName ? esc(signal.sourceName) : ''}</td>
+        <td align="right"><a href="${esc(signal.url)}" style="font-family:${SANS};font-size:12px;font-weight:600;color:${COLOR.accent};text-decoration:none;">阅读原文 ↗</a></td>
+      </tr></table>
     </td></tr>
     <tr><td style="height:14px;line-height:14px;font-size:0;">&nbsp;</td></tr>
   `
@@ -366,7 +343,7 @@ export function buildWeeklyDigestHtml({ data, summary, siteUrl, unsubscribeUrl }
         <tr><td style="padding:16px ${SIDE_PAD}px 0;">
           <div style="margin:0 0 8px;">${renderParagraphs(summary, COLOR.foregroundSoft)}</div>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-            ${data.topSignals.map(signalCard).join('')}
+            ${data.latestSignals.map((signal) => signalCard(signal, siteUrl)).join('')}
           </table>
         </td></tr>
 
@@ -409,7 +386,7 @@ export function buildWeeklyDigestText({ data, summary, siteUrl, unsubscribeUrl }
     '',
     '# 信号解读',
     summary,
-    ...data.topSignals.map((s) => `\n[${s.label}] ${s.title}\n${s.url}`),
+    ...data.latestSignals.map((s) => `\n[${s.signalDate}] ${s.title}\n${siteUrl}${intelDatePath(s.signalDate)}#${signalAnchorId(s.id)}\n原文：${s.url}`),
     '',
     '# 深度阅读',
     ...data.recentPosts.map((p) => `\n${TYPE_LABEL[p.contentType]} | ${p.title}\n${siteUrl}/post/${p.slug}`),

@@ -4,15 +4,16 @@ import { Post, Signal } from '@/types'
 import { getTypeLabel } from '@/lib/content'
 import Link from 'next/link'
 import { IntelCalendar } from '@/app/(site)/intels/IntelCalendar'
-import { SignalHighlights } from '@/app/(site)/intels/SignalHighlights'
+import { LatestIntelCards } from '@/app/(site)/intels/LatestIntelCards'
 import { getTodayYmd } from '@/lib/timezone'
 import { getMonthDateRange } from '@/lib/signals-calendar'
 import { fetchCachedSignalCalendarDays } from '@/lib/signals-calendar-server'
+import { intelDatePath } from '@/lib/intel-links'
 
 export const revalidate = 60
 
 interface HomePageProps {
-  searchParams: Promise<{ confirmed?: string; im?: string; m?: string; d?: string }>
+  searchParams: Promise<{ confirmed?: string; im?: string; m?: string }>
 }
 
 type HomePost = Pick<
@@ -36,16 +37,6 @@ function formatDate(value: string | null | undefined) {
 function parseYearMonth(value?: string): { year: number; month: number } | null {
   if (!value) return null
   const m = /^(\d{4})-(\d{2})$/.exec(value)
-  if (!m) return null
-  const year = Number(m[1])
-  const month = Number(m[2])
-  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) return null
-  return { year, month }
-}
-
-function parseDate(value?: string): { year: number; month: number } | null {
-  if (!value) return null
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
   if (!m) return null
   const year = Number(m[1])
   const month = Number(m[2])
@@ -82,7 +73,7 @@ function FeaturedCard({ post }: { post: HomePost }) {
 function postHref(post: HomePost): string {
   if (post.content_type === 'intel') {
     const date = post.slug.replace('intel-', '')
-    return `/intel?d=${date}`
+    return intelDatePath(date)
   }
   return `/post/${post.slug}`
 }
@@ -129,7 +120,7 @@ function SeriesCard({ item }: { item: SeriesItem }) {
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
-  const { confirmed, im, m, d } = await searchParams
+  const { confirmed, im, m } = await searchParams
   const { hasPublicEnv } = getSupabaseEnv()
 
   if (!hasPublicEnv) {
@@ -146,12 +137,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   const today = getTodayYmd()
   const todayYearMonth = parseYearMonthFromYmd(today)
-  const byDate = parseDate(d)
-  const selectedMonth = byDate ?? parseYearMonth(m) ?? parseYearMonth(im) ?? todayYearMonth
+  const selectedMonth = parseYearMonth(im) ?? parseYearMonth(m) ?? todayYearMonth
   const year = selectedMonth.year
   const month = selectedMonth.month
   const { monthStart, monthEnd } = getMonthDateRange(year, month)
-  const targetDate = d ?? today
 
   const [{ data: posts }, { data: topicsData }, { data: storiesWithTopics }, { data: signalData }, intelDays] = await Promise.all([
     supabase
@@ -171,10 +160,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       .not('topic_id', 'is', null),
     supabase
       .from('ai_pulse_signals')
-      .select('id, url, source_type, source_name, title, description, signal_date, status, metadata, reason, insight, actionable, influence, created_at, updated_at')
+      .select('id, url, source_type, source_name, title, description, signal_date, status, metadata, created_at, updated_at')
       .eq('status', 'enabled')
-      .eq('signal_date', targetDate)
-      .order('created_at', { ascending: false }),
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .limit(3),
     fetchCachedSignalCalendarDays(monthStart, monthEnd),
   ])
 
@@ -207,19 +197,29 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <p className="mt-8 text-lg md:text-xl text-[var(--muted)] leading-relaxed">
           围绕 AI 的脉动，精选真正值得跟进的变化与判断 —— 情报、深度、访谈、专题。
         </p>
-        <section className="mt-10 flex flex-col sm:flex-row sm:items-center items-start gap-6">
-          <IntelCalendar key={`${year}-${month}`} year={year} month={month} days={intelDays} initialDate={d} />
-          <div className="flex-1 min-w-0">
-            <p className="kicker mb-3">{targetDate} 精选</p>
-            <SignalHighlights signals={signals} />
-            <Link
-              href={`/intels?d=${targetDate}`}
-              className="inline-flex items-center mt-4 text-sm text-[var(--accent)] hover:underline"
-            >
-              查看当日情报 →
-            </Link>
+        <div className="mt-10 flex flex-col lg:flex-row lg:items-start gap-6">
+          <div className="w-full lg:w-[280px] lg:shrink-0 rounded-2xl border border-[var(--border-subtle)] bg-white p-3">
+            <IntelCalendar
+              key={`${year}-${month}`}
+              year={year}
+              month={month}
+              days={intelDays}
+              monthParam="im"
+            />
           </div>
-        </section>
+          <div className="flex-1 min-w-0">
+            <div className="mb-3 flex items-baseline justify-between gap-4">
+              <p className="kicker" style={{ color: 'var(--accent)' }}>最新情报</p>
+              <Link
+                href="/intels"
+                className="kicker text-[var(--muted)] hover:text-[var(--accent)] transition-colors"
+              >
+                全部情报 →
+              </Link>
+            </div>
+            <LatestIntelCards signals={signals} />
+          </div>
+        </div>
       </section>
 
       {/* Series overview */}

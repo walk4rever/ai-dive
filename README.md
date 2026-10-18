@@ -13,7 +13,7 @@ Powered by [Air7.fun](https://air7.fun)
 - 文章目录导航：H2/H3 数量 ≥3 篇的文章左上角显示悬浮目录按钮，点开面板可跳转到对应章节
 - 回到顶部：`dive`/`insight` 文章滚动超过一屏后左下角出现悬浮按钮，点击回到文章顶部
 - `/wiki`：Quartz 静态知识库子站，挂在 `ai.air7fun.com/wiki/`
-- `/intels`：信号日历页，含 SignalHighlights（洞见 / 实践 / 影响力三维 top 信号）和 SignalFeed（当日完整信号列表）
+- 情报栏目：首页日历旁展示全站最近入库的 3 条情报；每日情报页 `/intels/YYYY-MM-DD` 按日聚合信号，右上角日历按钮切换日期，页底可跳转前一天/后一天。列表卡片先进入站内日期页并定位到对应条目，原文链接独立放在条目底部。`/intels` 跳转到当天日期页，旧 `?d=` 链接保持兼容
 - `/dives`、`/insights`、`/archive`：深度、洞见和归档列表页，均已支持分页（每页 30 篇）
 - 邮件订阅页
 - 双重确认订阅流程
@@ -169,7 +169,8 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=<KEY
 
 - `/`：首页
 - `/post/[slug]`：文章详情
-- `/intels`：信号日历 + 信号流页
+- `/intels`：跳转到当天情报页
+- `/intels/[date]`：每日情报页（日历浮层 + 当日完整信号列表 + 相邻日期导航，支持 `#signal-[id]` 条目锚点）
 - `/dives`：深度列表
 - `/insights`：洞见列表，按来源（`author_display`）胶囊过滤
 - `/latest`：最新内容列表

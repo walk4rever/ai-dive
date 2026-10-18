@@ -3,6 +3,7 @@ import { revalidatePath, revalidateTag } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 import { resolveAuthor } from '@/lib/api-auth'
 import { getTodayYmd, parseYmd } from '@/lib/timezone'
+import { intelDatePath } from '@/lib/intel-links'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -97,8 +98,6 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
   const limit = Math.min(Number(searchParams.get('limit') ?? '60'), 100)
   const since = searchParams.get('since') // YYYY-MM-DD
-  const insightMin = searchParams.get('insight_min') !== null ? Number(searchParams.get('insight_min')) : null
-  const influenceMin = searchParams.get('influence_min') !== null ? Number(searchParams.get('influence_min')) : null
 
   if (since && !parseYmd(since)) {
     return NextResponse.json({ error: 'Field "since" must be YYYY-MM-DD' }, { status: 422 })
@@ -107,15 +106,13 @@ export async function GET(req: NextRequest) {
   const supabase = await createServiceClient()
   let query = supabase
     .from('ai_pulse_signals')
-    .select('id, url, source_type, source_channel, source_name, title, description, signal_date, metadata, reason, insight, actionable, influence, score_status')
+    .select('id, url, source_type, source_channel, source_name, title, description, signal_date, metadata, created_at, updated_at')
     .eq('status', 'enabled')
-    .order('signal_date', { ascending: false })
-    .order('insight', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
     .limit(limit)
 
   if (since) query = query.gte('signal_date', since)
-  if (insightMin !== null) query = query.gte('insight', insightMin)
-  else if (influenceMin !== null) query = query.gte('influence', influenceMin)
 
   const { data, error } = await query
   if (error) {
@@ -182,7 +179,11 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  revalidatePath('/')
   revalidatePath('/intels')
+  for (const signalDate of new Set(allowed.map((row) => row.signal_date))) {
+    revalidatePath(intelDatePath(signalDate))
+  }
   revalidateTag('signal-calendar-days', { expire: 0 })
 
   return NextResponse.json({ ok: true, count: allowed.length, skipped }, { status: 200 })
@@ -216,7 +217,7 @@ export async function DELETE(req: NextRequest) {
     .delete()
     .in('url', urls)
     .eq('agent_id', author.agentId)
-    .select('url')
+    .select('url, signal_date')
 
   if (error) {
     console.error('[api/signals] delete failed', {
@@ -228,7 +229,11 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: 'Database error' }, { status: 500 })
   }
 
+  revalidatePath('/')
   revalidatePath('/intels')
+  for (const signalDate of new Set((data ?? []).map((row) => row.signal_date))) {
+    revalidatePath(intelDatePath(signalDate))
+  }
   revalidateTag('signal-calendar-days', { expire: 0 })
 
   return NextResponse.json({ ok: true, deleted: data?.length ?? 0 })
