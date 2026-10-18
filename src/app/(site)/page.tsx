@@ -113,16 +113,16 @@ function SeriesCard({ item }: { item: SeriesItem }) {
   return (
     <Link
       href={`/series#${item.id}`}
-      className="group flex flex-col gap-2 bg-white/5 hover:bg-white/10 transition-colors rounded-2xl p-6 border border-white/10"
+      className="group flex flex-col gap-2 bg-[var(--background)] hover:bg-white transition-colors rounded-2xl p-5 border border-[var(--border-subtle)] hover:border-[var(--ring)]"
     >
       <div className="flex items-start justify-between gap-4">
-        <h3 className="font-serif text-lg font-medium text-[#faf9f5] leading-snug group-hover:text-[var(--accent-on-dark)] transition-colors">
+        <h3 className="font-serif text-lg font-medium text-[var(--foreground)] leading-snug group-hover:text-[var(--accent)] transition-colors">
           {item.name}
         </h3>
-        <span className="shrink-0 text-xs text-[#b0aea5] mt-1">{item.postCount} 篇</span>
+        <span className="shrink-0 text-xs text-[var(--muted)] mt-1">{item.postCount} 篇</span>
       </div>
       {item.description && (
-        <p className="text-sm text-[#b0aea5] leading-relaxed line-clamp-2">{item.description}</p>
+        <p className="text-sm text-[var(--muted)] leading-relaxed line-clamp-2">{item.description}</p>
       )}
     </Link>
   )
@@ -222,6 +222,23 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </section>
       </section>
 
+      {/* Series overview */}
+      {seriesList.length > 0 && (
+        <section className="mb-20 -mx-6 bg-[var(--surface-sand)] px-8 md:px-12 py-10 md:py-12 rounded-3xl">
+          <div className="flex items-baseline justify-between mb-6">
+            <p className="kicker" style={{ color: 'var(--accent)' }}>专题</p>
+            <Link href="/series" className="kicker text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
+              全部专题 →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {seriesList.slice(0, 6).map((item) => (
+              <SeriesCard key={item.id} item={item} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Featured */}
       {featured.length > 0 && (
         <section className="mb-20 border-t border-[var(--border)] pt-14">
@@ -229,23 +246,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {featured.map((post) => (
               <FeaturedCard key={post.id} post={post} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Series overview */}
-      {seriesList.length > 0 && (
-        <section className="mb-20 -mx-6 bg-[#141413] px-8 md:px-12 py-16 md:py-20 rounded-3xl">
-          <div className="flex items-baseline justify-between mb-8">
-            <p className="kicker" style={{ color: 'var(--accent-on-dark)' }}>按专题浏览</p>
-            <Link href="/series" className="kicker text-[#b0aea5] hover:text-[var(--accent-on-dark)] transition-colors">
-              全部专题 →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {seriesList.slice(0, 4).map((item) => (
-              <SeriesCard key={item.id} item={item} />
             ))}
           </div>
         </section>
