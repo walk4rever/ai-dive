@@ -6,7 +6,7 @@ import { Metadata } from 'next'
 import { BackButton } from '@/components/BackButton'
 import { ArticleNavigation } from '@/components/ArticleNavigation'
 import { MermaidContent } from '@/components/MermaidContent'
-import { ArticleChatPanel } from '@/components/ArticleChatPanel'
+import { AiChatPanel } from '@/components/AiChatPanel'
 import { ArticleToc } from '@/components/ArticleToc'
 import { BackToTop } from '@/components/BackToTop'
 import {
@@ -144,11 +144,15 @@ export default async function PostPage({ params }: Props) {
     <article>
       <ArticleToc headings={headings} />
       {(post.content_type === 'dive' || post.content_type === 'insight') && <BackToTop />}
-      <ArticleChatPanel slug={post.slug} title={post.title} author={authorLabel}>
+      <AiChatPanel
+        pageContext={{ kind: 'article', id: post.slug }}
+        title={post.title}
+        author={authorLabel}
+      >
         {header}
         <MermaidContent className="prose" html={post.content} />
         {navigation && <ArticleNavigation navigation={navigation} />}
-      </ArticleChatPanel>
+      </AiChatPanel>
     </article>
   )
 }

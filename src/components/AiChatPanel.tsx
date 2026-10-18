@@ -7,6 +7,7 @@ import type { ComponentPropsWithoutRef, ClipboardEvent } from 'react'
 import { useSession } from 'next-auth/react'
 import { useAgentChat, TOOL_META } from '@/hooks/useAgentChat'
 import { loginHref } from '@/lib/auth/client'
+import { agentPageContextKey, type AgentPageContext } from '@/lib/agent-context'
 import { handleClipboardImages, MessageImages, PendingImageChips, useImageLightbox } from '@/components/AgentChatImages'
 import { CopyMessageButton } from '@/components/AgentChatCopyButton'
 import { buildHighlightShareText } from '@/lib/highlight-share'
@@ -56,7 +57,7 @@ const mdComponents = {
   },
 }
 
-const SUGGESTIONS = [
+const DEFAULT_SUGGESTIONS = [
   '这篇文章的核心论点是什么？',
   '帮我解释一下里面提到的公式/推导',
   '这篇和 AI-DIVE 之前的内容有什么关联？',
@@ -68,10 +69,15 @@ interface QuoteButtonState {
   left: number
 }
 
-interface ArticleChatPanelProps {
-  slug: string
+interface AiChatPanelProps {
+  pageContext?: AgentPageContext
   title: string
   author?: string | null
+  suggestions?: string[]
+  inputPlaceholder?: string
+  emptyHint?: string
+  shareUrl?: string
+  contentWidthClass?: string
   children: ReactNode
 }
 
@@ -107,7 +113,17 @@ function extractSelectionText(range: Range): string {
   return container.textContent?.trim() ?? ''
 }
 
-export function ArticleChatPanel({ slug, title, author, children }: ArticleChatPanelProps) {
+export function AiChatPanel({
+  pageContext,
+  title,
+  author,
+  suggestions = DEFAULT_SUGGESTIONS,
+  inputPlaceholder = '针对这篇文章提问…（Enter 发送，Shift+Enter 换行）',
+  emptyHint = '选中页面中的文字，或者直接提问。',
+  shareUrl,
+  contentWidthClass = 'max-w-2xl',
+  children,
+}: AiChatPanelProps) {
   const articleRef = useRef<HTMLDivElement>(null)
   const messageListRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -123,11 +139,12 @@ export function ArticleChatPanel({ slug, title, author, children }: ArticleChatP
   const { status } = useSession()
   const isDesktop = useIsDesktop()
   const docked = open && isDesktop
+  const contextKey = agentPageContextKey(pageContext)
 
   const { messages, input, setInput, streaming, sendMessage, abort, pendingImages, addImage, removeImage } =
     useAgentChat({
-      sessionStorageKey: `ai_dive_article_chat:${slug}`,
-      articleSlug: slug,
+      sessionStorageKey: `ai_dive_page_chat:${contextKey}`,
+      pageContext,
     })
   const lightbox = useImageLightbox()
 
@@ -308,7 +325,8 @@ export function ArticleChatPanel({ slug, title, author, children }: ArticleChatP
     if (!quoteButton?.text) return
     const shareText = buildHighlightShareText({
       title,
-      slug,
+      slug: pageContext?.kind === 'article' ? pageContext.id : undefined,
+      url: shareUrl,
       quoteText: quoteButton.text,
       author,
     })
@@ -335,8 +353,8 @@ export function ArticleChatPanel({ slug, title, author, children }: ArticleChatP
           ref={articleRef}
           className={
             docked
-              ? 'sticky top-6 h-[calc(100vh-9.5rem)] w-full max-w-2xl flex-shrink-0 overflow-y-auto overscroll-contain pr-6'
-              : 'mx-auto max-w-2xl'
+              ? `sticky top-6 h-[calc(100vh-9.5rem)] min-w-0 flex-1 ${contentWidthClass} overflow-y-auto overscroll-contain pr-6`
+              : `mx-auto ${contentWidthClass}`
           }
         >
           {children}
@@ -384,10 +402,10 @@ export function ArticleChatPanel({ slug, title, author, children }: ArticleChatP
               {messages.length === 0 ? (
                 <div className="mx-auto flex flex-col gap-2" style={{ maxWidth: maximized ? '860px' : undefined }}>
                   <p className="text-sm leading-relaxed" style={{ color: '#87867f' }}>
-                    选中正文中的段落或公式，或者直接提问。
+                    {emptyHint}
                   </p>
                   <div className="mt-2 flex flex-col gap-2">
-                    {SUGGESTIONS.map((q) => (
+                    {suggestions.map((q) => (
                       <button
                         key={q}
                         type="button"
@@ -481,7 +499,7 @@ export function ArticleChatPanel({ slug, title, author, children }: ArticleChatP
                         sendMessage(input)
                       }
                     }}
-                    placeholder="针对这篇文章提问…（Enter 发送，Shift+Enter 换行）"
+                    placeholder={inputPlaceholder}
                     className="flex-1 resize-none overflow-y-auto rounded-[10px] px-3 py-2 text-[0.95rem] leading-[1.7] outline-none"
                     style={{ minHeight: '36px', maxHeight: '160px', border: '1px solid var(--border)', background: '#ffffff', color: '#141413' }}
                   />

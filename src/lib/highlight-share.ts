@@ -4,7 +4,8 @@
  */
 export interface HighlightShareParams {
   title: string
-  slug: string
+  slug?: string
+  url?: string
   quoteText: string
   author?: string | null
   siteOrigin?: string
@@ -13,12 +14,18 @@ export interface HighlightShareParams {
 export function buildHighlightShareText({
   title,
   slug,
+  url,
   quoteText,
   author,
   siteOrigin,
 }: HighlightShareParams): string {
   const origin = siteOrigin || process.env.NEXT_PUBLIC_SITE_URL || 'https://ai.air7.fun'
-  const url = `${origin.replace(/\/+$/, '')}/post/${encodeURIComponent(slug)}`
+  const normalizedOrigin = origin.replace(/\/+$/, '')
+  const shareLink = url
+    ? url.startsWith('http')
+      ? url
+      : `${normalizedOrigin}${url.startsWith('/') ? '' : '/'}${url}`
+    : `${normalizedOrigin}/post/${encodeURIComponent(slug ?? '')}`
 
   // 标题加书名号
   const trimmedTitle = title.trim()
@@ -43,7 +50,7 @@ export function buildHighlightShareText({
     '',
     citation,
     '',
-    `🔗 原文链接：${url}`,
+    `🔗 原文链接：${shareLink}`,
     '',
     '【AI-DIVE】深入 AI 技术核心，从论文到实战全面拆解。',
   ].join('\n')

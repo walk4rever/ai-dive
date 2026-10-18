@@ -72,7 +72,7 @@ export async function POST() {
   const signals = await fetchWeekSignalsForSummary(supabase)
 
   if (signals.length === 0) {
-    return NextResponse.json({ error: '这一周（周一至周日）没有已评分的信号，没有可总结的内容' }, { status: 422 })
+    return NextResponse.json({ error: '这一周（周一至周日）没有信号，没有可总结的内容' }, { status: 422 })
   }
 
   const message = buildPrompt(periodStart, periodEnd, signals)
@@ -82,7 +82,7 @@ export async function POST() {
     upstream = await fetch(`${GATEWAY_URL}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Agent-Secret': AGENT_SECRET },
-      body: JSON.stringify({ message, userId: crypto.randomUUID(), articleSlug: 'newsletter-digest-summary' }),
+      body: JSON.stringify({ message, userId: crypto.randomUUID() }),
       signal: AbortSignal.timeout(85_000),
     })
   } catch (err) {

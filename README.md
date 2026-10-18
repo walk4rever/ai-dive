@@ -18,12 +18,13 @@ Powered by [Air7.fun](https://air7.fun)
 - 邮件订阅页
 - 双重确认订阅流程
 - 登录、注册和用户文章管理
-- 登录态：next-auth（httpOnly JWT session cookie），服务端 `getServerSession()` 本地验签，不再逐请求查库；`/agent`、`/dashboard`、`/admin/*`、文章 AI解读 面板的登录门禁均已下沉到服务端，未登录直接 SSR 跳转 `/login?next=...`，登录成功后自动返回原页面 / 重新打开 AI解读面板（`/decks` 列表页不在此列，已改为公开访问，见下）
-- `/agent`、文章 AI解读 面板的 credits 计量：`ai_pulse_credit_ledger`（append-only，余额 = 当期 `SUM(delta)`），登录用户每月懒发放 1000 credits（1 轮对话 = 1 credit），另加 50/小时的速率限制防脚本失控——两者是两层不同的机制，不是同一回事；余额展示在 `/dashboard`（进页面即懒发放当期额度，再读余额）
-- `/agent` 与文章 AI解读 面板支持粘贴图片提问（DeepSeek vision，client 端降采样为 1280px JPEG，单条消息最多 4 张，点击缩略图可查看大图）
-- `/agent`、文章 AI解读 面板的会话持久化：登录用户对话写入 `ai_pulse_chat_turns`，刷新/换设备可续接最近 10 轮；图片存 R2；pi-gateway 冷启动时把历史回放进 `AgentSession`，模型能记住之前聊过什么
-- 文章 AI解读 面板支持最大化/还原（header 图标按钮，原地撑满视口，不丢对话状态），标题统一为单行 `AI解读 · {文章标题}`
-- 文章高光分享：选中正文段落后弹出工具栏（AI解读 + 高光分享），点击「高光分享」复制分享文案（引用段落 + 标题引用 + 原文链接 + 品牌 slogan），适合社交媒体分享
+- 登录态：next-auth（httpOnly JWT session cookie），服务端 `getServerSession()` 本地验签，不再逐请求查库；`/agent`、`/dashboard`、`/admin/*`、文章/每日情报 AI解读 面板的登录门禁均已下沉到服务端，未登录直接 SSR 跳转 `/login?next=...`，登录成功后自动返回原页面 / 重新打开 AI解读面板（`/decks` 列表页不在此列，已改为公开访问，见下）
+- `/agent`、文章/每日情报 AI解读 面板的 credits 计量：`ai_pulse_credit_ledger`（append-only，余额 = 当期 `SUM(delta)`），登录用户每月懒发放 1000 credits（1 轮对话 = 1 credit），另加 50/小时的速率限制防脚本失控——两者是两层不同的机制，不是同一回事；余额展示在 `/dashboard`（进页面即懒发放当期额度，再读余额）
+- `/agent`、文章/每日情报 AI解读 面板支持粘贴图片提问（DeepSeek vision，client 端降采样为 1280px JPEG，单条消息最多 4 张，点击缩略图可查看大图）
+- `/agent`、文章/每日情报 AI解读 面板的会话持久化：登录用户对话写入 `ai_pulse_chat_turns`，刷新/换设备可续接最近 10 轮；文章按 slug、每日情报按 `intel-day:YYYY-MM-DD` 分区；图片存 R2；pi-gateway 冷启动时把历史回放进 `AgentSession`，模型能记住之前聊过什么
+- 每日情报页 AI解读：整页助手可读取当天全部 enabled 信号，回答重点归纳、主题聚类、信号关联和深度选题建议；gateway 通过 `get_intel_day(YYYY-MM-DD)` 按需加载当天情报
+- 文章/每日情报 AI解读 面板支持最大化/还原（header 图标按钮，原地撑满视口，不丢对话状态），标题统一为单行 `AI解读 · {页面标题}`
+- 高光分享：选中文章或每日情报页文字后弹出工具栏（AI解读 + 高光分享），点击「高光分享」复制分享文案（引用段落 + 标题引用 + 页面链接 + 品牌 slogan）
 - Agent 对话超时优化：后端超时从 90s 提升到 300s，支持多工具调用复杂场景；前端追踪流完整性，超时切断时显示 incomplete 提示并保留已回答内容
 - 管理后台：编辑文章元数据、发布状态、精选状态和专题编排（一篇文章只属于一个专题，支持调整专题内顺序）
 - Newsletter 批量发送、退订处理和发送记录
@@ -170,7 +171,7 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=<KEY
 - `/`：首页
 - `/post/[slug]`：文章详情
 - `/intels`：跳转到当天情报页
-- `/intels/[date]`：每日情报页（日历浮层 + 当日完整信号列表 + 相邻日期导航，支持 `#signal-[id]` 条目锚点）
+- `/intels/[date]`：每日情报页（日历浮层 + 当日完整信号列表 + 相邻日期导航 + 整页 AI解读，支持 `#signal-[id]` 条目锚点）
 - `/dives`：深度列表
 - `/insights`：洞见列表，按来源（`author_display`）胶囊过滤
 - `/latest`：最新内容列表

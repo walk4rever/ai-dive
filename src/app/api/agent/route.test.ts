@@ -94,6 +94,31 @@ describe('POST /api/agent', () => {
     expect(recordSpend).toHaveBeenCalledWith({}, 'user-1', 'global')
   })
 
+  it('uses a per-day context key and forwards the validated intel context', async () => {
+    getServerSession.mockResolvedValue({ user: { id: 'user-1', email: 'a@b.com', role: 'user' } })
+    let capturedBody: Record<string, unknown> | null = null
+    global.fetch = vi.fn(async (_url, init) => {
+      capturedBody = JSON.parse((init as RequestInit).body as string)
+      return new Response(new ReadableStream(), { status: 200 })
+    }) as unknown as typeof fetch
+
+    const { POST } = await import('./route')
+    const req = new NextRequest('http://localhost/api/agent', {
+      method: 'POST',
+      body: JSON.stringify({
+        message: '今天有什么重要信号？',
+        pageContext: { kind: 'intel_day', id: '2026-10-18' },
+      }),
+    })
+    await POST(req)
+
+    expect(capturedBody).toMatchObject({
+      pageContext: { kind: 'intel_day', id: '2026-10-18' },
+    })
+    expect(capturedBody).not.toHaveProperty('articleSlug')
+    expect(recordSpend).toHaveBeenCalledWith({}, 'user-1', 'intel-day:2026-10-18')
+  })
+
   it('does not record spend when the gateway call fails', async () => {
     getServerSession.mockResolvedValue({ user: { id: 'user-1', email: 'a@b.com', role: 'user' } })
     global.fetch = vi.fn(async () => new Response('gateway down', { status: 500 })) as unknown as typeof fetch

@@ -4,6 +4,7 @@ import { getSession, getExistingSession } from "./session-manager.js";
 import { streamPrompt } from "./stream.js";
 import { validateImageAttachments } from "./image-attachment.js";
 import { validateHistory } from "./history.js";
+import { parsePageContext } from "./page-context.js";
 
 const PORT = Number(process.env.PORT ?? 3458);
 const app = express();
@@ -14,13 +15,18 @@ app.get("/health", (_req, res) => {
 });
 
 app.post("/chat", requireSecret, async (req, res) => {
-  const { message, userId, articleSlug, images: rawImages, history: rawHistory } = req.body as {
+  const { message, userId, pageContext: rawPageContext, articleSlug, images: rawImages, history: rawHistory } = req.body as {
     message?: string;
     userId?: string;
+    pageContext?: unknown;
     articleSlug?: string;
     images?: unknown;
     history?: unknown;
   };
+  const pageContext = parsePageContext(rawPageContext)
+    ?? (typeof articleSlug === "string" && articleSlug
+      ? parsePageContext({ kind: "article", id: articleSlug })
+      : undefined);
 
   if (!message || typeof message !== "string" || message.trim() === "") {
     res.status(400).json({ error: "message is required" });
@@ -47,7 +53,7 @@ app.post("/chat", requireSecret, async (req, res) => {
   try {
     session = await getSession(
       userId,
-      typeof articleSlug === "string" && articleSlug ? articleSlug : undefined,
+      pageContext,
       history,
     );
   } catch (err) {
@@ -84,8 +90,16 @@ app.post("/chat", requireSecret, async (req, res) => {
 // while the session still looks busy, which is exactly the 409 this endpoint exists
 // to prevent.
 app.post("/cancel", requireSecret, async (req, res) => {
-  const { userId, articleSlug } = req.body as { userId?: string; articleSlug?: string };
-  const session = getExistingSession(userId, typeof articleSlug === "string" && articleSlug ? articleSlug : undefined);
+  const { userId, pageContext: rawPageContext, articleSlug } = req.body as {
+    userId?: string;
+    pageContext?: unknown;
+    articleSlug?: string;
+  };
+  const pageContext = parsePageContext(rawPageContext)
+    ?? (typeof articleSlug === "string" && articleSlug
+      ? parsePageContext({ kind: "article", id: articleSlug })
+      : undefined);
+  const session = getExistingSession(userId, pageContext);
   if (session?.isStreaming) await session.abort();
   res.json({ ok: true, streaming: session?.isStreaming ?? false });
 });

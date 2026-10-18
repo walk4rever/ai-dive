@@ -8,6 +8,7 @@ import { getMonthDateRange } from '@/lib/signals-calendar'
 import { fetchCachedSignalCalendarDays } from '@/lib/signals-calendar-server'
 import { intelDatePath } from '@/lib/intel-links'
 import type { Signal } from '@/types'
+import { AiChatPanel } from '@/components/AiChatPanel'
 import { SignalFeed } from '../SignalFeed'
 import { SignalTargetEffect } from '../SignalTargetEffect'
 import { IntelDatePicker } from '../IntelDatePicker'
@@ -48,6 +49,13 @@ function shortDateLabel(date: string) {
   if (!parsed) return date
   return `${parsed.m} 月 ${parsed.d} 日`
 }
+
+const INTEL_SUGGESTIONS = [
+  '今天最重要的三条信号是什么？',
+  '按主题给今天的情报归类',
+  '哪些信号可以合成一个深度选题？',
+  '这些情报之间有什么关联？',
+]
 
 export async function generateMetadata({ params }: Pick<Props, 'params'>): Promise<Metadata> {
   const { date } = await params
@@ -126,9 +134,18 @@ export default async function IntelDatePage({ params, searchParams }: Props) {
   const today = getTodayYmd()
 
   return (
-    <div>
-      <SignalTargetEffect />
-      <header className="mb-10">
+    <AiChatPanel
+      pageContext={{ kind: 'intel_day', id: date }}
+      title={`${parsedDate.m} 月 ${parsedDate.d} 日情报`}
+      suggestions={INTEL_SUGGESTIONS}
+      inputPlaceholder="针对当天情报提问…（Enter 发送，Shift+Enter 换行）"
+      emptyHint="可以直接询问当天信号的重点、关联和选题价值。"
+      shareUrl={intelDatePath(date)}
+      contentWidthClass="max-w-none"
+    >
+      <div>
+        <SignalTargetEffect />
+        <header className="mb-10">
         <div className="flex items-start justify-between gap-6">
           <div className="min-w-0">
             <p className="kicker" style={{ color: 'var(--accent)' }}>Intel Daily</p>
@@ -162,17 +179,17 @@ export default async function IntelDatePage({ params, searchParams }: Props) {
         <p className="mt-4 text-xs text-[var(--subtle)]">
           {signals.length} 条情报 · {sourceCount} 个来源
         </p>
-      </header>
+        </header>
 
-      <section className="border-t border-[var(--border)] pt-8">
-        <div className="flex items-baseline justify-between gap-4">
-          <p className="kicker">当日情报</p>
-          <span className="date">{signals.length} 条</span>
-        </div>
-        <SignalFeed signals={signals} />
-      </section>
+        <section className="border-t border-[var(--border)] pt-8">
+          <div className="flex items-baseline justify-between gap-4">
+            <p className="kicker">当日情报</p>
+            <span className="date">{signals.length} 条</span>
+          </div>
+          <SignalFeed signals={signals} />
+        </section>
 
-      <nav aria-label="情报日期导航" className="mt-12 grid grid-cols-2 gap-3 border-t border-[var(--border)] pt-6">
+        <nav aria-label="情报日期导航" className="mt-12 grid grid-cols-2 gap-3 border-t border-[var(--border)] pt-6">
         {previousDate ? (
           <Link
             href={intelDatePath(previousDate)}
@@ -199,7 +216,8 @@ export default async function IntelDatePage({ params, searchParams }: Props) {
         ) : (
           <span />
         )}
-      </nav>
-    </div>
+        </nav>
+      </div>
+    </AiChatPanel>
   )
 }

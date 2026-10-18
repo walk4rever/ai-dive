@@ -1,8 +1,31 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { parseYmd } from './timezone'
+
+export type AgentPageContext =
+  | { kind: 'article'; id: string }
+  | { kind: 'intel_day'; id: string }
+
+export function agentPageContextKey(context?: AgentPageContext | null): string {
+  if (!context) return 'global'
+  return context.kind === 'intel_day' ? `intel-day:${context.id}` : context.id
+}
+
+export function parseAgentPageContext(value: unknown): AgentPageContext | null {
+  if (!value || typeof value !== 'object') return null
+
+  const candidate = value as { kind?: unknown; id?: unknown }
+  if (typeof candidate.id !== 'string') return null
+  const id = candidate.id.trim()
+  if (!id || id.length > 200) return null
+
+  if (candidate.kind === 'article') return { kind: 'article', id }
+  if (candidate.kind === 'intel_day' && parseYmd(id)) return { kind: 'intel_day', id }
+  return null
+}
 
 /** Normalizes the client-supplied article slug into the storage/lookup key for a chat
  *  thread. Deliberately does NOT validate against the stories table (that's a separate
- *  concern handled by resolveArticleSlug() in '@/lib/resolve-article-slug') — using the
+ *  concern handled by resolveAgentPageContext()) — using the
  *  DB-validated slug here would make the persisted context_key disagree with what the
  *  client used to persist turns whenever an article is unpublished/premium.
  *

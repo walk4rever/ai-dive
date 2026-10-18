@@ -3,7 +3,7 @@
 import { useState } from 'react'
 
 /** Copies the raw Markdown source of a finished assistant reply. Shared by
- *  AgentChat and ArticleChatPanel so the two chat surfaces stay in sync. */
+ *  AgentChat and AiChatPanel so the two chat surfaces stay in sync. */
 export function CopyMessageButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
 

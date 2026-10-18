@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { resolveArticleSlug } from '@/lib/resolve-article-slug'
+import { resolveAgentPageContext } from '@/lib/resolve-agent-context'
 
 const GATEWAY_URL = process.env.AI_DIVE_AGENT_GATEWAY_URL
 const AGENT_SECRET = process.env.AI_DIVE_AGENT_SECRET
@@ -24,7 +24,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'userId is required' }, { status: 400 })
   }
 
-  const articleSlug = await resolveArticleSlug(body.articleSlug)
+  const resolvedContext = await resolveAgentPageContext(body.pageContext, body.articleSlug)
+  const pageContext = resolvedContext?.context
 
   await fetch(`${GATEWAY_URL}/cancel`, {
     method: 'POST',
@@ -32,7 +33,11 @@ export async function POST(req: NextRequest) {
       'Content-Type': 'application/json',
       'X-Agent-Secret': AGENT_SECRET,
     },
-    body: JSON.stringify({ userId: body.userId, articleSlug }),
+    body: JSON.stringify({
+      userId: body.userId,
+      pageContext,
+      articleSlug: pageContext?.kind === 'article' ? pageContext.id : undefined,
+    }),
   }).catch(() => {
     // Best-effort — worst case the session stays locked until the orphaned
     // generation finishes naturally, same as before this endpoint existed.

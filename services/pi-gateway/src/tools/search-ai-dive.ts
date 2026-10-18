@@ -79,8 +79,8 @@ async function fullTextSearch(query: string, contentType: string | null, limit: 
   return result.rows;
 }
 
-// AI-DIVE's 情报 (intel) content lives in ai_pulse_signals, a separate feed of
-// scored external links — not in ai_pulse_stories, which has no 'intel' rows at all.
+// AI-DIVE's 情报 (intel) content lives in ai_pulse_signals, a separate daily feed
+// of external links — not in ai_pulse_stories, which has no 'intel' rows at all.
 async function signalSearch(query: string, limit: number): Promise<SignalRow[]> {
   const terms = tokenize(query);
   if (terms.length === 0) return [];
@@ -120,7 +120,7 @@ async function recentSignals(limit: number): Promise<SignalRow[]> {
     SELECT title, description, url, to_char(signal_date, 'YYYY-MM-DD') AS signal_date, 0 AS rank
     FROM ai_pulse_signals
     WHERE status = 'enabled'
-    ORDER BY signal_date DESC, insight DESC NULLS LAST
+    ORDER BY signal_date DESC, created_at DESC
     LIMIT $1
     `,
     [limit],
@@ -171,7 +171,7 @@ export const searchAiDiveTool = defineTool({
   name: "search_ai_dive",
   label: "Search AI-DIVE Content",
   description:
-    "Search AI-DIVE content: published articles (深度 dive analyses, 洞见 insights) and the 情报 intel feed (scored daily signals from X/GitHub/arXiv/news). Use this to find what AI-DIVE has already covered on a topic, or what's new in today's intel feed.",
+    "Search AI-DIVE content: published articles (深度 dive analyses, 洞见 insights) and the 情报 intel feed (daily signals from X/GitHub/arXiv/news). Use this to find what AI-DIVE has already covered on a topic, or what's new in today's intel feed.",
   promptSnippet: "search_ai_dive(query, content_type?) → matching articles/signals with title, excerpt, and URL",
   parameters: Type.Object({
     query: Type.String({ description: "Search query — keywords or a natural language question" }),

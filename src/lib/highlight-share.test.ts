@@ -38,6 +38,17 @@ describe('buildHighlightShareText', () => {
     expect(result).not.toContain('《《')
   })
 
+  it('accepts an explicit page URL for non-article surfaces', () => {
+    const result = buildHighlightShareText({
+      title: '10 月 18 日情报',
+      url: '/intels/2026-10-18',
+      quoteText: '今天最重要的一条信号',
+      siteOrigin: 'https://ai.air7.fun',
+    })
+
+    expect(result).toContain('🔗 原文链接：https://ai.air7.fun/intels/2026-10-18')
+  })
+
   it('handles partial 书名号 in title', () => {
     const result = buildHighlightShareText({
       title: '《深度学习》读书笔记',

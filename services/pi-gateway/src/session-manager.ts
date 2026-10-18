@@ -7,8 +7,10 @@ import { analyzeArxivTool } from "./tools/analyze-arxiv.js";
 import { analyzeGithubTool } from "./tools/analyze-github.js";
 import { searchAiDiveTool } from "./tools/search-ai-dive.js";
 import { getArticleContentTool } from "./tools/get-article-content.js";
+import { getIntelDayTool } from "./tools/get-intel-day.js";
 import { pool } from "./db.js";
 import type { HistoryTurn } from "./history.js";
+import { pageContextKey, type PageContext } from "./page-context.js";
 
 const GATEWAY_DIR = dirname(dirname(fileURLToPath(import.meta.url)));
 const PI_AGENT_DIR = process.env.PI_AGENT_DIR ?? join(homedir(), ".pi", "agent");
@@ -105,8 +107,39 @@ async function buildArticleResourceLoader(articleSlug: string): Promise<DefaultR
   return loader;
 }
 
-async function makeSession(articleSlug?: string, history?: HistoryTurn[]): Promise<AgentSession> {
-  const resourceLoader = articleSlug ? await buildArticleResourceLoader(articleSlug) : undefined;
+async function buildIntelDayResourceLoader(date: string): Promise<DefaultResourceLoader> {
+  const loader = new DefaultResourceLoader({
+    cwd: GATEWAY_DIR,
+    agentDir: PI_AGENT_DIR,
+    agentsFilesOverride: (current) => ({
+      agentsFiles: [
+        ...current.agentsFiles,
+        {
+          path: `/virtual/intel-day-${date}.md`,
+          content: [
+            "# Current Intel Day Context",
+            "",
+            `The reader is viewing AI-DIVE's daily intel page for ${date}.`,
+            `Call get_intel_day("${date}") before answering questions about that day's signals.`,
+            "Use the signal titles, summaries, sources, categories, site anchors, and original URLs returned by the tool.",
+            "Distinguish the published signal summaries from your own analysis. Do not invent article details that the summaries do not contain.",
+          ].join("\n"),
+        },
+      ],
+    }),
+  });
+  await loader.reload();
+  return loader;
+}
+
+async function buildResourceLoader(context?: PageContext): Promise<DefaultResourceLoader | undefined> {
+  if (context?.kind === "article") return buildArticleResourceLoader(context.id);
+  if (context?.kind === "intel_day") return buildIntelDayResourceLoader(context.id);
+  return undefined;
+}
+
+async function makeSession(context?: PageContext, history?: HistoryTurn[]): Promise<AgentSession> {
+  const resourceLoader = await buildResourceLoader(context);
 
   const sessionManager = SessionManager.inMemory();
   if (history) {
@@ -120,24 +153,24 @@ async function makeSession(articleSlug?: string, history?: HistoryTurn[]): Promi
     agentDir: PI_AGENT_DIR,
     sessionManager,
     noTools: "builtin",
-    customTools: [analyzeArxivTool, analyzeGithubTool, searchAiDiveTool, getArticleContentTool],
+    customTools: [analyzeArxivTool, analyzeGithubTool, searchAiDiveTool, getArticleContentTool, getIntelDayTool],
     resourceLoader,
   });
   return session;
 }
 
-function sessionKey(userId: string, articleSlug?: string): string {
-  return `${userId}:${articleSlug ?? "global"}`;
+function sessionKey(userId: string, context?: PageContext): string {
+  return `${userId}:${pageContextKey(context)}`;
 }
 
 export async function getSession(
   userId: string | undefined,
-  articleSlug?: string,
+  context?: PageContext,
   history?: HistoryTurn[],
 ): Promise<AgentSession> {
-  if (!userId) return makeSession(articleSlug, history);
+  if (!userId) return makeSession(context, history);
 
-  const key = sessionKey(userId, articleSlug);
+  const key = sessionKey(userId, context);
   const existing = sessions.get(key);
   if (existing) {
     lastUsed.set(key, Date.now());
@@ -147,16 +180,16 @@ export async function getSession(
   // Only a freshly created (cold-start) session gets seeded with prior history —
   // an already-warm session already remembers the conversation and must not be
   // touched here.
-  const session = await makeSession(articleSlug, history);
+  const session = await makeSession(context, history);
   sessions.set(key, session);
   lastUsed.set(key, Date.now());
   return session;
 }
 
 // Looks up a session without creating one — used by /cancel, which must be a
-// no-op for a userId/articleSlug pair that never started a session (already
+// no-op for a userId/context pair that never started a session (already
 // finished, already evicted, or never existed) rather than spinning one up.
-export function getExistingSession(userId: string | undefined, articleSlug?: string): AgentSession | undefined {
+export function getExistingSession(userId: string | undefined, context?: PageContext): AgentSession | undefined {
   if (!userId) return undefined;
-  return sessions.get(sessionKey(userId, articleSlug));
+  return sessions.get(sessionKey(userId, context));
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { MAX_IMAGES_PER_MESSAGE, type ImageAttachment } from '@/lib/image-attachment'
-import { deriveContextKey } from '@/lib/agent-context'
+import { agentPageContextKey, type AgentPageContext } from '@/lib/agent-context'
 
 export type { ImageAttachment }
 
@@ -31,6 +31,7 @@ export const TOOL_META: Record<string, { icon: string; label: string }> = {
   analyze_github: { icon: '📦', label: '读取仓库' },
   search_ai_dive: { icon: '🔍', label: '搜索 AI-DIVE' },
   get_article_content: { icon: '📰', label: '读取本文原文' },
+  get_intel_day: { icon: '📅', label: '读取当日情报' },
 }
 
 export function toolDetail(name: string, args: Record<string, unknown> | undefined): string | undefined {
@@ -40,16 +41,17 @@ export function toolDetail(name: string, args: Record<string, unknown> | undefin
   if (name === 'analyze_github') return s('repo')
   if (name === 'search_ai_dive') return s('query')
   if (name === 'get_article_content') return s('slug')
+  if (name === 'get_intel_day') return s('date')
   return s('query')
 }
 
 interface UseAgentChatOptions {
   sessionStorageKey: string
-  articleSlug?: string
+  pageContext?: AgentPageContext
   initialMessages?: AgentMessage[]
 }
 
-export function useAgentChat({ sessionStorageKey, articleSlug, initialMessages }: UseAgentChatOptions) {
+export function useAgentChat({ sessionStorageKey, pageContext, initialMessages }: UseAgentChatOptions) {
   const [messages, setMessages] = useState<AgentMessage[]>(initialMessages ?? [])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
@@ -57,7 +59,7 @@ export function useAgentChat({ sessionStorageKey, articleSlug, initialMessages }
   const abortRef = useRef<AbortController | null>(null)
   const pendingCancelRef = useRef<Promise<void> | null>(null)
   const sessionIdRef = useRef('')
-  const contextKey = deriveContextKey(articleSlug)
+  const contextKey = agentPageContextKey(pageContext)
 
   function addImage(image: ImageAttachment) {
     setPendingImages((prev) => (prev.length >= MAX_IMAGES_PER_MESSAGE ? prev : [...prev, image]))
@@ -161,7 +163,7 @@ export function useAgentChat({ sessionStorageKey, articleSlug, initialMessages }
         body: JSON.stringify({
           message: trimmed,
           userId: sessionIdRef.current,
-          articleSlug,
+          pageContext,
           images: images.length ? images : undefined,
         }),
         signal: ctrl.signal,
@@ -280,7 +282,7 @@ export function useAgentChat({ sessionStorageKey, articleSlug, initialMessages }
     pendingCancelRef.current = fetch('/api/agent/cancel', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: sessionIdRef.current, articleSlug }),
+      body: JSON.stringify({ userId: sessionIdRef.current, pageContext }),
     })
       .then(() => undefined)
       .catch(() => undefined)

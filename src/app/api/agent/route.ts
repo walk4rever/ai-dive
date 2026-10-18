@@ -3,8 +3,8 @@ import { getServerSession } from 'next-auth'
 import { createServiceClient } from '@/lib/supabase/server'
 import { validateImageAttachments } from '@/lib/image-attachment'
 import { authOptions } from '@/lib/auth'
-import { deriveContextKey, fetchRecentTurns } from '@/lib/agent-context'
-import { resolveArticleSlug } from '@/lib/resolve-article-slug'
+import { fetchRecentTurns } from '@/lib/agent-context'
+import { resolveAgentPageContext } from '@/lib/resolve-agent-context'
 import { ensureFreeGrant, getBalance, recordSpend, withinHourlyLimit } from '@/lib/credits'
 
 // A multi-tool question can take 60-80s; the previous 90s/85s timeout pair left
@@ -43,7 +43,9 @@ export async function POST(req: NextRequest) {
   }
   const trimmedMessage = body.message.trim()
 
-  const articleSlug = await resolveArticleSlug(body.articleSlug)
+  const resolvedContext = await resolveAgentPageContext(body.pageContext, body.articleSlug)
+  const pageContext = resolvedContext?.context
+  const contextKey = resolvedContext?.contextKey ?? 'global'
 
   let images
   try {
@@ -52,7 +54,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'invalid images' }, { status: 400 })
   }
 
-  const contextKey = deriveContextKey(typeof body.articleSlug === 'string' ? body.articleSlug : undefined)
   const recentTurns = await fetchRecentTurns(supabaseService, session.user.id, contextKey)
 
   // The client fire-and-forgets a persist call for this exact user message
@@ -80,7 +81,14 @@ export async function POST(req: NextRequest) {
       'Content-Type': 'application/json',
       'X-Agent-Secret': AGENT_SECRET,
     },
-    body: JSON.stringify({ message: body.message, userId: body.userId, articleSlug, images, history }),
+    body: JSON.stringify({
+      message: body.message,
+      userId: body.userId,
+      pageContext,
+      articleSlug: pageContext?.kind === 'article' ? pageContext.id : undefined,
+      images,
+      history,
+    }),
     signal: AbortSignal.any([req.signal, AbortSignal.timeout(290_000)]),
   })
 

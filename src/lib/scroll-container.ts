@@ -1,6 +1,6 @@
 // Element.scrollIntoView() / a naive window.scrollTo() walk up and scroll
 // every scrollable ancestor to reveal the target, including the
-// (overflow: hidden) <body>/<html> that ArticleChatPanel locks while its
+// (overflow: hidden) <body>/<html> that AiChatPanel locks while its
 // docked "AI解读" panel is open on desktop — those stay programmatically
 // scrollable even while CSS-locked, so the window ends up scrolled
 // underneath the fixed-height docked layout, exposing blank space below.
