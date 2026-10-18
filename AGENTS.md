@@ -9,7 +9,7 @@ The main application is a Next.js 16 App Router project. Pages, layouts, and API
 - `npm install`: install root dependencies.
 - `npm run dev`: start the local site at `http://localhost:3000`.
 - `npm run lint`: run the Next.js ESLint configuration.
-- `npm test`: execute all Vitest tests once.
+- `npm test`: execute the root Vitest suite once. Gateway tests live in the separate `services/pi-gateway` package: run `npm ci --prefix services/pi-gateway --ignore-scripts` once, then `npm test --prefix services/pi-gateway`.
 - `npm run test:coverage`: generate text and HTML V8 coverage reports.
 - `npm run build`: perform the production Next.js and TypeScript build.
 - `npm run import:post -- "/path/article.md"`: import one Markdown article.
@@ -19,7 +19,7 @@ The main application is a Next.js 16 App Router project. Pages, layouts, and API
   - **出品只放 AI-DIVE 原创内容（2026-10-16 用户明确规则）**：第三方书籍、播客等翻译/整理内容按主题发布到 `dive` / `insight` 与专题，不走 `/decks`。
   - **发布出品的 HTML 必须带 favicon（2026-08-27 用户明确规则）**：目录根放 `favicon.svg`（用 `src/app/icon.svg` 的副本），每个 HTML 的 `<head>` 加 `<link rel="icon" href="favicon.svg" type="image/svg+xml">`；目录上传时 favicon.svg 随相对路径一起到 R2。
 
-Before handing off changes, run `npm run lint`, `npm test`, and `npm run build`.
+Before handing off changes, run `npm run lint`, `npm test`, and `npm run build`. For gateway changes, also run the gateway test command above.
 
 ## Coding Style & Naming Conventions
 
