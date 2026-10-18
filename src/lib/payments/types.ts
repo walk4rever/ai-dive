@@ -13,6 +13,9 @@ export interface CreateOrderInput {
   method: 'alipay' | 'wechat'
   notifyUrl: string
   returnUrl: string
+  /** How long the checkout stays payable, when the channel honours it. Kept in
+   *  sync with the local pending-order expiry in src/lib/orders/expire.ts. */
+  timeoutMinutes?: number
 }
 
 export interface CreateOrderResult {
@@ -34,5 +37,8 @@ export interface PaymentProvider {
    *  (bad signature, wrong status, missing fields) — callers must treat null as
    *  "ignore this, do not mark any order paid". */
   verifyCallback(params: Record<string, string>): CallbackResult | null
-  queryStatus(outTradeNo: string): Promise<boolean>
+  /** Looks a trade up by our own order id. Returns the same verified shape as a
+   *  callback when the channel confirms payment, null for unpaid/unknown/error —
+   *  callers settle through markOrderPaid(), which re-checks the amount. */
+  queryStatus(outTradeNo: string): Promise<CallbackResult | null>
 }

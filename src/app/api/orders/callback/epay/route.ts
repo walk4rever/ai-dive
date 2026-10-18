@@ -24,6 +24,10 @@ export async function GET(req: NextRequest) {
   const outcome = await markOrderPaid(supabase, 'epay', result)
 
   if (outcome === 'paid' || outcome === 'already_paid') return new Response('success')
+  if (outcome === 'not_payable') {
+    console.error('[epay-callback]', outcome, result.outTradeNo, result.providerOrderId)
+    return new Response('success')
+  }
 
   console.error('[epay-callback]', outcome, result.outTradeNo, result.providerOrderId)
   return new Response('fail', { status: outcome === 'error' ? 500 : 400 })

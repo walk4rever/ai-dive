@@ -23,7 +23,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: 'method must be "alipay" or "wechat"' }, { status: 400 })
   }
 
-  const origin = req.nextUrl.origin
+  // The callback URL has to be reachable from the provider, so a configured public
+  // origin wins over the deployment-specific one this request happened to use.
+  const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, '') || req.nextUrl.origin
   const supabase = await createServiceClient()
 
   try {

@@ -89,6 +89,21 @@ describe('createAlipayProvider().createOrder', () => {
     })
   })
 
+  it('closes the trade after the requested checkout window', async () => {
+    const { payUrl } = await provider.createOrder({
+      outTradeNo: 'order-1',
+      amountCents: 1990,
+      title: 'K3 七天课',
+      method: 'alipay',
+      notifyUrl: 'https://ai-dive.test/api/orders/callback/alipay',
+      returnUrl: 'https://ai-dive.test/decks',
+      timeoutMinutes: 30,
+    })
+
+    const params = new URL(payUrl).searchParams
+    expect(JSON.parse(params.get('biz_content')!).timeout_express).toBe('30m')
+  })
+
   it('signs with the merchant private key over the unencoded, sorted params', async () => {
     const { params } = await pageParams()
     const { sign, ...rest } = params
@@ -254,10 +269,14 @@ describe('createAlipayProvider().queryStatus', () => {
     return spy
   }
 
-  it('is true for a signed response reporting a successful trade', async () => {
+  it('returns the verified trade for a signed successful response', async () => {
     const spy = mockGateway(response(paidNode))
 
-    await expect(provider.queryStatus('order-1')).resolves.toBe(true)
+    await expect(provider.queryStatus('order-1')).resolves.toEqual({
+      outTradeNo: 'order-1',
+      providerOrderId: '2026083022001400001234567890',
+      amountCents: 1990,
+    })
 
     const [url, init] = spy.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toBe(config.gateway)
@@ -266,23 +285,23 @@ describe('createAlipayProvider().queryStatus', () => {
     expect(JSON.parse(sent.get('biz_content')!)).toEqual({ out_trade_no: 'order-1' })
   })
 
-  it('is false for a signed response reporting an unpaid trade', async () => {
+  it('returns null for a signed response reporting an unpaid trade', async () => {
     mockGateway(response({ ...paidNode, trade_status: 'WAIT_BUYER_PAY' }))
-    await expect(provider.queryStatus('order-1')).resolves.toBe(false)
+    await expect(provider.queryStatus('order-1')).resolves.toBeNull()
   })
 
-  it('is false when the response signature is not Alipay’s', async () => {
+  it('returns null when the response signature is not Alipay’s', async () => {
     mockGateway(response(paidNode, merchant.privateKey))
-    await expect(provider.queryStatus('order-1')).resolves.toBe(false)
+    await expect(provider.queryStatus('order-1')).resolves.toBeNull()
   })
 
-  it('is false for an unsigned error response', async () => {
+  it('returns null for an unsigned error response', async () => {
     mockGateway('{"alipay_trade_query_response":{"code":"40004","msg":"Business Failed"}}')
-    await expect(provider.queryStatus('order-1')).resolves.toBe(false)
+    await expect(provider.queryStatus('order-1')).resolves.toBeNull()
   })
 
-  it('is false on a non-ok HTTP response', async () => {
+  it('returns null on a non-ok HTTP response', async () => {
     mockGateway('', 502)
-    await expect(provider.queryStatus('order-1')).resolves.toBe(false)
+    await expect(provider.queryStatus('order-1')).resolves.toBeNull()
   })
 })

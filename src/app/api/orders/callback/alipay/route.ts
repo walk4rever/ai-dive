@@ -31,6 +31,11 @@ export async function POST(req: NextRequest) {
   // A retried notification for an order already settled is a success, not a failure —
   // answering "fail" there would keep Alipay retrying a payment that is fully handled.
   if (outcome === 'paid' || outcome === 'already_paid') return new Response('success')
+  // Refunded is terminal: the money was already returned, so stop the retries.
+  if (outcome === 'not_payable') {
+    console.error('[alipay-callback]', outcome, result.outTradeNo, result.providerOrderId)
+    return new Response('success')
+  }
 
   console.error('[alipay-callback]', outcome, result.outTradeNo, result.providerOrderId)
   return new Response('fail', { status: outcome === 'error' ? 500 : 400 })
