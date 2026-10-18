@@ -1,6 +1,13 @@
 import { defineTool } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 
+const MAX_FULL_TEXT_CHARS = 10000;
+
+function requestSignal(signal: AbortSignal | undefined, timeoutMs: number): AbortSignal {
+  const timeout = AbortSignal.timeout(timeoutMs);
+  return signal ? AbortSignal.any([signal, timeout]) : timeout;
+}
+
 function extractArxivId(input: string): string | null {
   // Handles: full URL, abs URL, pdf URL, or bare ID like "2502.09601"
   const patterns = [
@@ -14,10 +21,10 @@ function extractArxivId(input: string): string | null {
   return null;
 }
 
-async function fetchAbstract(id: string): Promise<string> {
+async function fetchAbstract(id: string, signal?: AbortSignal): Promise<string> {
   const res = await fetch(`https://arxiv.org/abs/${id}`, {
     headers: { "User-Agent": "ai-dive-agent/1.0 (research tool)" },
-    signal: AbortSignal.timeout(20000),
+    signal: requestSignal(signal, 20000),
   });
   if (!res.ok) throw new Error(`arxiv returned ${res.status}`);
   const html = await res.text();
@@ -48,12 +55,12 @@ async function fetchAbstract(id: string): Promise<string> {
   ].filter(l => l !== undefined).join("\n");
 }
 
-async function fetchFullPaper(id: string): Promise<string | null> {
+async function fetchFullPaper(id: string, signal?: AbortSignal): Promise<string | null> {
   // Try the HTML version — available for papers since ~2023
   try {
     const res = await fetch(`https://arxiv.org/html/${id}`, {
       headers: { "User-Agent": "ai-dive-agent/1.0 (research tool)" },
-      signal: AbortSignal.timeout(25000),
+      signal: requestSignal(signal, 25000),
     });
     if (!res.ok) return null;
     const html = await res.text();
@@ -66,7 +73,9 @@ async function fetchFullPaper(id: string): Promise<string | null> {
       .replace(/\s{2,}/g, " ")
       .trim();
 
-    return body.length > 12000 ? body.slice(0, 12000) + "\n\n[truncated — paper continues]" : body;
+    return body.length > MAX_FULL_TEXT_CHARS
+      ? body.slice(0, MAX_FULL_TEXT_CHARS) + "\n\n[truncated — paper continues]"
+      : body;
   } catch {
     return null;
   }
@@ -99,7 +108,7 @@ export const analyzeArxivTool = defineTool({
 
     let text: string;
     try {
-      text = await fetchAbstract(arxivId);
+      text = await fetchAbstract(arxivId, signal ?? undefined);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       return { content: [{ type: "text" as const, text: `Failed to fetch arXiv abstract: ${msg}` }], details: null };
@@ -110,7 +119,7 @@ export const analyzeArxivTool = defineTool({
     }
 
     if (include_full_text) {
-      const full = await fetchFullPaper(arxivId).catch(() => null);
+      const full = await fetchFullPaper(arxivId, signal ?? undefined).catch(() => null);
       if (full) {
         text += "\n\n---\n\n**Full paper text:**\n\n" + full;
       } else {

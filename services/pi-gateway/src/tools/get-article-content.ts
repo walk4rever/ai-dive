@@ -9,7 +9,21 @@ type StoryRow = {
   content: string;
   content_type: string;
   published_at: string | null;
+  is_premium: boolean;
 };
+
+const MAX_ARTICLE_CHARS = 40000;
+
+const getArticleContentParameters = Type.Object({
+  slug: Type.String({ description: "AI-DIVE article slug, e.g. harness-engineering-self-improvement" }),
+});
+
+type GetArticleContentDetails = {
+  slug: string;
+  premium?: boolean;
+  has_markdown_source?: boolean;
+  truncated?: boolean;
+} | null;
 
 function decodeHtmlEntities(s: string): string {
   return s
@@ -39,15 +53,16 @@ function htmlToReadableText(html: string): string {
   );
 }
 
-export const getArticleContentTool = defineTool({
+export const getArticleContentTool = defineTool<
+  typeof getArticleContentParameters,
+  GetArticleContentDetails
+>({
   name: "get_article_content",
   label: "Get AI-DIVE Article Content",
   description:
-    "Fetch the full text of a published AI-DIVE article by slug, including original formula source (LaTeX) rather than rendered markup. Use this when the reader's question needs exact quotes, section detail, or formula specifics beyond the title/excerpt already known from the session context.",
+    "Fetch the full text of a published free AI-DIVE dive or insight article by slug, including original formula source (LaTeX) rather than rendered markup. Use this when the reader's question needs exact quotes, section detail, or formula specifics beyond the title/excerpt already known from the session context. Premium articles are not available.",
   promptSnippet: "get_article_content(slug) → full article text with formulas as LaTeX source",
-  parameters: Type.Object({
-    slug: Type.String({ description: "AI-DIVE article slug, e.g. harness-engineering-self-improvement" }),
-  }),
+  parameters: getArticleContentParameters,
   async execute(_id, params, signal) {
     const { slug } = params;
 
@@ -58,9 +73,9 @@ export const getArticleContentTool = defineTool({
     let row: StoryRow | undefined;
     try {
       const result = await pool.query<StoryRow>(
-        `SELECT title, excerpt, body_markdown, content, content_type, to_char(published_at, 'YYYY-MM-DD') AS published_at
+        `SELECT title, excerpt, body_markdown, content, content_type, is_premium, to_char(published_at, 'YYYY-MM-DD') AS published_at
          FROM ai_pulse_stories
-         WHERE slug = $1 AND status = 'published' AND is_premium = false
+         WHERE slug = $1 AND status = 'published'
          LIMIT 1`,
         [slug],
       );
@@ -77,15 +92,32 @@ export const getArticleContentTool = defineTool({
       };
     }
 
+    if (row.is_premium) {
+      return {
+        content: [{
+          type: "text" as const,
+          text: `The AI-DIVE article "${row.title}" is premium, so the assistant cannot read its full text. Answer only from the title and excerpt if possible, and tell the reader that the full article is not available to the assistant.`,
+        }],
+        details: { slug, premium: true },
+      };
+    }
+
     const body = row.body_markdown ?? htmlToReadableText(row.content);
+    const truncated = body.length > MAX_ARTICLE_CHARS;
+    const visibleBody = truncated
+      ? `${body.slice(0, MAX_ARTICLE_CHARS)}\n\n[Article truncated at ${MAX_ARTICLE_CHARS.toLocaleString()} characters]`
+      : body;
 
     const text = [
       `**${row.title}**`,
       row.published_at ? `Published: ${row.published_at}` : "",
       "",
-      body,
+      visibleBody,
     ].filter((l) => l !== undefined).join("\n");
 
-    return { content: [{ type: "text" as const, text }], details: { slug, has_markdown_source: row.body_markdown !== null } };
+    return {
+      content: [{ type: "text" as const, text }],
+      details: { slug, has_markdown_source: row.body_markdown !== null, truncated },
+    };
   },
 });

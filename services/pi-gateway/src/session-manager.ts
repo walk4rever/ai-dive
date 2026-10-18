@@ -1,19 +1,16 @@
-import { createAgentSession, DefaultResourceLoader, SessionManager } from "@earendil-works/pi-coding-agent";
+import { createAgentSession, SessionManager } from "@earendil-works/pi-coding-agent";
 import type { AgentSession } from "@earendil-works/pi-coding-agent";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-import { homedir } from "os";
-import { analyzeArxivTool } from "./tools/analyze-arxiv.js";
-import { analyzeGithubTool } from "./tools/analyze-github.js";
-import { searchAiDiveTool } from "./tools/search-ai-dive.js";
-import { getArticleContentTool } from "./tools/get-article-content.js";
-import { getIntelDayTool } from "./tools/get-intel-day.js";
+import { READER_TOOLS } from "./tools/index.js";
+import {
+  ALLOWED_TOOL_NAMES,
+  GATEWAY_DIR,
+  PI_AGENT_DIR,
+  buildReaderResourceLoader,
+  type AgentContextFile,
+} from "./agent-config.js";
 import { pool } from "./db.js";
 import type { HistoryTurn } from "./history.js";
 import { pageContextKey, type PageContext } from "./page-context.js";
-
-const GATEWAY_DIR = dirname(dirname(fileURLToPath(import.meta.url)));
-const PI_AGENT_DIR = process.env.PI_AGENT_DIR ?? join(homedir(), ".pi", "agent");
 
 // Display-only fields required by AssistantMessage's type but not sent to the real
 // LLM on replay — seeded history is appended via SessionManager.appendMessage(),
@@ -80,66 +77,45 @@ async function fetchArticleTitle(slug: string): Promise<string | null> {
 // static AGENTS.md persona) telling the model which article this is and that
 // get_article_content can fetch the full text/formulas on demand. This costs
 // tokens once at session creation, not on every turn.
-async function buildArticleResourceLoader(articleSlug: string): Promise<DefaultResourceLoader | undefined> {
+async function buildArticleContextFiles(articleSlug: string): Promise<AgentContextFile[]> {
   const title = await fetchArticleTitle(articleSlug);
-  if (!title) return undefined;
+  if (!title) return [];
 
-  const loader = new DefaultResourceLoader({
-    cwd: GATEWAY_DIR,
-    agentDir: PI_AGENT_DIR,
-    agentsFilesOverride: (current) => ({
-      agentsFiles: [
-        ...current.agentsFiles,
-        {
-          path: `/virtual/article-${articleSlug}.md`,
-          content: [
-            "# Current Article Context",
-            "",
-            `The reader is currently viewing AI-DIVE article "${title}" (slug: ${articleSlug}).`,
-            `Call get_article_content("${articleSlug}") to fetch the full text (original markdown source, including LaTeX formulas) when the question needs exact quotes, section detail, or formula specifics.`,
-            "Distinguish what the article actually says (quote or closely paraphrase it) from your own elaboration (say so explicitly).",
-          ].join("\n"),
-        },
-      ],
-    }),
-  });
-  await loader.reload();
-  return loader;
+  return [{
+    path: `/virtual/article-${articleSlug}.md`,
+    content: [
+      "# Current Article Context",
+      "",
+      `The reader is currently viewing AI-DIVE article "${title}" (slug: ${articleSlug}).`,
+      `Call get_article_content("${articleSlug}") to fetch the full text (original markdown source, including LaTeX formulas) when the question needs exact quotes, section detail, or formula specifics.`,
+      "Distinguish what the article actually says (quote or closely paraphrase it) from your own elaboration (say so explicitly).",
+    ].join("\n"),
+  }];
 }
 
-async function buildIntelDayResourceLoader(date: string): Promise<DefaultResourceLoader> {
-  const loader = new DefaultResourceLoader({
-    cwd: GATEWAY_DIR,
-    agentDir: PI_AGENT_DIR,
-    agentsFilesOverride: (current) => ({
-      agentsFiles: [
-        ...current.agentsFiles,
-        {
-          path: `/virtual/intel-day-${date}.md`,
-          content: [
-            "# Current Intel Day Context",
-            "",
-            `The reader is viewing AI-DIVE's daily intel page for ${date}.`,
-            `Call get_intel_day("${date}") before answering questions about that day's signals.`,
-            "Use the signal titles, summaries, sources, categories, site anchors, and original URLs returned by the tool.",
-            "Distinguish the published signal summaries from your own analysis. Do not invent article details that the summaries do not contain.",
-          ].join("\n"),
-        },
-      ],
-    }),
-  });
-  await loader.reload();
-  return loader;
+function buildIntelDayContextFiles(date: string): AgentContextFile[] {
+  return [{
+    path: `/virtual/intel-day-${date}.md`,
+    content: [
+      "# Current Intel Day Context",
+      "",
+      `The reader is viewing AI-DIVE's daily intel page for ${date}.`,
+      `Call get_intel_day("${date}") before answering questions about that day's signals.`,
+      "Use the signal titles, summaries, sources, categories, site anchors, and original URLs returned by the tool.",
+      "Distinguish the published signal summaries from your own analysis. Do not invent article details that the summaries do not contain.",
+    ].join("\n"),
+  }];
 }
 
-async function buildResourceLoader(context?: PageContext): Promise<DefaultResourceLoader | undefined> {
-  if (context?.kind === "article") return buildArticleResourceLoader(context.id);
-  if (context?.kind === "intel_day") return buildIntelDayResourceLoader(context.id);
-  return undefined;
+async function buildPageContextFiles(context?: PageContext): Promise<AgentContextFile[]> {
+  if (context?.kind === "article") return buildArticleContextFiles(context.id);
+  if (context?.kind === "intel_day") return buildIntelDayContextFiles(context.id);
+  return [];
 }
 
 async function makeSession(context?: PageContext, history?: HistoryTurn[]): Promise<AgentSession> {
-  const resourceLoader = await buildResourceLoader(context);
+  const contextFiles = await buildPageContextFiles(context);
+  const resourceLoader = await buildReaderResourceLoader(contextFiles);
 
   const sessionManager = SessionManager.inMemory();
   if (history) {
@@ -153,9 +129,18 @@ async function makeSession(context?: PageContext, history?: HistoryTurn[]): Prom
     agentDir: PI_AGENT_DIR,
     sessionManager,
     noTools: "builtin",
-    customTools: [analyzeArxivTool, analyzeGithubTool, searchAiDiveTool, getArticleContentTool, getIntelDayTool],
+    tools: [...ALLOWED_TOOL_NAMES],
+    customTools: READER_TOOLS,
     resourceLoader,
   });
+
+  const active = session.getActiveToolNames().slice().sort();
+  const expected = [...ALLOWED_TOOL_NAMES].sort();
+  if (active.join(",") !== expected.join(",")) {
+    session.dispose();
+    throw new Error(`Agent tool allowlist mismatch. Active: ${active.join(", ") || "(none)"}`);
+  }
+
   return session;
 }
 

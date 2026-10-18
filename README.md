@@ -23,6 +23,7 @@ Powered by [Air7.fun](https://air7.fun)
 - `/agent`、文章/每日情报 AI解读 面板支持粘贴图片提问（DeepSeek vision，client 端降采样为 1280px JPEG，单条消息最多 4 张，点击缩略图可查看大图）
 - `/agent`、文章/每日情报 AI解读 面板的会话持久化：登录用户对话写入 `ai_pulse_chat_turns`，刷新/换设备可续接最近 10 轮；文章按 slug、每日情报按 `intel-day:YYYY-MM-DD` 分区；图片存 R2；pi-gateway 冷启动时把历史回放进 `AgentSession`，模型能记住之前聊过什么
 - 每日情报页 AI解读：整页助手可读取当天全部 enabled 信号，回答重点归纳、主题聚类、信号关联和深度选题建议；gateway 通过 `get_intel_day(YYYY-MM-DD)` 按需加载当天情报
+- AI解读工具集：站内 `search_ai_dive`（覆盖 dive/insight/intel）+ 文章全文 + 当日情报；arXiv 和 GitHub 使用专用工具；公共网页通过 DeepSeek `web_search` / `fetch_web_page` 检索和抓取。gateway 只暴露显式白名单里的 7 个工具，用户级 pi 扩展、skills 和全局 CLAUDE.md 不会进入会话
 - 文章/每日情报 AI解读 面板支持最大化/还原（header 图标按钮，原地撑满视口，不丢对话状态），标题统一为单行 `AI解读 · {页面标题}`
 - 高光分享：选中文章或每日情报页文字后弹出工具栏（AI解读 + 高光分享），点击「高光分享」复制分享文案（引用段落 + 标题引用 + 页面链接 + 品牌 slogan）
 - Agent 对话超时优化：后端超时从 90s 提升到 300s，支持多工具调用复杂场景；前端追踪流完整性，超时切断时显示 incomplete 提示并保留已回答内容

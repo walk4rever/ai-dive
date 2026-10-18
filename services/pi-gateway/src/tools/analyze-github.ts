@@ -2,6 +2,25 @@ import { defineTool } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // optional — raises rate limit from 60 to 5000 req/hr
+const GITHUB_TIMEOUT_MS = 18000;
+
+const analyzeGithubParameters = Type.Object({
+  repo: Type.String({
+    description: "GitHub URL (https://github.com/owner/repo) or shorthand (owner/repo)",
+  }),
+  file_path: Type.Optional(
+    Type.String({
+      description: "Read a specific file (e.g. 'src/server.ts'). If omitted, returns repo info + README + file tree.",
+    }),
+  ),
+});
+
+type GithubDetails = { owner: string; repo: string; file?: string } | null;
+
+function requestSignal(signal: AbortSignal | undefined, timeoutMs: number): AbortSignal {
+  const timeout = AbortSignal.timeout(timeoutMs);
+  return signal ? AbortSignal.any([signal, timeout]) : timeout;
+}
 
 function githubHeaders(): Record<string, string> {
   const h: Record<string, string> = {
@@ -23,7 +42,10 @@ function parseRepoUrl(input: string): { owner: string; repo: string; filePath?: 
 }
 
 async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
-  const res = await fetch(url, { headers: githubHeaders(), signal });
+  const res = await fetch(url, {
+    headers: githubHeaders(),
+    signal: requestSignal(signal, GITHUB_TIMEOUT_MS),
+  });
   if (res.status === 404) throw new Error("Not found (repo may be private or doesn't exist)");
   if (res.status === 403) throw new Error("GitHub rate limit exceeded. Set GITHUB_TOKEN env var to increase limits.");
   if (!res.ok) throw new Error(`GitHub API ${res.status}: ${await res.text()}`);
@@ -93,22 +115,13 @@ async function getFileContent(owner: string, repo: string, filePath: string, sig
   return content.length > 8000 ? content.slice(0, 8000) + "\n\n[file truncated]" : content;
 }
 
-export const analyzeGithubTool = defineTool({
+export const analyzeGithubTool = defineTool<typeof analyzeGithubParameters, GithubDetails>({
   name: "analyze_github",
   label: "Analyze GitHub Repository",
   description:
     "Fetch and analyze a GitHub repository. Returns repo metadata, README, and file structure. Can also read specific files. Accepts GitHub URL or owner/repo shorthand.",
   promptSnippet: "analyze_github(repo, file_path?) → repo info, README, file tree, or specific file content",
-  parameters: Type.Object({
-    repo: Type.String({
-      description: "GitHub URL (https://github.com/owner/repo) or shorthand (owner/repo)",
-    }),
-    file_path: Type.Optional(
-      Type.String({
-        description: "Read a specific file (e.g. 'src/server.ts'). If omitted, returns repo info + README + file tree.",
-      }),
-    ),
-  }),
+  parameters: analyzeGithubParameters,
   async execute(_id, params, signal) {
     const { repo: repoInput, file_path } = params;
 

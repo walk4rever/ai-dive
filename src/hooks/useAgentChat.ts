@@ -30,8 +30,10 @@ export const TOOL_META: Record<string, { icon: string; label: string }> = {
   analyze_arxiv: { icon: '📄', label: '读取论文' },
   analyze_github: { icon: '📦', label: '读取仓库' },
   search_ai_dive: { icon: '🔍', label: '搜索 AI-DIVE' },
-  get_article_content: { icon: '📰', label: '读取本文原文' },
+  get_article_content: { icon: '📰', label: '读取文章全文' },
   get_intel_day: { icon: '📅', label: '读取当日情报' },
+  web_search: { icon: '🔎', label: '搜索网页' },
+  fetch_web_page: { icon: '🌐', label: '读取网页' },
 }
 
 export function toolDetail(name: string, args: Record<string, unknown> | undefined): string | undefined {
@@ -42,6 +44,8 @@ export function toolDetail(name: string, args: Record<string, unknown> | undefin
   if (name === 'search_ai_dive') return s('query')
   if (name === 'get_article_content') return s('slug')
   if (name === 'get_intel_day') return s('date')
+  if (name === 'web_search') return s('query')
+  if (name === 'fetch_web_page') return s('url')
   return s('query')
 }
 

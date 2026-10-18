@@ -12,6 +12,7 @@ type StoryRow = {
 };
 
 type SignalRow = {
+  id: string;
   title: string;
   description: string;
   url: string;
@@ -20,11 +21,13 @@ type SignalRow = {
 };
 
 type ResultItem = {
-  label: string;
+  kind: "dive" | "insight" | "intel";
+  ref: string;
   title: string;
   excerpt: string;
   date: string;
-  url: string;
+  aiDiveUrl: string;
+  sourceUrl?: string;
   rank: number;
 };
 
@@ -64,6 +67,7 @@ async function fullTextSearch(query: string, contentType: string | null, limit: 
     FROM ai_pulse_stories s
     WHERE
       s.status = 'published'
+      AND s.is_premium = false
       AND ($2::text IS NULL OR s.content_type = $2)
       AND EXISTS (
         SELECT 1 FROM terms t
@@ -89,6 +93,7 @@ async function signalSearch(query: string, limit: number): Promise<SignalRow[]> 
     `
     WITH terms AS (SELECT unnest($1::text[]) AS term)
     SELECT
+      s.id,
       s.title,
       s.description,
       s.url,
@@ -117,7 +122,7 @@ async function signalSearch(query: string, limit: number): Promise<SignalRow[]> 
 async function recentSignals(limit: number): Promise<SignalRow[]> {
   const result = await pool.query<SignalRow>(
     `
-    SELECT title, description, url, to_char(signal_date, 'YYYY-MM-DD') AS signal_date, 0 AS rank
+    SELECT id, title, description, url, to_char(signal_date, 'YYYY-MM-DD') AS signal_date, 0 AS rank
     FROM ai_pulse_signals
     WHERE status = 'enabled'
     ORDER BY signal_date DESC, created_at DESC
@@ -128,30 +133,27 @@ async function recentSignals(limit: number): Promise<SignalRow[]> {
   return result.rows;
 }
 
-const CONTENT_TYPE_LABEL: Record<string, string> = {
-  intel: "情报",
-  dive: "深度",
-  insight: "洞见",
-};
-
 function storyToResultItem(r: StoryRow): ResultItem {
   return {
-    label: CONTENT_TYPE_LABEL[r.content_type] ?? r.content_type,
+    kind: r.content_type === "insight" ? "insight" : "dive",
+    ref: r.slug,
     title: r.title,
     excerpt: r.excerpt,
     date: r.published_at ? r.published_at.slice(0, 10) : "",
-    url: `https://ai.air7.fun/post/${r.slug}`,
+    aiDiveUrl: `https://ai.air7.fun/post/${r.slug}`,
     rank: r.rank,
   };
 }
 
 function signalToResultItem(r: SignalRow): ResultItem {
   return {
-    label: "情报",
+    kind: "intel",
+    ref: r.id,
     title: r.title,
     excerpt: r.description,
     date: r.signal_date ?? "",
-    url: r.url,
+    aiDiveUrl: r.signal_date ? `https://ai.air7.fun/intels/${r.signal_date}#signal-${r.id}` : `https://ai.air7.fun/intels`,
+    sourceUrl: r.url,
     rank: r.rank,
   };
 }
@@ -160,9 +162,14 @@ function formatResults(items: ResultItem[]): string {
   if (items.length === 0) return "No matching content found in AI-DIVE.";
   return items
     .map((r) => {
-      return [`[${r.label}] ${r.title}`, r.date ? `Published: ${r.date}` : "", r.url, r.excerpt]
-        .filter(Boolean)
-        .join("\n");
+      const meta = [
+        `[${r.kind}] ${r.title}`,
+        r.date ? `Date: ${r.date}` : "",
+        `Ref: ${r.ref}`,
+        `AI-DIVE: ${r.aiDiveUrl}`,
+        r.sourceUrl ? `Source: ${r.sourceUrl}` : "",
+      ].filter(Boolean).join("\n");
+      return `${meta}\n\n${r.excerpt}`;
     })
     .join("\n\n---\n\n");
 }
@@ -171,8 +178,9 @@ export const searchAiDiveTool = defineTool({
   name: "search_ai_dive",
   label: "Search AI-DIVE Content",
   description:
-    "Search AI-DIVE content: published articles (深度 dive analyses, 洞见 insights) and the 情报 intel feed (daily signals from X/GitHub/arXiv/news). Use this to find what AI-DIVE has already covered on a topic, or what's new in today's intel feed.",
-  promptSnippet: "search_ai_dive(query, content_type?) → matching articles/signals with title, excerpt, and URL",
+    "Search AI-DIVE's own content: published free dive and insight articles, plus the intel signal feed. Returns each result's type, date, ref (article slug or intel signal id), AI-DIVE URL, original source URL for intel, and summary. Use this first for any topic question to find what AI-DIVE has covered. Do not use it for public web search.",
+  promptSnippet:
+    "search_ai_dive(query, content_type?) → matching dive/insight/intel items with type, ref, AI-DIVE URL, summary",
   parameters: Type.Object({
     query: Type.String({ description: "Search query — keywords or a natural language question" }),
     content_type: Type.Optional(
