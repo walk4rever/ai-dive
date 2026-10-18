@@ -78,6 +78,7 @@ interface AiChatPanelProps {
   emptyHint?: string
   shareUrl?: string
   contentWidthClass?: string
+  dockedWidthClass?: string
   children: ReactNode
 }
 
@@ -122,6 +123,7 @@ export function AiChatPanel({
   emptyHint = '选中页面中的文字，或者直接提问。',
   shareUrl,
   contentWidthClass = 'max-w-2xl',
+  dockedWidthClass = 'article-docked-column',
   children,
 }: AiChatPanelProps) {
   const articleRef = useRef<HTMLDivElement>(null)
@@ -353,7 +355,7 @@ export function AiChatPanel({
           ref={articleRef}
           className={
             docked
-              ? `sticky top-6 h-[calc(100vh-9.5rem)] min-w-0 flex-1 ${contentWidthClass} overflow-y-auto overscroll-contain pr-6`
+              ? `sticky top-6 h-[calc(100vh-9.5rem)] ${dockedWidthClass} ${contentWidthClass} overflow-y-auto overscroll-contain pr-6`
               : `mx-auto ${contentWidthClass}`
           }
         >
