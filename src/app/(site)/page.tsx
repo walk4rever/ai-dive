@@ -190,10 +190,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
       {/* Hero */}
       <section className="mb-20 md:mb-28">
-        <h1 className="font-serif text-[2.5rem] md:text-6xl xl:text-7xl font-medium leading-[1.1] tracking-tight text-[var(--foreground)]">
-          学习 AI，从知道，到做到。
+        <h1 className="font-serif text-[2rem] md:text-[2.75rem] xl:text-[3.5rem] font-medium leading-[1.15] tracking-tight text-[var(--foreground)]">
+          学习 AI，<br />从知道，到做到。
         </h1>
-        <p className="mt-8 text-lg md:text-xl text-[var(--muted)] leading-relaxed">
+        <p className="mt-6 text-lg md:text-xl text-[var(--muted)] leading-relaxed">
           围绕 AI 的脉动，精选真正值得跟进的变化与判断 —— 情报、深度、访谈、专题。
         </p>
         <div className="mt-10 flex flex-col lg:flex-row lg:items-start gap-6">
