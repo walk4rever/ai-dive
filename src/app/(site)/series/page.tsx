@@ -18,6 +18,7 @@ interface StoryRow {
   id: string
   slug: string
   title: string
+  excerpt: string | null
   published_at: string | null
   topic_id: string
   topic_order: number
@@ -39,7 +40,7 @@ export default async function SeriesPage() {
       .order('created_at', { ascending: false }),
     supabase
       .from('ai_pulse_stories')
-      .select('id, slug, title, published_at, topic_id, topic_order')
+      .select('id, slug, title, excerpt, published_at, topic_id, topic_order')
       .eq('status', 'published')
       .not('topic_id', 'is', null)
       .order('topic_id', { ascending: true })
@@ -135,6 +136,11 @@ export default async function SeriesPage() {
                           {story.title}
                         </h3>
                       </Link>
+                      {story.excerpt && (
+                        <p className="mt-2 text-sm md:text-base text-[var(--muted)] leading-relaxed line-clamp-2">
+                          {story.excerpt}
+                        </p>
+                      )}
                     </div>
                     <span className="date shrink-0">{formatDate(story.published_at)}</span>
                   </article>
