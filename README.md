@@ -175,8 +175,7 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=<KEY
 - `/intels/[date]`：每日情报页（日历浮层 + 当日完整信号列表 + 相邻日期导航 + 整页 AI解读，支持 `#signal-[id]` 条目锚点）
 - `/dives`：深度列表
 - `/insights`：洞见列表，按来源（`author_display`）胶囊过滤
-- `/latest`：最新内容列表
-- `/archive`：内容归档
+- `/archive`：内容归档（全部文章，分页；旧 `/latest` 已 308 重定向至此）
 - `/series`：专题列表
 - `/decks`：出品（幻灯片 / 报告 / 交互式解读，元数据存于 `ai_pulse_decks` 表，导入见上文 4c；列表页公开，正文按定价走鉴权，管理员免付费，见"当前能力"）
 - `/admin`：管理员总览（可点统计卡 + 近 7 日新增注册/订阅/成交订单趋势，对比上一个 7 天窗口）
