@@ -79,17 +79,27 @@ function postHref(post: HomePost): string {
 }
 
 function PostItem({ post }: { post: HomePost }) {
+  const date = formatDate(post.published_at)
+
   return (
-    <article className="py-6 flex items-baseline gap-6">
-      <span className="date shrink-0 w-24">{formatDate(post.published_at)}</span>
-      <div className="flex-1 min-w-0">
-        <Link href={postHref(post)} className="group">
-          <h3 className="font-serif text-lg md:text-xl font-medium leading-snug group-hover:text-[var(--accent)] transition-colors">
-            {post.title}
-          </h3>
-        </Link>
+    <article className="py-6">
+      <div className="flex items-start gap-6">
+        {date && <span className="date hidden sm:block shrink-0 w-24 pt-1">{date}</span>}
+        <div className="flex-1 min-w-0">
+          <Link href={postHref(post)} className="group">
+            <h3 className="font-serif text-lg md:text-xl font-medium leading-snug group-hover:text-[var(--accent)] transition-colors">
+              {post.title}
+            </h3>
+          </Link>
+          {post.excerpt && (
+            <p className="mt-2 text-sm text-[var(--muted)] leading-relaxed line-clamp-2">
+              {post.excerpt}
+            </p>
+          )}
+          {date && <span className="date mt-2 block sm:hidden">{date}</span>}
+        </div>
+        <span className="kicker shrink-0 pt-1.5" style={{ color: 'var(--accent)' }}>{getTypeLabel(post.content_type)}</span>
       </div>
-      <span className="kicker shrink-0" style={{ color: 'var(--accent)' }}>{getTypeLabel(post.content_type)}</span>
     </article>
   )
 }

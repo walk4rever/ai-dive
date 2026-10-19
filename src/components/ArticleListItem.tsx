@@ -13,7 +13,6 @@ type ListPost = Pick<
 interface ArticleListItemProps {
   post: ListPost
   showType?: boolean
-  showExcerpt?: boolean
   showSource?: boolean
   coverUrl?: string | null
 }
@@ -39,7 +38,6 @@ function shouldOptimizeCover(coverUrl: string): boolean {
 export function ArticleListItem({
   post,
   showType = false,
-  showExcerpt = true,
   showSource = false,
   coverUrl,
 }: ArticleListItemProps) {
@@ -80,7 +78,7 @@ export function ArticleListItem({
                 {post.title}
               </h3>
             </Link>
-            {showExcerpt && post.excerpt && (
+            {post.excerpt && (
               <p className="mt-2 text-sm md:text-base text-[var(--muted)] leading-relaxed line-clamp-2">
                 {post.excerpt}
               </p>

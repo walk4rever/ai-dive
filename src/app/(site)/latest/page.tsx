@@ -35,7 +35,7 @@ export default async function LatestPage() {
       />
       <div className="divide-y divide-[var(--border-subtle)]">
         {allPosts.map((post) => (
-          <ArticleListItem key={post.id} post={post} showType showExcerpt={false} />
+          <ArticleListItem key={post.id} post={post} showType />
         ))}
       </div>
     </div>
