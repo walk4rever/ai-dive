@@ -10,7 +10,7 @@
 #      nano /root/pi-gateway-ai-dive/.env
 #    Required values:
 #      DIRECT_URL = Supabase direct postgres URL (vlaawtpxqzclhmhrlwti project)
-#      AGENT_SECRET = 904e130c5404006a463ef6d2e6b27e315dbc44612abb7ef6
+#      AGENT_SECRET = <generate-with-openssl-rand-hex-32>
 #      PI_AGENT_DIR = /root/pi-gateway-ai-dive/.pi-agent
 #      PORT = 3458
 #
