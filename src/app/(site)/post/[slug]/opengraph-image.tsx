@@ -18,7 +18,7 @@ export default async function Image({ params }: Props) {
     .single()
 
   const title = post?.title ?? 'AI-DIVE'
-  const desc = post?.excerpt ?? '面向 AI 工程师的周刊与深度研究'
+  const desc = post?.excerpt ?? '学习 AI，从知道，到做到'
   const truncatedDesc = desc.length > 80 ? desc.slice(0, 80) + '…' : desc
 
   return new ImageResponse(

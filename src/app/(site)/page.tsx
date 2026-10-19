@@ -190,9 +190,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
       {/* Hero */}
       <section className="mb-20 md:mb-28">
-        <p className="kicker mb-6" style={{ color: 'var(--accent)' }}>面向 AI 工程师</p>
         <h1 className="font-serif text-[2.5rem] md:text-6xl xl:text-7xl font-medium leading-[1.1] tracking-tight text-[var(--foreground)]">
-          不是跟上 AI，<br />是读懂 AI。
+          学习 AI，从知道，到做到。
         </h1>
         <p className="mt-8 text-lg md:text-xl text-[var(--muted)] leading-relaxed">
           围绕 AI 的脉动，精选真正值得跟进的变化与判断 —— 情报、深度、访谈、专题。

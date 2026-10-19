@@ -4,8 +4,8 @@ import 'katex/dist/katex.min.css'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'AI-DIVE | 面向 AI 工程师的周刊与深度研究',
-  description: '不是追所有 AI 新闻，而是解释真正重要的变化。给 AI 工程师的每周精选、深度分析与长期判断。',
+  title: 'AI-DIVE | 学习 AI，从知道，到做到',
+  description: '每周精选真正重要的 AI 变化与判断：情报、深度、访谈、专题，陪你从知道走到做到。',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
 }
 
