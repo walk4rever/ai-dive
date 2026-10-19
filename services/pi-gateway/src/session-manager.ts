@@ -66,11 +66,18 @@ function evictStaleSessions() {
 setInterval(evictStaleSessions, 5 * 60 * 1000).unref();
 
 async function fetchArticleTitle(slug: string): Promise<string | null> {
-  const result = await pool.query<{ title: string }>(
-    `SELECT title FROM ai_pulse_stories WHERE slug = $1 AND status = 'published' LIMIT 1`,
-    [slug],
-  );
-  return result.rows[0]?.title ?? null;
+  try {
+    const result = await pool.query<{ title: string }>(
+      `SELECT title FROM ai_pulse_stories WHERE slug = $1 AND status = 'published' LIMIT 1`,
+      [slug],
+    );
+    return result.rows[0]?.title ?? null;
+  } catch (err) {
+    // Article context is a convenience: if the lookup fails, answer without the
+    // title instead of holding the whole chat request at session creation.
+    console.error("fetchArticleTitle failed", slug, err instanceof Error ? err.message : err);
+    return null;
+  }
 }
 
 // Binds a session to one article: appends a virtual context file (on top of the

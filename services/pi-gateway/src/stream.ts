@@ -24,6 +24,21 @@ export async function streamPrompt(
   res.setHeader("Connection", "keep-alive");
   res.flushHeaders();
 
+  // Comments are valid SSE frames and are ignored by the client parser. They
+  // keep nginx (and any intermediate proxy) from treating a long tool call as
+  // an idle upstream and cutting the stream at its read timeout.
+  const heartbeat = setInterval(() => {
+    if (!res.writableEnded) res.write(": keepalive\n\n");
+  }, 15_000);
+  heartbeat.unref();
+
+  // The Next.js route gives up at 290s. Cut the generation just before that so
+  // the session returns to idle instead of staying busy after its caller is gone.
+  const generationTimeout = setTimeout(() => {
+    void session.abort();
+  }, 280_000);
+  generationTimeout.unref();
+
   const unsubscribe = session.subscribe((event) => {
     switch (event.type) {
       case "message_update": {
@@ -62,6 +77,8 @@ export async function streamPrompt(
     const message = err instanceof Error ? err.message : String(err);
     sse(res, "error", { message });
   } finally {
+    clearTimeout(generationTimeout);
+    clearInterval(heartbeat);
     if (visionModel && originalModel) await session.setModel(originalModel);
     unsubscribe();
     res.end();

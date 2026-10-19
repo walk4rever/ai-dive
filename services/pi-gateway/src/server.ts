@@ -15,6 +15,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.post("/chat", requireSecret, async (req, res) => {
+  const startedAt = Date.now();
   const { message, userId, pageContext: rawPageContext, articleSlug, images: rawImages, history: rawHistory } = req.body as {
     message?: string;
     userId?: string;
@@ -51,13 +52,21 @@ app.post("/chat", requireSecret, async (req, res) => {
 
   let session;
   try {
-    session = await getSession(
-      userId,
-      pageContext,
-      history,
+    session = await Promise.race([
+      getSession(userId, pageContext, history),
+      new Promise<never>((_, reject) => {
+        const timer = setTimeout(() => reject(new Error("session creation timed out")), 45_000);
+        timer.unref();
+      }),
+    ]);
+    console.log(
+      `[chat] session ready in ${Date.now() - startedAt}ms`,
+      pageContext ? `context=${pageContext.kind}` : "context=global",
+      `history=${Array.isArray(history) ? history.length : 0}`,
     );
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[chat] session failed after ${Date.now() - startedAt}ms: ${msg}`);
     res.status(500).json({ error: `Failed to create session: ${msg}` });
     return;
   }
@@ -74,6 +83,10 @@ app.post("/chat", requireSecret, async (req, res) => {
   // so it's the one that needs to trigger cancelling the in-flight generation.
   res.on("close", () => {
     if (session.isStreaming) session.abort();
+  });
+
+  res.on("finish", () => {
+    console.log(`[chat] finished in ${Date.now() - startedAt}ms`);
   });
 
   await streamPrompt(session, message.trim(), res, images);
