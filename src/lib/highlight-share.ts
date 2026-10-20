@@ -1,6 +1,6 @@
 /**
  * 构建高光分享文案
- * 格式：「引用段落」 + —— 《标题》（链接） + 品牌 slogan
+ * 格式：引用段落 + —— 《标题》（链接） + 品牌 slogan
  * 同时产出纯文本（微信/微博等）与 HTML（飞书/Notion/邮件等富文本，标题即链接）两种版本。
  */
 export interface HighlightShareParams {
@@ -17,7 +17,7 @@ export interface HighlightShareContent {
   html: string
 }
 
-export const HIGHLIGHT_SHARE_SLOGAN = '【AI-DIVE】学习 AI，从知道，到做到。'
+export const HIGHLIGHT_SHARE_SLOGAN = '[AI-DIVE] 学习 AI，从知道，到做到。'
 
 function escapeHtml(value: string): string {
   return value
@@ -60,7 +60,7 @@ function resolveParts({ title, slug, url, quoteText, author, siteOrigin }: Highl
 export function buildHighlightShareText(params: HighlightShareParams): string {
   const { shareLink, safeTitle, authorCiting, formattedQuote } = resolveParts(params)
   return [
-    `「${formattedQuote}」`,
+    formattedQuote,
     '',
     `—— ${safeTitle}${authorCiting} ${shareLink}`,
     '',
@@ -70,7 +70,7 @@ export function buildHighlightShareText(params: HighlightShareParams): string {
 
 export function buildHighlightShareHtml(params: HighlightShareParams): string {
   const { shareLink, safeTitle, authorCiting, formattedQuote } = resolveParts(params)
-  const quoteHtml = escapeHtml(`「${formattedQuote}」`).replace(/\n/g, '<br>')
+  const quoteHtml = escapeHtml(formattedQuote).replace(/\n/g, '<br>')
   return [
     `<p>${quoteHtml}</p>`,
     `<p>—— <a href="${escapeHtml(shareLink)}">${escapeHtml(safeTitle)}</a>${escapeHtml(authorCiting)}</p>`,

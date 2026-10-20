@@ -12,11 +12,11 @@ describe('buildHighlightShareText', () => {
     })
 
     expect(result).toBe([
-      '「Self-attention 机制是 Transformer 的核心创新。」',
+      'Self-attention 机制是 Transformer 的核心创新。',
       '',
       '—— 《Transformer 架构详解》 · RAFA https://ai.air7.fun/post/transformer-architecture',
       '',
-      '【AI-DIVE】学习 AI，从知道，到做到。',
+      '[AI-DIVE] 学习 AI，从知道，到做到。',
     ].join('\n'))
     expect(result).not.toContain('原文链接')
   })
@@ -97,7 +97,7 @@ describe('buildHighlightShareText', () => {
       quoteText: '第一段\n\n第二段\n第三段',
     })
 
-    expect(result).toContain('「第一段\n\n第二段\n第三段」')
+    expect(result).toContain('第一段\n\n第二段\n第三段')
   })
 
   it('uses default site origin when not provided', () => {
@@ -120,9 +120,9 @@ describe('buildHighlightShareHtml', () => {
       siteOrigin: 'https://ai.air7.fun',
     })
 
-    expect(html).toContain('<p>「标题 &lt;b&gt;<br>摘要 &amp; 细节」</p>')
+    expect(html).toContain('<p>标题 &lt;b&gt;<br>摘要 &amp; 细节</p>')
     expect(html).toContain('<p>—— <a href="https://ai.air7.fun/intels/2026-10-20">《2026 年 10 月 20 日情报》</a></p>')
-    expect(html).toContain('<p>【AI-DIVE】学习 AI，从知道，到做到。</p>')
+    expect(html).toContain('<p>[AI-DIVE] 学习 AI，从知道，到做到。</p>')
   })
 
   it('keeps distinct author after the linked title', () => {
