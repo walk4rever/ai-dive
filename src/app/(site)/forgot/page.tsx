@@ -43,7 +43,7 @@ export default function ForgotPage() {
     <div className="min-h-[70vh] flex items-center justify-center">
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
-          <p className="kicker mb-4" style={{ color: 'var(--accent)' }}>Reset password</p>
+          <p className="kicker mb-4" style={{ color: 'var(--accent)' }}>找回密码</p>
           <h1 className="font-serif text-3xl md:text-4xl font-semibold leading-[1.15] tracking-tight">
             忘记密码了？
           </h1>

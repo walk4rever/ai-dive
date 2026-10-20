@@ -91,7 +91,7 @@ function ResetForm() {
   return (
     <div>
       <div className="text-center mb-10">
-        <p className="kicker mb-4" style={{ color: 'var(--accent)' }}>New password</p>
+        <p className="kicker mb-4" style={{ color: 'var(--accent)' }}>重置密码</p>
         <h1 className="font-serif text-3xl md:text-4xl font-semibold leading-[1.15] tracking-tight">
           设置新密码
         </h1>

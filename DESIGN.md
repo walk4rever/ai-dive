@@ -154,6 +154,7 @@ Rules:
 - Section borders: `1px 0px 0px` (top-only) for list item separators
 
 ### Inputs & Forms
+- Typography: explicitly inherits `--font-sans` system font stack (`font-family: inherit`) and antialiasing
 - Text: Anthropic Near Black (`#141413`)
 - Padding: 1.6px 12px (very compact vertical)
 - Border: standard warm borders
@@ -165,7 +166,7 @@ Rules:
 - Logo: Claude wordmark in Anthropic Near Black
 - Links: mix of Near Black (`#141413`), Olive Gray (`#5e5d59`), and Dark Warm (`#3d3d3a`)
 - Nav border: `1px solid #30302e` (dark) or `1px solid #f0eee6` (light)
-- CTA: Chinese Red Brand button or White Surface button
+- User Action CTA: Chinese Red Brand pill button (`rounded-full px-4 py-1.5 text-sm`) balancing the logo mark; route-aware (guides to register on `/login`, login on `/register`, and dashboard when authenticated)
 - Hover: text shifts to foreground-primary, no decoration
 
 ### Image Treatment
