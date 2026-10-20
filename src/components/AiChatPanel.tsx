@@ -10,7 +10,7 @@ import { loginHref } from '@/lib/auth/client'
 import { agentPageContextKey, type AgentPageContext } from '@/lib/agent-context'
 import { handleClipboardImages, MessageImages, PendingImageChips, useImageLightbox } from '@/components/AgentChatImages'
 import { CopyMessageButton } from '@/components/AgentChatCopyButton'
-import { buildHighlightShareText } from '@/lib/highlight-share'
+import { buildHighlightShareContent, type HighlightShareContent } from '@/lib/highlight-share'
 
 // Query param the "AI解读" trigger appends to the login redirect so the
 // panel can reopen itself once the reader is back on this article.
@@ -77,6 +77,8 @@ interface AiChatPanelProps {
   inputPlaceholder?: string
   emptyHint?: string
   shareUrl?: string
+  /** Title used in highlight-share citations; defaults to `title`. */
+  shareTitle?: string
   contentWidthClass?: string
   dockedWidthClass?: string
   children: ReactNode
@@ -99,6 +101,8 @@ function useIsDesktop(): boolean {
   return isDesktop
 }
 
+const BLOCK_SELECTOR = 'p,h1,h2,h3,h4,h5,h6,li,blockquote,pre,div,section,article,header,footer,tr,dt,dd,figcaption'
+
 // Selections spanning a KaTeX-rendered formula grab mangled visual glyphs by
 // default. Swap each .katex node for its MathML annotation (the original TeX
 // source) before reading text, so quotes carry real formula source.
@@ -111,7 +115,12 @@ function extractSelectionText(range: Range): string {
       katexEl.replaceWith(document.createTextNode(`$${annotation.textContent.trim()}$`))
     }
   })
-  return container.textContent?.trim() ?? ''
+  // textContent glues adjacent blocks together (e.g. a signal card's title and
+  // summary), so terminate each block-level element with a line break first.
+  container.querySelectorAll(BLOCK_SELECTOR).forEach((blockEl) => {
+    blockEl.appendChild(document.createTextNode('\n'))
+  })
+  return (container.textContent ?? '').replace(/\n{3,}/g, '\n\n').trim()
 }
 
 export function AiChatPanel({
@@ -122,6 +131,7 @@ export function AiChatPanel({
   inputPlaceholder = '针对这篇文章提问…（Enter 发送，Shift+Enter 换行）',
   emptyHint = '选中页面中的文字，或者直接提问。',
   shareUrl,
+  shareTitle,
   contentWidthClass = 'max-w-2xl',
   dockedWidthClass = 'article-docked-column',
   children,
@@ -325,15 +335,15 @@ export function AiChatPanel({
 
   async function handleShareQuote() {
     if (!quoteButton?.text) return
-    const shareText = buildHighlightShareText({
-      title,
+    const shareContent = buildHighlightShareContent({
+      title: shareTitle ?? title,
       slug: pageContext?.kind === 'article' ? pageContext.id : undefined,
       url: shareUrl,
       quoteText: quoteButton.text,
       author,
     })
 
-    const success = await copyToClipboard(shareText)
+    const success = await copyToClipboard(shareContent)
     if (success) {
       setCopied(true)
       setToastMessage('已复制高光分享文案')
@@ -602,8 +612,23 @@ export function AiChatPanel({
   )
 }
 
-async function copyToClipboard(text: string): Promise<boolean> {
+async function copyToClipboard({ text, html }: HighlightShareContent): Promise<boolean> {
   if (typeof navigator !== 'undefined' && navigator.clipboard && window.isSecureContext) {
+    // Rich editors (Feishu, Notion, mail) pick text/html so the title carries
+    // the link; plain-text targets (WeChat, Weibo) fall back to text/plain.
+    if (typeof ClipboardItem !== 'undefined' && navigator.clipboard.write) {
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'text/plain': new Blob([text], { type: 'text/plain' }),
+            'text/html': new Blob([html], { type: 'text/html' }),
+          }),
+        ])
+        return true
+      } catch {
+        // fall through to plain-text copy
+      }
+    }
     try {
       await navigator.clipboard.writeText(text)
       return true

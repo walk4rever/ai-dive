@@ -141,6 +141,7 @@ export default async function IntelDatePage({ params, searchParams }: Props) {
       inputPlaceholder="针对当天情报提问…（Enter 发送，Shift+Enter 换行）"
       emptyHint="可以直接询问当天信号的重点、关联和选题价值。"
       shareUrl={intelDatePath(date)}
+      shareTitle={`${parsedDate.y} 年 ${parsedDate.m} 月 ${parsedDate.d} 日情报`}
       contentWidthClass="max-w-none"
     >
       <div>

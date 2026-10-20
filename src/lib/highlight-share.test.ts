@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildHighlightShareText } from './highlight-share'
+import { buildHighlightShareHtml, buildHighlightShareText } from './highlight-share'
 
 describe('buildHighlightShareText', () => {
   it('builds share text with all fields', () => {
@@ -11,10 +11,14 @@ describe('buildHighlightShareText', () => {
       siteOrigin: 'https://ai.air7.fun',
     })
 
-    expect(result).toContain('"Self-attention 机制是 Transformer 的核心创新。"')
-    expect(result).toContain('—— 摘自《Transformer 架构详解》 · RAFA')
-    expect(result).toContain('🔗 原文链接：https://ai.air7.fun/post/transformer-architecture')
-    expect(result).toContain('【AI-DIVE】深入 AI 技术核心，从论文到实战全面拆解。')
+    expect(result).toBe([
+      '「Self-attention 机制是 Transformer 的核心创新。」',
+      '',
+      '—— 《Transformer 架构详解》 · RAFA https://ai.air7.fun/post/transformer-architecture',
+      '',
+      '【AI-DIVE】学习 AI，从知道，到做到。',
+    ].join('\n'))
+    expect(result).not.toContain('原文链接')
   })
 
   it('handles title without 书名号', () => {
@@ -40,13 +44,13 @@ describe('buildHighlightShareText', () => {
 
   it('accepts an explicit page URL for non-article surfaces', () => {
     const result = buildHighlightShareText({
-      title: '10 月 18 日情报',
+      title: '2026 年 10 月 18 日情报',
       url: '/intels/2026-10-18',
       quoteText: '今天最重要的一条信号',
       siteOrigin: 'https://ai.air7.fun',
     })
 
-    expect(result).toContain('🔗 原文链接：https://ai.air7.fun/intels/2026-10-18')
+    expect(result).toContain('—— 《2026 年 10 月 18 日情报》 https://ai.air7.fun/intels/2026-10-18')
   })
 
   it('handles partial 书名号 in title', () => {
@@ -93,7 +97,7 @@ describe('buildHighlightShareText', () => {
       quoteText: '第一段\n\n第二段\n第三段',
     })
 
-    expect(result).toContain('"第一段\n\n第二段\n第三段"')
+    expect(result).toContain('「第一段\n\n第二段\n第三段」')
   })
 
   it('uses default site origin when not provided', () => {
@@ -103,6 +107,33 @@ describe('buildHighlightShareText', () => {
       quoteText: '测试',
     })
 
-    expect(result).toMatch(/🔗 原文链接：https?:\/\/.+\/post\/test-slug/)
+    expect(result).toMatch(/—— 《测试》 https?:\/\/.+\/post\/test-slug/)
+  })
+})
+
+describe('buildHighlightShareHtml', () => {
+  it('embeds the link into the title and escapes content', () => {
+    const html = buildHighlightShareHtml({
+      title: '2026 年 10 月 20 日情报',
+      url: '/intels/2026-10-20',
+      quoteText: '标题 <b>\n摘要 & 细节',
+      siteOrigin: 'https://ai.air7.fun',
+    })
+
+    expect(html).toContain('<p>「标题 &lt;b&gt;<br>摘要 &amp; 细节」</p>')
+    expect(html).toContain('<p>—— <a href="https://ai.air7.fun/intels/2026-10-20">《2026 年 10 月 20 日情报》</a></p>')
+    expect(html).toContain('<p>【AI-DIVE】学习 AI，从知道，到做到。</p>')
+  })
+
+  it('keeps distinct author after the linked title', () => {
+    const html = buildHighlightShareHtml({
+      title: '测试文章',
+      slug: 'test',
+      quoteText: '测试',
+      author: 'RAFA',
+      siteOrigin: 'https://ai.air7.fun',
+    })
+
+    expect(html).toContain('<a href="https://ai.air7.fun/post/test">《测试文章》</a> · RAFA')
   })
 })

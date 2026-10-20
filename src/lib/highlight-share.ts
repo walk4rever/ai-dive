@@ -1,6 +1,7 @@
 /**
  * 构建高光分享文案
- * 格式：引用段落 + 文章标题引用 + 原文链接 + 品牌 slogan
+ * 格式：「引用段落」 + —— 《标题》（链接） + 品牌 slogan
+ * 同时产出纯文本（微信/微博等）与 HTML（飞书/Notion/邮件等富文本，标题即链接）两种版本。
  */
 export interface HighlightShareParams {
   title: string
@@ -11,14 +12,22 @@ export interface HighlightShareParams {
   siteOrigin?: string
 }
 
-export function buildHighlightShareText({
-  title,
-  slug,
-  url,
-  quoteText,
-  author,
-  siteOrigin,
-}: HighlightShareParams): string {
+export interface HighlightShareContent {
+  text: string
+  html: string
+}
+
+export const HIGHLIGHT_SHARE_SLOGAN = '【AI-DIVE】学习 AI，从知道，到做到。'
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+function resolveParts({ title, slug, url, quoteText, author, siteOrigin }: HighlightShareParams) {
   const origin = siteOrigin || process.env.NEXT_PUBLIC_SITE_URL || 'https://ai.air7.fun'
   const normalizedOrigin = origin.replace(/\/+$/, '')
   const shareLink = url
@@ -36,7 +45,6 @@ export function buildHighlightShareText({
   // 作者信息（如果有且不是默认值）
   const hasDistinctAuthor = author?.trim() && author.trim() !== 'AI-DIVE' && author.trim() !== '编辑部'
   const authorCiting = hasDistinctAuthor ? ` · ${author!.trim()}` : ''
-  const citation = `—— 摘自${safeTitle}${authorCiting}`
 
   // 格式化引用文本（去除多余空行）
   const formattedQuote = quoteText
@@ -44,14 +52,35 @@ export function buildHighlightShareText({
     .map((line) => line.trim())
     .filter((line, index, arr) => line.length > 0 || (index > 0 && arr[index - 1].length > 0))
     .join('\n')
+    .trim()
 
+  return { shareLink, safeTitle, authorCiting, formattedQuote }
+}
+
+export function buildHighlightShareText(params: HighlightShareParams): string {
+  const { shareLink, safeTitle, authorCiting, formattedQuote } = resolveParts(params)
   return [
-    `"${formattedQuote}"`,
+    `「${formattedQuote}」`,
     '',
-    citation,
+    `—— ${safeTitle}${authorCiting} ${shareLink}`,
     '',
-    `🔗 原文链接：${shareLink}`,
-    '',
-    '【AI-DIVE】深入 AI 技术核心，从论文到实战全面拆解。',
+    HIGHLIGHT_SHARE_SLOGAN,
   ].join('\n')
+}
+
+export function buildHighlightShareHtml(params: HighlightShareParams): string {
+  const { shareLink, safeTitle, authorCiting, formattedQuote } = resolveParts(params)
+  const quoteHtml = escapeHtml(`「${formattedQuote}」`).replace(/\n/g, '<br>')
+  return [
+    `<p>${quoteHtml}</p>`,
+    `<p>—— <a href="${escapeHtml(shareLink)}">${escapeHtml(safeTitle)}</a>${escapeHtml(authorCiting)}</p>`,
+    `<p>${escapeHtml(HIGHLIGHT_SHARE_SLOGAN)}</p>`,
+  ].join('')
+}
+
+export function buildHighlightShareContent(params: HighlightShareParams): HighlightShareContent {
+  return {
+    text: buildHighlightShareText(params),
+    html: buildHighlightShareHtml(params),
+  }
 }
