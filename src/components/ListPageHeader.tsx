@@ -15,7 +15,7 @@ export function ListPageHeader({ kicker, title, description, count, hideBorder =
       <p className="kicker mb-5" style={{ color: 'var(--accent)' }}>
         {kicker}
       </p>
-      <h1 className="font-serif text-4xl md:text-5xl font-medium leading-[1.15] tracking-tight text-[var(--foreground)]">
+      <h1 className="font-serif text-4xl md:text-5xl font-bold leading-[1.15] tracking-tight text-[var(--foreground)]">
         {title}
       </h1>
       {description && (

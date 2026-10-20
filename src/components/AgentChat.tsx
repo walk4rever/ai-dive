@@ -68,7 +68,7 @@ export function AgentChat({ initialMessages }: AgentChatProps = {}) {
             <p className="text-[0.7rem] font-medium uppercase tracking-[0.1em]" style={{ color: 'var(--accent)' }}>
               Explore
             </p>
-            <h1 className="font-serif text-[2rem] font-medium leading-[1.2]" style={{ color: '#141413', marginTop: '0.25rem' }}>
+            <h1 className="font-serif text-[2rem] font-semibold leading-[1.2]" style={{ color: '#141413', marginTop: '0.25rem' }}>
               深入任何一个 AI 技术话题。
             </h1>
             <p className="text-[0.9rem] leading-relaxed max-w-[420px]" style={{ color: '#87867f', marginTop: '0.1rem' }}>

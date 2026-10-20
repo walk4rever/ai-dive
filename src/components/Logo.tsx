@@ -50,7 +50,7 @@ export function Logo({ size = 26, showWordmark = true, className = '' }: LogoPro
 
       {showWordmark && (
         <span
-          style={{ fontFamily: '"Noto Serif SC", "Source Han Serif SC", serif', fontWeight: 600 }}
+          style={{ fontFamily: 'var(--font-serif)', fontWeight: 600 }}
           className="text-xl tracking-tight leading-none text-[var(--foreground)]"
         >
           AI-DIVE

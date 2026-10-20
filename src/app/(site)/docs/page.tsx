@@ -18,7 +18,7 @@ export default async function DocsPage() {
     <article className="mx-auto max-w-3xl">
       <header className="mb-14 pb-10 border-b border-[var(--border)]">
         <p className="kicker mb-5" style={{ color: 'var(--accent)' }}>Developers</p>
-        <h1 className="font-serif text-4xl md:text-5xl font-medium leading-[1.15] tracking-tight">
+        <h1 className="font-serif text-4xl md:text-5xl font-semibold leading-[1.15] tracking-tight">
           AI-DIVE开发者文档
         </h1>
         <p className="mt-6 max-w-2xl text-lg md:text-xl leading-relaxed text-[var(--muted)]">

@@ -46,6 +46,19 @@
   --radius-3xl: 32px;
 }
 
+/* Font stacks live in Tailwind's theme so `font-sans` / `font-serif` / `font-mono`
+   utilities and hand-written CSS (`var(--font-*)`) share one source of truth.
+   `static` forces the variables onto :root even when no utility references them. */
+@theme static {
+  /* Typography — system fonts only, no webfont loading (A 方案).
+     The sans stack names the CJK face that actually ships on macOS/iOS, Android, Windows. */
+  --font-sans: system-ui, -apple-system, "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+  /* 全站无衬线（对齐 buffett-tribe）：--font-serif 保留为 --font-sans 的别名，
+     这样现有的 `font-serif` 标题类无需逐个改名，只承担"标题角色"语义。 */
+  --font-serif: var(--font-sans);
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -64,8 +77,9 @@ body {
   min-height: 100vh;
   background: var(--surface);
   color: var(--foreground);
-  font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Source Han Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 1.0625rem;
+  line-height: 1.6;
   text-rendering: geometricPrecision;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
@@ -73,8 +87,10 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: "Noto Serif SC", "Songti SC", "STSong", "Source Han Serif SC", Georgia, serif;
-  font-weight: 500;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
   overflow-wrap: break-word;
 }
 
@@ -96,13 +112,9 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--foreground);
 }
 
-.font-serif {
-  font-family: "Noto Serif SC", "Songti SC", "STSong", "Source Han Serif SC", Georgia, serif;
-}
-
 /* Warm editorial utilities */
 .kicker {
-  font-family: "Noto Sans SC", system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.6875rem; /* 11px */
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -110,7 +122,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .date {
-  font-family: "Noto Sans SC", system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.75rem; /* 12px */
   color: var(--subtle);
   font-variant-numeric: tabular-nums;
@@ -170,10 +182,11 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
   padding-top: 1.25rem;
   border-top: 1px solid var(--border-subtle);
-  font-family: "Noto Serif SC", Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 1.5625rem;
-  font-weight: 500;
-  line-height: 1.3;
+  font-weight: 600;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
   margin-top: 4rem;
   margin-bottom: 1.25rem;
   scroll-margin-top: 5rem;
@@ -186,17 +199,18 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .prose h3 {
-  font-family: "Noto Serif SC", Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 1.25rem;
-  font-weight: 500;
-  line-height: 1.35;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
   margin-top: 2.75rem;
   margin-bottom: 0.875rem;
   scroll-margin-top: 5rem;
 }
 
 .prose h4 {
-  font-family: "Noto Sans SC", system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 1.0625rem;
   font-weight: 600;
   line-height: 1.5;
@@ -239,7 +253,7 @@ h1, h2, h3, h4, h5, h6 {
 .prose blockquote p { margin-bottom: 0; }
 
 .prose :not(pre) > code {
-  font-family: "SF Mono", "Monaco", "Fira Mono", "Source Code Pro", monospace;
+  font-family: var(--font-mono);
   font-size: 0.85em;
   background: var(--border-subtle);
   padding: 0.15rem 0.4rem;
@@ -250,7 +264,7 @@ h1, h2, h3, h4, h5, h6 {
   margin: 1.75rem 0;
 }
 .prose figure[data-rehype-pretty-code-figure] figcaption {
-  font-family: "SF Mono", monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--subtle);
   margin-bottom: 0.4rem;
@@ -265,7 +279,7 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: var(--radius-lg);
 }
 .prose pre code {
-  font-family: "SF Mono", "Monaco", "Fira Mono", "Source Code Pro", monospace;
+  font-family: var(--font-mono);
   font-size: 0.85em;
   background: transparent !important;
   padding: 0;
@@ -304,7 +318,7 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-overflow-scrolling: touch;
 }
 .prose th {
-  font-family: "Noto Sans SC", system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-weight: 500;
   font-size: 0.75rem;
   letter-spacing: 0.06em;
@@ -384,8 +398,8 @@ h1, h2, h3, h4, h5, h6 {
 .agent-md p { margin: 0 0 0.85em; }
 .agent-md p:last-child { margin-bottom: 0; }
 .agent-md h1, .agent-md h2, .agent-md h3 {
-  font-family: "Noto Serif SC", "Songti SC", "STSong", Georgia, serif;
-  font-weight: 500;
+  font-family: var(--font-serif);
+  font-weight: 600;
   line-height: 1.3;
   margin: 1.1em 0 0.4em;
   color: #141413;
@@ -400,7 +414,7 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid #e8e6dc;
   border-radius: 4px;
   padding: 0.1em 0.35em;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
 }
 .agent-md pre {
   background: #f5f4ed;
@@ -485,7 +499,7 @@ body:has(.agent-screen) footer {
 }
 
 .prose .callout-label {
-  font-family: "Noto Sans SC", system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.15em;

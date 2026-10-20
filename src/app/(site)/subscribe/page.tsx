@@ -34,7 +34,7 @@ export default function SubscribePage() {
       <div className="max-w-2xl mx-auto">
         <div className="text-center py-12">
           <p className="kicker mb-6" style={{ color: 'var(--accent)' }}>已发送确认邮件</p>
-          <h1 className="font-serif text-4xl md:text-5xl font-medium leading-[1.15] tracking-tight">
+          <h1 className="font-serif text-4xl md:text-5xl font-semibold leading-[1.15] tracking-tight">
             请查收确认邮件
           </h1>
           <p className="mt-8 text-lg text-[var(--muted)] leading-relaxed max-w-md mx-auto">{message}</p>
@@ -52,7 +52,7 @@ export default function SubscribePage() {
     <div className="max-w-2xl mx-auto">
       <header className="mb-12">
         <p className="kicker mb-5" style={{ color: 'var(--accent)' }}>Subscribe</p>
-        <h1 className="font-serif text-4xl md:text-5xl font-medium leading-[1.15] tracking-tight">
+        <h1 className="font-serif text-4xl md:text-5xl font-semibold leading-[1.15] tracking-tight">
           订阅 AI-DIVE
         </h1>
         <p className="mt-6 text-lg md:text-xl text-[var(--muted)] leading-relaxed max-w-xl">

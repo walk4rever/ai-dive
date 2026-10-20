@@ -11,7 +11,7 @@ export function NotFoundContent() {
     <div className="min-h-[60vh] flex items-center justify-center text-center">
       <div className="max-w-md">
         <p className="kicker mb-5" style={{ color: 'var(--accent)' }}>404 · Not found</p>
-        <h1 className="font-serif text-5xl md:text-6xl font-medium leading-[1.1] tracking-tight">
+        <h1 className="font-serif text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight">
           这里没有东西
         </h1>
         <p className="mt-6 text-lg text-[var(--muted)] leading-relaxed">

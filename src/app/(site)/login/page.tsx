@@ -34,7 +34,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
           <p className="kicker mb-4" style={{ color: 'var(--accent)' }}>Sign in</p>
-          <h1 className="font-serif text-3xl md:text-4xl font-medium leading-[1.15] tracking-tight">
+          <h1 className="font-serif text-3xl md:text-4xl font-semibold leading-[1.15] tracking-tight">
             欢迎回来
           </h1>
           <p className="mt-4 text-[var(--muted)] leading-relaxed">

@@ -168,7 +168,7 @@ export function NewsletterManager({
         <div className="flex flex-wrap items-start justify-between gap-4 mb-2">
           <div>
             <p className="kicker">Newsletter</p>
-            <p className="font-serif text-2xl font-medium tracking-tight mt-1">周刊发送</p>
+            <p className="font-serif text-2xl font-semibold tracking-tight mt-1">周刊发送</p>
             <p className="mt-1 text-xs text-[var(--muted)]">{periodLabel} · 信号解读 {signalCount} 条 · 深度阅读 {postCount} 篇 · 热门出品 {deckCount} 个 · 订阅者 {subscriberCount} 人</p>
           </div>
         </div>

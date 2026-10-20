@@ -114,7 +114,7 @@ export default async function SeriesPage() {
           const items = grouped.get(topic.id) ?? []
           return (
             <section key={topic.id} id={topic.id} className="scroll-mt-10">
-              <h2 className="font-serif text-2xl md:text-3xl font-medium mb-2 text-[var(--foreground)]">
+              <h2 className="font-serif text-2xl md:text-3xl font-semibold mb-2 text-[var(--foreground)]">
                 {topic.name}
               </h2>
               {topic.description && (
@@ -132,7 +132,7 @@ export default async function SeriesPage() {
                     </span>
                     <div className="flex-1 min-w-0">
                       <Link href={`/post/${story.slug}`} className="group">
-                        <h3 className="font-serif text-lg md:text-xl font-medium leading-snug group-hover:text-[var(--accent)] transition-colors">
+                        <h3 className="font-serif text-lg md:text-xl font-semibold leading-snug group-hover:text-[var(--accent)] transition-colors">
                           {story.title}
                         </h3>
                       </Link>

@@ -93,7 +93,7 @@ export function IntelCalendar({
         >
           ‹
         </button>
-        <span className="font-serif text-sm font-medium">{monthLabel}</span>
+        <span className="font-serif text-sm font-semibold">{monthLabel}</span>
         <button
           type="button"
           onClick={() => goToMonth(next.year, next.month)}

@@ -47,7 +47,7 @@ export default async function DashboardPage() {
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-5">
           <div>
             <p className="kicker mb-4" style={{ color: 'var(--accent)' }}>Console</p>
-            <h1 className="font-serif text-4xl font-medium leading-[1.15] tracking-tight md:text-5xl">控制台</h1>
+            <h1 className="font-serif text-4xl font-semibold leading-[1.15] tracking-tight md:text-5xl">控制台</h1>
           </div>
           <div className="flex items-center gap-4">
             {isAdmin && (

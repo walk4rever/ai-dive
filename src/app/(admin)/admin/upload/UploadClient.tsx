@@ -54,7 +54,7 @@ export function UploadClient() {
 
   return (
     <div className="max-w-2xl">
-      <p className="font-serif text-2xl font-medium mb-8">图片上传</p>
+      <p className="font-serif text-2xl font-semibold mb-8">图片上传</p>
 
       <div
         onDrop={handleDrop}

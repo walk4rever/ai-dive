@@ -34,7 +34,7 @@ export function NewPostForm() {
   return (
     <div className="max-w-3xl">
       <a href="/admin/posts" className="kicker text-[var(--muted)] hover:text-[var(--foreground)]">← 返回列表</a>
-      <h1 className="font-serif text-2xl font-medium mt-8 mb-8">新建文章</h1>
+      <h1 className="font-serif text-2xl font-semibold mt-8 mb-8">新建文章</h1>
       <form onSubmit={submit} className="space-y-8">
         {/* Metadata — all together, above the content editor */}
         <div className="space-y-6">

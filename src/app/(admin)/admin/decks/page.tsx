@@ -18,7 +18,7 @@ export default async function AdminDecksPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
         <div>
           <p className="kicker">Products</p>
-          <p className="font-serif text-2xl font-medium tracking-tight mt-1">出品管理</p>
+          <p className="font-serif text-2xl font-semibold tracking-tight mt-1">出品管理</p>
         </div>
         <p className="text-xs text-[var(--muted)]">
           正文来自 R2，只能改元数据和价格 — 上新 / 换正文请用 <code>scripts/import-deck.mjs</code>

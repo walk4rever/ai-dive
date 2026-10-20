@@ -143,7 +143,7 @@ function PostsManagerInner({ initialPosts, sentStoryIds }: PostsManagerProps) {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
         <div>
           <p className="kicker">Editorial Queue</p>
-          <p className="font-serif text-2xl font-medium tracking-tight mt-1">文章管理</p>
+          <p className="font-serif text-2xl font-semibold tracking-tight mt-1">文章管理</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">

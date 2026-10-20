@@ -83,7 +83,7 @@ export default async function ConfirmedPage({ searchParams }: ConfirmationPagePr
     <div className="max-w-2xl mx-auto">
       <div className="border-l-4 border-[var(--accent)] pl-6 py-2">
         <p className="kicker mb-4" style={{ color: 'var(--accent)' }}>{content.label}</p>
-        <h1 className="font-serif text-4xl md:text-5xl font-medium leading-[1.15] tracking-tight">
+        <h1 className="font-serif text-4xl md:text-5xl font-semibold leading-[1.15] tracking-tight">
           {content.title}
         </h1>
       </div>

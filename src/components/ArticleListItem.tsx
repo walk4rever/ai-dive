@@ -50,7 +50,7 @@ export function ArticleListItem({
         <div className="flex items-start gap-5 flex-1 min-w-0">
           {dateParts && (
             <div className="hidden sm:flex flex-col items-center justify-center self-stretch shrink-0 w-16 pr-4 text-center border-r border-[var(--border-subtle)]">
-              <span className="font-serif text-lg leading-none font-medium text-[var(--foreground-soft)] whitespace-nowrap">
+              <span className="font-serif text-lg leading-none font-semibold text-[var(--foreground-soft)] whitespace-nowrap">
                 {dateParts.monthDay}
               </span>
               <span className="date mt-1.5">{dateParts.year}</span>
@@ -74,7 +74,7 @@ export function ArticleListItem({
           )}
           <div className="min-w-0">
             <Link href={`/post/${post.slug}`} className="group block">
-              <h3 className="font-serif text-lg md:text-xl font-medium leading-snug group-hover:text-[var(--accent)] transition-colors">
+              <h3 className="font-serif text-lg md:text-xl font-semibold leading-snug group-hover:text-[var(--accent)] transition-colors">
                 {post.title}
               </h3>
             </Link>

@@ -39,7 +39,7 @@ export default function RegisterPage() {
       <div className="min-h-[70vh] flex items-center justify-center">
         <div className="w-full max-w-md text-center">
           <p className="kicker mb-5" style={{ color: 'var(--accent)' }}>验证邮件已发送</p>
-          <h1 className="font-serif text-3xl md:text-4xl font-medium leading-[1.15] tracking-tight">
+          <h1 className="font-serif text-3xl md:text-4xl font-semibold leading-[1.15] tracking-tight">
             检查你的收件箱
           </h1>
           <p className="mt-6 text-[var(--muted)] leading-relaxed">
@@ -60,7 +60,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
           <p className="kicker mb-4" style={{ color: 'var(--accent)' }}>Sign up</p>
-          <h1 className="font-serif text-3xl md:text-4xl font-medium leading-[1.15] tracking-tight">
+          <h1 className="font-serif text-3xl md:text-4xl font-semibold leading-[1.15] tracking-tight">
             创建账号
           </h1>
         </div>

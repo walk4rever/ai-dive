@@ -27,7 +27,7 @@ export default async function EditPage({ params }: PageParams) {
           查看文章 →
         </a>
       </div>
-      <p className="font-serif text-2xl font-medium mb-6">编辑文章</p>
+      <p className="font-serif text-2xl font-semibold mb-6">编辑文章</p>
       <EditForm post={post} />
     </div>
   )

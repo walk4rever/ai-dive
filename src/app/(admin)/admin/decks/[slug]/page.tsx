@@ -28,7 +28,7 @@ export default async function EditDeckPage({ params }: PageParams) {
           查看正文 →
         </a>
       </div>
-      <p className="font-serif text-2xl font-medium mb-2">编辑出品</p>
+      <p className="font-serif text-2xl font-semibold mb-2">编辑出品</p>
       <p className="text-xs text-[var(--muted)] mb-6">
         正文托管在 R2，这里只能改元数据和价格；换正文请用 <code>scripts/import-deck.mjs</code>
       </p>

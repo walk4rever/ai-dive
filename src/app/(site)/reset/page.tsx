@@ -56,7 +56,7 @@ function ResetForm() {
     return (
       <div className="text-center">
         <p className="kicker mb-5" style={{ color: 'var(--accent)' }}>密码已重置</p>
-        <h1 className="font-serif text-3xl md:text-4xl font-medium leading-[1.15] tracking-tight">
+        <h1 className="font-serif text-3xl md:text-4xl font-semibold leading-[1.15] tracking-tight">
           可以用新密码登录了
         </h1>
         <div className="mt-10">
@@ -75,7 +75,7 @@ function ResetForm() {
     return (
       <div className="text-center">
         <p className="kicker mb-5" style={{ color: 'var(--accent)' }}>链接无效</p>
-        <h1 className="font-serif text-3xl md:text-4xl font-medium leading-[1.15] tracking-tight">
+        <h1 className="font-serif text-3xl md:text-4xl font-semibold leading-[1.15] tracking-tight">
           这个重置链接不对
         </h1>
         <p className="mt-6 text-[var(--muted)]">可能是已过期或被点击过。</p>
@@ -92,7 +92,7 @@ function ResetForm() {
     <div>
       <div className="text-center mb-10">
         <p className="kicker mb-4" style={{ color: 'var(--accent)' }}>New password</p>
-        <h1 className="font-serif text-3xl md:text-4xl font-medium leading-[1.15] tracking-tight">
+        <h1 className="font-serif text-3xl md:text-4xl font-semibold leading-[1.15] tracking-tight">
           设置新密码
         </h1>
       </div>

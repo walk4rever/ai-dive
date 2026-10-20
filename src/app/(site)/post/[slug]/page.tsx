@@ -130,7 +130,7 @@ export default async function PostPage({ params }: Props) {
           <span className="kicker text-[var(--subtle)]">·</span>
           <span className="kicker">{formatPublishedAt(post.published_at)}</span>
         </div>
-        <h1 className="font-serif text-4xl md:text-5xl lg:text-[3.5rem] font-medium leading-[1.15] tracking-tight text-[var(--foreground)]">
+        <h1 className="font-serif text-4xl md:text-5xl lg:text-[3.5rem] font-bold leading-[1.15] tracking-tight text-[var(--foreground)]">
           {post.title}
         </h1>
         {post.excerpt && (

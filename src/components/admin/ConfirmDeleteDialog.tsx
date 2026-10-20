@@ -32,7 +32,7 @@ export function ConfirmDeleteDialog({ title, description, confirmValue, busy, on
         className="ring-whisper w-full max-w-sm rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--background)] p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="font-serif text-xl font-medium">{title}</p>
+        <p className="font-serif text-xl font-semibold">{title}</p>
         <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">{description}</p>
         <p className="mt-4 text-xs text-[var(--muted)]">
           输入 <span className="font-mono text-[var(--foreground)]">{confirmValue}</span> 确认：

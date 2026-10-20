@@ -249,7 +249,7 @@ export function SeriesManager() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="kicker mb-2">Series Studio</p>
-          <p className="font-serif text-2xl font-medium tracking-tight">专题编排</p>
+          <p className="font-serif text-2xl font-semibold tracking-tight">专题编排</p>
           <p className="text-sm text-[var(--muted)] mt-2">创建专题、关联文章、维护顺序。</p>
         </div>
         <div className="flex items-center gap-2">

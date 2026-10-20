@@ -20,7 +20,7 @@ export function ErrorContent({ error, reset }: ErrorContentProps) {
     <div className="min-h-[60vh] flex items-center justify-center text-center">
       <div className="max-w-md">
         <p className="kicker mb-5" style={{ color: 'var(--accent)' }}>Something broke</p>
-        <h1 className="font-serif text-4xl md:text-5xl font-medium leading-[1.15] tracking-tight">
+        <h1 className="font-serif text-4xl md:text-5xl font-semibold leading-[1.15] tracking-tight">
           出了点问题
         </h1>
         <p className="mt-6 text-lg text-[var(--muted)] leading-relaxed">

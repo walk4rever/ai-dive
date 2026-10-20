@@ -150,7 +150,7 @@ export default async function IntelDatePage({ params, searchParams }: Props) {
         <div className="flex items-start justify-between gap-6">
           <div className="min-w-0">
             <p className="kicker" style={{ color: 'var(--accent)' }}>Intel Daily</p>
-            <h1 className="mt-3 font-serif text-3xl md:text-5xl font-medium tracking-tight">
+            <h1 className="mt-3 font-serif text-3xl md:text-5xl font-semibold tracking-tight">
               {parsedDate.m} 月 {parsedDate.d} 日情报
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)]">

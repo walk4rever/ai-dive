@@ -18,7 +18,7 @@ function LatestIntelCard({ signal }: { signal: Signal }) {
           <span className="ml-auto truncate text-[10px] text-[var(--muted)]">{category}</span>
         )}
       </div>
-      <h3 className="mt-3 font-serif text-base font-medium leading-snug text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors">
+      <h3 className="mt-3 font-serif text-base font-semibold leading-snug text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors">
         {signal.title}
       </h3>
       {signal.description && (

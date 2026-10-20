@@ -35,7 +35,7 @@ export default async function AdminSubscribersPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
         <div>
           <p className="kicker">Mailing List</p>
-          <p className="font-serif text-2xl font-medium tracking-tight mt-1">订阅管理</p>
+          <p className="font-serif text-2xl font-semibold tracking-tight mt-1">订阅管理</p>
         </div>
         <p className="text-xs text-[var(--muted)]">
           {activeCount} 已确认 · {pendingCount} 待确认 · {unsubscribedCount} 已退订 · 共 {subscribers.length}

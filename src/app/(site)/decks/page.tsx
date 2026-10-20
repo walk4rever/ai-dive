@@ -83,7 +83,7 @@ export default async function DecksPage() {
                 {deck.kicker}
                 {priceLabel && deck.unlocked && (isAdmin ? ' · 管理员' : ' · 已购买')}
               </p>
-              <h2 className="font-serif text-2xl md:text-3xl font-medium leading-snug tracking-tight text-[var(--foreground)] transition-colors group-hover:text-[var(--accent)]">
+              <h2 className="font-serif text-2xl md:text-3xl font-semibold leading-snug tracking-tight text-[var(--foreground)] transition-colors group-hover:text-[var(--accent)]">
                 {deck.title}
               </h2>
               <p className="mt-4 text-base text-[var(--muted)] leading-relaxed">

@@ -17,7 +17,7 @@ export function QuotaCard({ credits, total, period }: QuotaCardProps) {
   return (
     <Card kicker="本月 AI 额度" aside={<span className="date">{year}.{month}</span>}>
       <p className="mt-6 flex items-baseline gap-2">
-        <span className="font-serif text-4xl font-medium tabular-nums leading-none">{remaining}</span>
+        <span className="font-serif text-4xl font-semibold tabular-nums leading-none">{remaining}</span>
         <span className="text-sm text-[var(--muted)]">/ {total} 次</span>
       </p>
 

@@ -10,12 +10,12 @@ What makes Claude's design truly distinctive is its warm neutral palette. Every 
 
 **Key Characteristics:**
 - Warm parchment canvas (`#f5f4ed`) evoking premium paper, not screens
-- Custom Anthropic type family: Serif for headlines, Sans for UI, Mono for code
+- System type stack (AI-DIVE implementation): one sans family for headlines and UI, Mono for code — see §3
 - Restrained Chinese red (`#c43a45`) — distinctive, composed, and still warm against the parchment canvas
 - Exclusively warm-toned neutrals — every gray has a yellow-brown undertone
 - Organic, editorial illustrations replacing typical tech iconography
 - Ring-based shadow system (`0px 0px 0px 1px`) creating border-like depth without visible borders
-- Magazine-like pacing with generous section spacing and serif-driven hierarchy
+- Magazine-like pacing with generous section spacing and weight/size-driven hierarchy
 
 ## 2. Color Palette & Roles
 
@@ -58,11 +58,21 @@ What makes Claude's design truly distinctive is its warm neutral palette. Every 
 ## 3. Typography Rules
 
 ### Font Family
-- **Headline**: `Anthropic Serif`, with fallback: `Georgia`
-- **Body / UI**: `Anthropic Sans`, with fallback: `Arial`
-- **Code**: `Anthropic Mono`, with fallback: `Arial`
 
-*Note: These are custom typefaces. For external implementations, Georgia serves as the serif substitute and system-ui/Inter as the sans substitute.*
+> [!IMPORTANT]
+> **AI-DIVE implementation override (2026-10-20)**: the site uses **system fonts only, all sans-serif** — no webfont loading, no serif headlines (aligned with buffett-tribe). The Claude-inspired serif/sans split described elsewhere in this document is superseded; wherever it says "Anthropic Serif", read "`--font-sans` at weight 600".
+> Rationale: system fonts cannot guarantee a CJK serif on every platform (macOS has Songti, iOS usually falls back to PingFang, Windows falls back to SimSun), so serif headlines rendered inconsistently. One sans stack renders the same everywhere.
+
+Tokens live in `src/app/globals.css` (`@theme static`), shared by Tailwind utilities and hand-written CSS:
+
+- **`--font-sans`** (headlines, body, UI): `-apple-system, BlinkMacSystemFont, system-ui, "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif`
+- **`--font-serif`**: alias of `--font-sans`. The `font-serif` class is kept as the "headline role" marker so markup does not need renaming; do not point it at a real serif face without revisiting this section.
+- **`--font-mono`** (code only): `ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace`
+
+Rules:
+- Never hard-code a `font-family` stack in CSS or inline styles — always `var(--font-*)` or the Tailwind `font-*` utility.
+- Headlines use weight **600** (`font-semibold`); without serif contrast, weight and size carry the hierarchy.
+- `body` line-height is 1.6; do not add negative letter-spacing to Chinese text.
 
 ### Hierarchy
 
@@ -86,8 +96,8 @@ What makes Claude's design truly distinctive is its warm neutral palette. Every 
 | Code | Anthropic Mono | 15px (0.94rem) | 400 | 1.60 | -0.32px | Inline code, terminal |
 
 ### Principles
-- **Serif for authority, sans for utility**: Anthropic Serif carries all headline content with medium weight (500), giving every heading the gravitas of a published title. Anthropic Sans handles all functional UI text — buttons, labels, navigation — with quiet efficiency.
-- **Single weight for serifs**: All Anthropic Serif headings use weight 500 — no bold, no light. This creates a consistent "voice" across all headline sizes, as if the same author wrote every heading.
+- **One family, hierarchy by weight and size** (AI-DIVE override): headlines use `--font-sans` at weight 600; body/UI text uses 400–500. Size steps and the warm palette carry the editorial feel that the serif used to provide.
+- **Single weight for headlines**: all headings use weight 600 — no 700+, no light. This keeps a consistent "voice" across all headline sizes.
 - **Relaxed body line-height**: Most body text uses 1.60 line-height — significantly more generous than typical tech sites (1.4–1.5). This creates a reading experience closer to a book than a dashboard.
 - **Tight-but-not-compressed headings**: Line-heights of 1.10–1.30 for headings are tight but never claustrophobic. The serif letterforms need breathing room that sans-serif fonts don't.
 - **Micro letter-spacing on labels**: Small sans text (12px and below) uses deliberate letter-spacing (0.12px–0.5px) to maintain readability at tiny sizes.
@@ -200,7 +210,7 @@ What makes Claude's design truly distinctive is its warm neutral palette. Every 
 
 ### Whitespace Philosophy
 - **Editorial pacing**: Each section breathes like a magazine spread — generous top/bottom margins create natural reading pauses.
-- **Serif-driven rhythm**: The serif headings establish a literary cadence that demands more whitespace than sans-serif designs.
+- **Headline-driven rhythm**: Headings establish a literary cadence; keep generous whitespace around them so the all-sans page still reads like an essay, not a dashboard.
 - **Content island approach**: Sections alternate between light and dark environments, creating distinct "rooms" for each message.
 
 ### Border Radius Scale
@@ -232,18 +242,18 @@ What makes Claude's design truly distinctive is its warm neutral palette. Every 
 
 ### Do
 - Use Parchment (`#f5f4ed`) as the primary light background — the warm cream tone IS the Claude personality
-- Use Anthropic Serif at weight 500 for all headlines — the single-weight consistency is intentional
+- Use `--font-sans` at weight 600 for all headlines — the single-weight consistency is intentional
 - Use Chinese Red Brand (`#c43a45`) only for primary CTAs and the highest-signal brand moments
 - Keep all neutrals warm-toned — every gray should have a yellow-brown undertone
 - Use ring shadows (`0px 0px 0px 1px`) for interactive element states instead of drop shadows
-- Maintain the editorial serif/sans hierarchy — serif for content headlines, sans for UI
+- Reference fonts only through `var(--font-*)` / Tailwind `font-*` utilities
 - Use generous body line-height (1.60) for a literary reading experience
 - Alternate between light and dark sections to create chapter-like page rhythm
 - Apply generous border-radius (12–32px) for a soft, approachable feel
 
 ### Don't
 - Don't use cool blue-grays anywhere — the palette is exclusively warm-toned
-- Don't use bold (700+) weight on Anthropic Serif — weight 500 is the ceiling for serifs
+- Don't use 700+ weight on headlines — 600 is the ceiling
 - Don't introduce saturated colors beyond the brand red — the palette is deliberately restrained
 - Don't use sharp corners (< 6px radius) on buttons or cards — softness is core to the identity
 - Don't apply heavy drop shadows — depth comes from ring shadows and background color shifts
@@ -251,7 +261,7 @@ What makes Claude's design truly distinctive is its warm neutral palette. Every 
 - Don't use geometric/tech-style illustrations — Claude's illustrations are organic and hand-drawn-feeling
 - Don't reduce body line-height below 1.40 — the generous spacing supports the editorial personality
 - Don't use monospace fonts for non-code content — Anthropic Mono is strictly for code
-- Don't mix in sans-serif for headlines — the serif/sans split is the typographic identity
+- Don't load webfonts or reintroduce a serif face for headlines without updating §3 — system-only, all-sans is the current decision
 
 ## 8. Responsive Behavior
 

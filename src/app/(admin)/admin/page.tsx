@@ -15,7 +15,7 @@ function StatLink({ label, value, href }: { label: string; value: string | numbe
       className="block rounded-[var(--radius-lg)] border border-[var(--border)] p-6 transition-colors hover:border-[var(--ring)]"
     >
       <p className="kicker">{label}</p>
-      <p className="mt-2 font-serif text-3xl font-medium">{value}</p>
+      <p className="mt-2 font-serif text-3xl font-semibold">{value}</p>
     </Link>
   )
 }
@@ -31,7 +31,7 @@ function TrendTile({ trend }: { trend: OverviewTrend }) {
   return (
     <div className="rounded-[var(--radius-lg)] border border-[var(--border)] p-6">
       <p className="kicker">{trend.label}</p>
-      <p className="mt-2 font-serif text-3xl font-medium">{trend.current}</p>
+      <p className="mt-2 font-serif text-3xl font-semibold">{trend.current}</p>
       <div className="mt-2 flex items-baseline gap-2 text-sm">
         <span className={diffClass}>{diffLabel}</span>
         {trend.detail && <span className="text-[var(--muted)]">· {trend.detail}</span>}
@@ -59,7 +59,7 @@ export default async function AdminOverviewPage() {
     <div className="space-y-6">
       <div className="mb-2">
         <p className="kicker">System Overview</p>
-        <p className="font-serif text-2xl font-medium tracking-tight mt-1">运行总览</p>
+        <p className="font-serif text-2xl font-semibold tracking-tight mt-1">运行总览</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">

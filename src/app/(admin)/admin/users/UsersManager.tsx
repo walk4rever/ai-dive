@@ -101,7 +101,7 @@ export function UsersManager({ initialUsers, currentUserId }: UsersManagerProps)
     <Card>
       <div className="mb-4">
         <p className="kicker">Accounts</p>
-        <p className="font-serif text-2xl font-medium tracking-tight mt-1">用户管理</p>
+        <p className="font-serif text-2xl font-semibold tracking-tight mt-1">用户管理</p>
         <p className="mt-2 text-xs text-[var(--muted)]">
           角色修改在对方下次登录时才会生效（角色写在登录时签发的会话里，不会实时踢下线重新签发）。删除用户会连带永久删除其 Agent、订单、AI 额度流水和会话记录。
         </p>

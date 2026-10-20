@@ -57,7 +57,7 @@ function FeaturedCard({ post }: { post: HomePost }) {
         <span className="date">{formatDate(post.published_at)}</span>
       </div>
       <Link href={postHref(post)} className="group flex-1">
-        <h3 className="font-serif text-xl font-medium leading-snug group-hover:text-[var(--accent)] transition-colors">
+        <h3 className="font-serif text-xl font-semibold leading-snug group-hover:text-[var(--accent)] transition-colors">
           {post.title}
         </h3>
         {post.excerpt && (
@@ -87,7 +87,7 @@ function PostItem({ post }: { post: HomePost }) {
         {date && <span className="date hidden sm:block shrink-0 w-24 pt-1">{date}</span>}
         <div className="flex-1 min-w-0">
           <Link href={postHref(post)} className="group">
-            <h3 className="font-serif text-lg md:text-xl font-medium leading-snug group-hover:text-[var(--accent)] transition-colors">
+            <h3 className="font-serif text-lg md:text-xl font-semibold leading-snug group-hover:text-[var(--accent)] transition-colors">
               {post.title}
             </h3>
           </Link>
@@ -117,7 +117,7 @@ function SeriesCard({ item }: { item: SeriesItem }) {
       className="group flex flex-col gap-2 bg-[var(--background)] hover:bg-white transition-colors rounded-2xl p-5 border border-[var(--border-subtle)] hover:border-[var(--ring)]"
     >
       <div className="flex items-start justify-between gap-4">
-        <h3 className="font-serif text-lg font-medium text-[var(--foreground)] leading-snug group-hover:text-[var(--accent)] transition-colors">
+        <h3 className="font-serif text-lg font-semibold text-[var(--foreground)] leading-snug group-hover:text-[var(--accent)] transition-colors">
           {item.name}
         </h3>
         <span className="shrink-0 text-xs text-[var(--muted)] mt-1">{item.postCount} 篇</span>
@@ -200,7 +200,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
       {/* Hero */}
       <section className="mb-20 md:mb-28">
-        <h1 className="font-serif text-[2rem] md:text-[2.75rem] xl:text-[3.5rem] font-medium leading-[1.15] tracking-tight text-[var(--foreground)]">
+        <h1 className="font-serif text-[2rem] md:text-[2.75rem] xl:text-[3.5rem] font-bold leading-[1.15] tracking-tight text-[var(--foreground)]">
           学习 AI，<br />从知道，到做到。
         </h1>
         <p className="mt-6 text-lg md:text-xl text-[var(--muted)] leading-relaxed">
