@@ -1,7 +1,8 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getSupabaseEnv } from '@/lib/supabase/env'
 import { Post, Signal } from '@/types'
-import { getTypeLabel } from '@/lib/content'
+import { getTypeLabel, getSourceLabel } from '@/lib/content'
+import { toAuthorDisplay } from '@/lib/author'
 import Link from 'next/link'
 import { IntelCalendar } from '@/app/(site)/intels/IntelCalendar'
 import { LatestIntelCards } from '@/app/(site)/intels/LatestIntelCards'
@@ -18,7 +19,7 @@ interface HomePageProps {
 
 type HomePost = Pick<
   Post,
-  'id' | 'slug' | 'title' | 'excerpt' | 'is_premium' | 'published_at' | 'content_type' | 'featured'
+  'id' | 'slug' | 'title' | 'excerpt' | 'is_premium' | 'published_at' | 'content_type' | 'featured' | 'author_slug' | 'author_display'
 >
 
 interface SeriesItem {
@@ -78,6 +79,10 @@ function postHref(post: HomePost): string {
   return `/post/${post.slug}`
 }
 
+function postSourceLabel(post: HomePost): string {
+  return toAuthorDisplay(post.author_display) ?? getSourceLabel(post.author_slug) ?? getTypeLabel(post.content_type)
+}
+
 function PostItem({ post }: { post: HomePost }) {
   const date = formatDate(post.published_at)
 
@@ -98,7 +103,7 @@ function PostItem({ post }: { post: HomePost }) {
           )}
           {date && <span className="date mt-2 block sm:hidden">{date}</span>}
         </div>
-        <span className="kicker shrink-0 pt-1.5" style={{ color: 'var(--accent)' }}>{getTypeLabel(post.content_type)}</span>
+        <span className="kicker shrink-0 pt-1.5" style={{ color: 'var(--accent)' }}>{postSourceLabel(post)}</span>
       </div>
     </article>
   )
@@ -155,7 +160,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const [{ data: posts }, { data: topicsData }, { data: storiesWithTopics }, { data: signalData }, intelDays] = await Promise.all([
     supabase
       .from('ai_pulse_stories')
-      .select('id, slug, title, excerpt, is_premium, published_at, content_type, featured')
+      .select('id, slug, title, excerpt, is_premium, published_at, content_type, featured, author_slug, author_display')
       .eq('status', 'published')
       .order('published_at', { ascending: false }).order('created_at', { ascending: false })
       .limit(100),
