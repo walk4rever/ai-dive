@@ -55,7 +55,7 @@ export default async function ArchivePage({ searchParams }: Props) {
       />
       <div className="divide-y divide-[var(--border-subtle)]">
         {allPosts.map((post) => (
-          <ArticleListItem key={post.id} post={post} showType />
+          <ArticleListItem key={post.id} post={post} />
         ))}
         {allPosts.length === 0 && (
           <p className="py-8 text-sm text-[var(--muted)]">暂无文章。</p>

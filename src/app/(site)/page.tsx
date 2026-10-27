@@ -1,9 +1,9 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getSupabaseEnv } from '@/lib/supabase/env'
 import { Post, Signal } from '@/types'
-import { getTypeLabel, getSourceLabel } from '@/lib/content'
-import { toAuthorDisplay } from '@/lib/author'
+import { getTypeLabel } from '@/lib/content'
 import Link from 'next/link'
+import { ArticleListItem } from '@/components/ArticleListItem'
 import { IntelCalendar } from '@/app/(site)/intels/IntelCalendar'
 import { LatestIntelCards } from '@/app/(site)/intels/LatestIntelCards'
 import { getTodayYmd } from '@/lib/timezone'
@@ -77,36 +77,6 @@ function postHref(post: HomePost): string {
     return intelDatePath(date)
   }
   return `/post/${post.slug}`
-}
-
-function postSourceLabel(post: HomePost): string {
-  return toAuthorDisplay(post.author_display) ?? getSourceLabel(post.author_slug) ?? getTypeLabel(post.content_type)
-}
-
-function PostItem({ post }: { post: HomePost }) {
-  const date = formatDate(post.published_at)
-
-  return (
-    <article className="py-6">
-      <div className="flex items-start gap-6">
-        {date && <span className="date hidden sm:block shrink-0 w-24 pt-1">{date}</span>}
-        <div className="flex-1 min-w-0">
-          <Link href={postHref(post)} className="group">
-            <h3 className="font-serif text-lg md:text-xl font-semibold leading-snug group-hover:text-[var(--accent)] transition-colors">
-              {post.title}
-            </h3>
-          </Link>
-          {post.excerpt && (
-            <p className="mt-2 text-sm text-[var(--muted)] leading-relaxed line-clamp-2">
-              {post.excerpt}
-            </p>
-          )}
-          {date && <span className="date mt-2 block sm:hidden">{date}</span>}
-        </div>
-        <span className="kicker shrink-0 pt-1.5" style={{ color: 'var(--accent)' }}>{postSourceLabel(post)}</span>
-      </div>
-    </article>
-  )
 }
 
 function buildSections(posts: HomePost[]): { featured: HomePost[]; recent: HomePost[] } {
@@ -270,7 +240,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <p className="kicker mb-2">最新</p>
         <div className="divide-y divide-[var(--border-subtle)]">
           {recent.map((post) => (
-            <PostItem key={post.id} post={post} />
+            <ArticleListItem key={post.id} post={post} />
           ))}
         </div>
         {recent.length === 0 && (

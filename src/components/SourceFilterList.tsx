@@ -104,7 +104,7 @@ export function SourceFilterList({
         <>
           <div className="divide-y divide-[var(--border-subtle)]">
             {paginatedPosts.map((post) => (
-              <ArticleListItem key={post.id} post={post} showSource />
+              <ArticleListItem key={post.id} post={post} />
             ))}
             {paginatedPosts.length === 0 && (
               <p className="py-8 text-sm text-[var(--muted)]">没有匹配的内容。</p>
