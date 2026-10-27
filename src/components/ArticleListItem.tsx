@@ -27,11 +27,16 @@ function postHref(post: ListPost): string {
   return `/post/${post.slug}`
 }
 
-export function ArticleListItem({ post }: ArticleListItemProps) {
-  const sourceLabel =
+export function getPostSourceLabel(post: ListPost): string {
+  return (
     toAuthorDisplay(post.author_display) ??
     getSourceLabel(post.author_slug ?? null) ??
     getTypeLabel(post.content_type)
+  )
+}
+
+export function ArticleListItem({ post }: ArticleListItemProps) {
+  const sourceLabel = getPostSourceLabel(post)
   const date = formatDate(post.published_at)
 
   return (

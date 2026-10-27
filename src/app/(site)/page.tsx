@@ -1,9 +1,8 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getSupabaseEnv } from '@/lib/supabase/env'
 import { Post, Signal } from '@/types'
-import { getTypeLabel } from '@/lib/content'
 import Link from 'next/link'
-import { ArticleListItem } from '@/components/ArticleListItem'
+import { ArticleListItem, getPostSourceLabel } from '@/components/ArticleListItem'
 import { IntelCalendar } from '@/app/(site)/intels/IntelCalendar'
 import { LatestIntelCards } from '@/app/(site)/intels/LatestIntelCards'
 import { getTodayYmd } from '@/lib/timezone'
@@ -54,7 +53,9 @@ function FeaturedCard({ post }: { post: HomePost }) {
   return (
     <article className="bg-[var(--background)] rounded-2xl p-6 flex flex-col gap-4 shadow-[0_0_0_1px_var(--border-subtle),0_4px_24px_rgba(20,20,19,0.04)] transition-shadow hover:shadow-[0_0_0_1px_var(--ring),0_8px_32px_rgba(20,20,19,0.08)]">
       <div className="flex items-center justify-between">
-        <span className="kicker" style={{ color: 'var(--accent)' }}>{getTypeLabel(post.content_type)}</span>
+        <span className="text-[0.65rem] font-medium tracking-wide text-[var(--accent)] bg-[var(--accent-light)] border border-[rgba(196,58,69,0.15)] px-2 py-0.5 rounded-full">
+          {getPostSourceLabel(post)}
+        </span>
         <span className="date">{formatDate(post.published_at)}</span>
       </div>
       <Link href={postHref(post)} className="group flex-1">
