@@ -14,11 +14,16 @@ type ListPost = Pick<
   'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type' | 'author_slug' | 'author_display' | 'agent_id'
 >
 
-interface InsightsListProps {
+interface SourceFilterListProps {
   posts: ListPost[]
   selectedSource: string | null
   page: number
   perPage: number
+  kicker: string
+  title: string
+  description?: string
+  basePath: string
+  emptyText: string
 }
 
 const ALL = '__all__'
@@ -27,7 +32,17 @@ function sourceOf(post: ListPost): string {
   return toAuthorDisplay(post.author_display) ?? getSourceLabel(post.author_slug) ?? '未知'
 }
 
-export function InsightsList({ posts, selectedSource: initialSource, page: initialPage, perPage }: InsightsListProps) {
+export function SourceFilterList({
+  posts,
+  selectedSource: initialSource,
+  page: initialPage,
+  perPage,
+  kicker,
+  title,
+  description,
+  basePath,
+  emptyText,
+}: SourceFilterListProps) {
   const router = useRouter()
 
   // Derive state directly from props instead of useState + useEffect
@@ -57,7 +72,7 @@ export function InsightsList({ posts, selectedSource: initialSource, page: initi
     if (source !== ALL) params.set('source', source)
     // Reset to page 1 when changing source
     const query = params.toString()
-    router.push(query ? `/insights?${query}` : '/insights')
+    router.push(query ? `${basePath}?${query}` : basePath)
   }
 
   const queryParams: Record<string, string> = selected !== ALL ? { source: selected } : {}
@@ -65,9 +80,9 @@ export function InsightsList({ posts, selectedSource: initialSource, page: initi
   return (
     <div>
       <ListPageHeader
-        kicker="Insights"
-        title="洞见"
-        description="对话大模型时代的现场亲历者；在思想碰撞与深度访谈中，倾听技术与商业最前沿那些不为人知的关键决策时刻。"
+        kicker={kicker}
+        title={title}
+        description={description}
         filters={
           posts.length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -84,7 +99,7 @@ export function InsightsList({ posts, selectedSource: initialSource, page: initi
         }
       />
       {posts.length === 0 ? (
-        <p className="py-8 text-sm text-[var(--muted)]">洞见内容即将发布。</p>
+        <p className="py-8 text-sm text-[var(--muted)]">{emptyText}</p>
       ) : (
         <>
           <div className="divide-y divide-[var(--border-subtle)]">
@@ -100,7 +115,7 @@ export function InsightsList({ posts, selectedSource: initialSource, page: initi
               currentPage={currentPage}
               totalPages={totalPages}
               total={totalFiltered}
-              basePath="/insights"
+              basePath={basePath}
               queryParams={queryParams}
             />
           )}

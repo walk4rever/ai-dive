@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getSupabaseEnv } from '@/lib/supabase/env'
 import { Post } from '@/types'
-import { InsightsList } from '@/components/InsightsList'
+import { SourceFilterList } from '@/components/SourceFilterList'
 
 export const revalidate = 60
 
@@ -40,5 +40,17 @@ export default async function PodcastPage({ searchParams }: Props) {
 
   const allPosts = (posts ?? []) as ListPost[]
 
-  return <InsightsList posts={allPosts} selectedSource={selectedSource} page={page} perPage={perPage} />
+  return (
+    <SourceFilterList
+      posts={allPosts}
+      selectedSource={selectedSource}
+      page={page}
+      perPage={perPage}
+      kicker="Insights"
+      title="洞见"
+      description="对话大模型时代的现场亲历者；在思想碰撞与深度访谈中，倾听技术与商业最前沿那些不为人知的关键决策时刻。"
+      basePath="/insights"
+      emptyText="洞见内容即将发布。"
+    />
+  )
 }
