@@ -14,7 +14,7 @@ interface ArticleListItemProps {
   post: ListPost
 }
 
-function formatDate(value: string | null | undefined): string | null {
+export function formatPostDate(value: string | null | undefined): string | null {
   if (!value) return null
   const d = new Date(value)
   return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`
@@ -37,7 +37,7 @@ export function getPostSourceLabel(post: ListPost): string {
 
 export function ArticleListItem({ post }: ArticleListItemProps) {
   const sourceLabel = getPostSourceLabel(post)
-  const date = formatDate(post.published_at)
+  const date = formatPostDate(post.published_at)
 
   return (
     <article className="py-6">

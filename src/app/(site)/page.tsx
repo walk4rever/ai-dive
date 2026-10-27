@@ -2,7 +2,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getSupabaseEnv } from '@/lib/supabase/env'
 import { Post, Signal } from '@/types'
 import Link from 'next/link'
-import { ArticleListItem, getPostSourceLabel } from '@/components/ArticleListItem'
+import { ArticleListItem, getPostSourceLabel, formatPostDate } from '@/components/ArticleListItem'
 import { IntelCalendar } from '@/app/(site)/intels/IntelCalendar'
 import { LatestIntelCards } from '@/app/(site)/intels/LatestIntelCards'
 import { getTodayYmd } from '@/lib/timezone'
@@ -28,12 +28,6 @@ interface SeriesItem {
   postCount: number
 }
 
-function formatDate(value: string | null | undefined) {
-  if (!value) return ''
-  const d = new Date(value)
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
-}
-
 function parseYearMonth(value?: string): { year: number; month: number } | null {
   if (!value) return null
   const m = /^(\d{4})-(\d{2})$/.exec(value)
@@ -56,7 +50,7 @@ function FeaturedCard({ post }: { post: HomePost }) {
         <span className="text-[0.65rem] font-medium tracking-wide text-[var(--accent)] bg-[var(--accent-light)] border border-[rgba(196,58,69,0.15)] px-2 py-0.5 rounded-full">
           {getPostSourceLabel(post)}
         </span>
-        <span className="date">{formatDate(post.published_at)}</span>
+        <span className="date">{formatPostDate(post.published_at)}</span>
       </div>
       <Link href={postHref(post)} className="group flex-1">
         <h3 className="font-serif text-xl font-semibold leading-snug group-hover:text-[var(--accent)] transition-colors">
