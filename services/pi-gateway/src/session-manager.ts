@@ -94,8 +94,10 @@ async function buildArticleContextFiles(articleSlug: string): Promise<AgentConte
       "# Current Article Context",
       "",
       `The reader is currently viewing AI-DIVE article "${title}" (slug: ${articleSlug}).`,
+      `Article URL: https://ai.air7.fun/post/${articleSlug}`,
       `Call get_article_content("${articleSlug}") to fetch the full text (original markdown source, including LaTeX formulas) when the question needs exact quotes, section detail, or formula specifics.`,
       "Distinguish what the article actually says (quote or closely paraphrase it) from your own elaboration (say so explicitly).",
+      `When referencing or linking to this article, use its exact URL: https://ai.air7.fun/post/${articleSlug}. Never output truncated or placeholder URLs like https://ai.air7.fun/...`,
     ].join("\n"),
   }];
 }
@@ -107,9 +109,11 @@ function buildIntelDayContextFiles(date: string): AgentContextFile[] {
       "# Current Intel Day Context",
       "",
       `The reader is viewing AI-DIVE's daily intel page for ${date}.`,
+      `Page URL: https://ai.air7.fun/intels/${date}`,
       `Call get_intel_day("${date}") before answering questions about that day's signals.`,
       "Use the signal titles, summaries, sources, categories, site anchors, and original URLs returned by the tool.",
       "Distinguish the published signal summaries from your own analysis. Do not invent article details that the summaries do not contain.",
+      `When linking to this intel page, use the exact URL: https://ai.air7.fun/intels/${date}. Never output truncated or placeholder URLs.`,
     ].join("\n"),
   }];
 }
