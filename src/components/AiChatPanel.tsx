@@ -11,6 +11,7 @@ import { agentPageContextKey, type AgentPageContext } from '@/lib/agent-context'
 import { handleClipboardImages, MessageImages, PendingImageChips, useImageLightbox } from '@/components/AgentChatImages'
 import { CopyMessageButton } from '@/components/AgentChatCopyButton'
 import { buildHighlightShareContent, type HighlightShareContent } from '@/lib/highlight-share'
+import { cleanMarkdownLink } from '@/lib/markdown-link'
 
 // Query param the "AI解读" trigger appends to the login redirect so the
 // panel can reopen itself once the reader is back on this article.
@@ -51,9 +52,21 @@ const CheckIcon = () => (
 )
 
 const mdComponents = {
-  a: (props: ComponentPropsWithoutRef<'a'>) => {
-    const isExternal = /^https?:\/\//i.test(props.href ?? '')
-    return <a {...props} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noopener noreferrer' : undefined} />
+  a: ({ href, children, ...rest }: ComponentPropsWithoutRef<'a'>) => {
+    const { href: cleanHref, trailingText, cleanChildren, isExternal } = cleanMarkdownLink(href, children)
+    return (
+      <>
+        <a
+          {...rest}
+          href={cleanHref}
+          target={isExternal ? '_blank' : undefined}
+          rel={isExternal ? 'noopener noreferrer' : undefined}
+        >
+          {cleanChildren as ReactNode}
+        </a>
+        {trailingText}
+      </>
+    )
   },
 }
 

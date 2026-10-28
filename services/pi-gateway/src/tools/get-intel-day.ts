@@ -76,7 +76,7 @@ export const getIntelDayTool = defineTool({
         `## ${index + 1}. ${row.title}`,
         row.source_name ? `Source: ${row.source_name}` : "",
         row.category ? `Category: ${row.category}` : "",
-        `AI-DIVE page: https://ai.air7.fun/intels/${row.signal_date}#signal-${row.id}`,
+        `AI-DIVE page: https://ai.air7fun.com/intels/${row.signal_date}#signal-${row.id}`,
         `Original: ${row.url}`,
         "",
         row.description,

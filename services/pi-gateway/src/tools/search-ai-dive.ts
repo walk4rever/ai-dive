@@ -140,7 +140,7 @@ function storyToResultItem(r: StoryRow): ResultItem {
     title: r.title,
     excerpt: r.excerpt,
     date: r.published_at ? r.published_at.slice(0, 10) : "",
-    aiDiveUrl: `https://ai.air7.fun/post/${r.slug}`,
+    aiDiveUrl: `https://ai.air7fun.com/post/${r.slug}`,
     rank: r.rank,
   };
 }
@@ -152,7 +152,7 @@ function signalToResultItem(r: SignalRow): ResultItem {
     title: r.title,
     excerpt: r.description,
     date: r.signal_date ?? "",
-    aiDiveUrl: r.signal_date ? `https://ai.air7.fun/intels/${r.signal_date}#signal-${r.id}` : `https://ai.air7.fun/intels`,
+    aiDiveUrl: r.signal_date ? `https://ai.air7fun.com/intels/${r.signal_date}#signal-${r.id}` : `https://ai.air7fun.com/intels`,
     sourceUrl: r.url,
     rank: r.rank,
   };

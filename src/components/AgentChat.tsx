@@ -3,15 +3,28 @@
 import { useEffect, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import type { ComponentPropsWithoutRef, ClipboardEvent } from 'react'
+import type { ComponentPropsWithoutRef, ClipboardEvent, ReactNode } from 'react'
 import { useAgentChat, TOOL_META, type AgentMessage } from '@/hooks/useAgentChat'
 import { handleClipboardImages, MessageImages, PendingImageChips, useImageLightbox } from '@/components/AgentChatImages'
 import { CopyMessageButton } from '@/components/AgentChatCopyButton'
+import { cleanMarkdownLink } from '@/lib/markdown-link'
 
 const mdComponents = {
-  a: (props: ComponentPropsWithoutRef<'a'>) => {
-    const isExternal = /^https?:\/\//i.test(props.href ?? '')
-    return <a {...props} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noopener noreferrer' : undefined} />
+  a: ({ href, children, ...rest }: ComponentPropsWithoutRef<'a'>) => {
+    const { href: cleanHref, trailingText, cleanChildren, isExternal } = cleanMarkdownLink(href, children)
+    return (
+      <>
+        <a
+          {...rest}
+          href={cleanHref}
+          target={isExternal ? '_blank' : undefined}
+          rel={isExternal ? 'noopener noreferrer' : undefined}
+        >
+          {cleanChildren as ReactNode}
+        </a>
+        {trailingText}
+      </>
+    )
   },
 }
 

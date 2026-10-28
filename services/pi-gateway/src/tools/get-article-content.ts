@@ -110,7 +110,7 @@ export const getArticleContentTool = defineTool<
 
     const text = [
       `**${row.title}**`,
-      `URL: https://ai.air7.fun/post/${slug}`,
+      `URL: https://ai.air7fun.com/post/${slug}`,
       row.published_at ? `Published: ${row.published_at}` : "",
       "",
       visibleBody,
