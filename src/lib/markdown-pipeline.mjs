@@ -252,6 +252,86 @@ const EMBED_HEIGHT_DEFAULT = 800
 const EMBED_HEIGHT_MIN = 100
 const EMBED_HEIGHT_MAX = 40000
 
+function extractMuxPlaybackId(href) {
+  try {
+    const url = new URL(href)
+    const host = url.hostname.replace(/^www\./, '')
+    const segment = url.pathname.replace(/^\//, '').split('/')[0]
+
+    if (host === 'stream.mux.com') {
+      const match = segment.match(/^([A-Za-z0-9]+)\.(m3u8|mp4)$/)
+      return match ? match[1] : null
+    }
+    if (!/^[A-Za-z0-9]+$/.test(segment)) return null
+    if (host === 'player.mux.com' || host === 'image.mux.com') return segment
+  } catch {
+    return null
+  }
+  return null
+}
+
+function muxPlayerIframe(id) {
+  return {
+    type: 'element',
+    tagName: 'iframe',
+    properties: {
+      src: `https://player.mux.com/${id}`,
+      title: 'Mux video player',
+      width: '100%',
+      height: '315',
+      frameborder: '0',
+      allow: 'autoplay; fullscreen; picture-in-picture',
+      allowfullscreen: true,
+      style: 'width:100%;aspect-ratio:16/9;',
+    },
+    children: [],
+  }
+}
+
+// Turns a lone Mux URL (player.mux.com / stream.mux.com / image.mux.com thumbnail)
+// on its own line into a 16:9 player iframe — same trust tier as rehypeYouTubeEmbeds:
+// the host whitelist is hardcoded, so this never opens arbitrary embeds.
+export function rehypeMuxEmbeds() {
+  return (tree) => {
+    const visit = (node) => {
+      if (!node || !Array.isArray(node.children)) return
+
+      node.children = node.children.map((child) => {
+        if (child?.type !== 'element') {
+          visit(child)
+          return child
+        }
+
+        if ((child.tagName === 'p' || child.tagName === 'li') && Array.isArray(child.children)) {
+          if (child.children.length === 1 && child.children[0]?.type === 'text') {
+            const id = extractMuxPlaybackId(extractText(child).trim())
+            if (id) return muxPlayerIframe(id)
+          }
+
+          const anchors = child.children.filter((n) => n?.type === 'element' && n.tagName === 'a')
+          if (anchors.length === 1) {
+            const href = String(anchors[0].properties?.href ?? '')
+            const id = extractMuxPlaybackId(href)
+            if (id) {
+              // Only auto-embed when the visible text IS the URL (bare/autolinked
+              // URLs) — descriptive link text means the author wanted a link.
+              const text = extractText(child).trim().replace(/\s+/g, ' ')
+              if (text === href) {
+                return muxPlayerIframe(id)
+              }
+            }
+          }
+        }
+
+        visit(child)
+        return child
+      })
+    }
+
+    visit(tree)
+  }
+}
+
 function allowedEmbedHosts() {
   const hosts = new Set()
   if (process.env.CLOUDFLARE_R2_PUBLIC_URL) {
@@ -328,6 +408,8 @@ export const sanitizeSchema = {
     'video',
     'source',
     'iframe',
+    'figure',
+    'figcaption',
   ],
   attributes: {
     ...defaultSchema.attributes,
@@ -367,6 +449,7 @@ export async function markdownToHtml(markdown, { sanitize } = { sanitize: true }
     .use(rehypeMermaidBlocks)
     .use(rehypeCallouts)
     .use(rehypeYouTubeEmbeds)
+    .use(rehypeMuxEmbeds)
 
   if (sanitize) {
     processor = processor.use(rehypeSanitize, sanitizeSchema)

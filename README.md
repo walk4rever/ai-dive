@@ -119,6 +119,8 @@ npm run import:post -- "/Users/rafael/R129/Vault/AI-DIVE/Harness系列-篇1-什�
 
 文章正文里可以用 `::embed{src="..." height="..."}` 指令嵌入一个独立的、agent 生成的自包含 HTML 页面（报告、可视化 demo）。渲染为沙箱 iframe（`sandbox="allow-scripts"`，不带 `allow-same-origin`），`src` 必须命中 `CLOUDFLARE_R2_PUBLIC_URL` 配置的域名，指向其他域名会被拦截并显示错误。
 
+**视频与图注**：YouTube / Mux 视频不需要 `::embed`——裸链接独占一行即自动渲染为 16:9 播放器（Mux 支持 `player.mux.com/<id>`、`stream.mux.com/<id>.m3u8`、`image.mux.com/<id>/thumbnail.jpg` 三种 URL 形态，链接文字不是 URL 本身的描述性链接保持原样）。带出处说明的图片用 `<figure><img …><figcaption>图注</figcaption></figure>`，图注渲染为居中灰字。
+
 先把 HTML 文件传到 R2，拿到可用的 `src` 和一段供 AI 解读用的隐藏摘要：
 
 ```bash
