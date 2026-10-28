@@ -51,10 +51,10 @@ describe('buildColumnNavigation', () => {
     expect(navigation).toMatchObject({
       kind: 'column',
       heading: '继续阅读 · 深度',
-      previous: { slug: 'one', title: '较早' },
-      next: { slug: 'three', title: '较新' },
-      previousLabel: '更早一篇',
-      nextLabel: '更新一篇',
+      previous: { slug: 'three', title: '较新' },
+      next: { slug: 'one', title: '较早' },
+      previousLabel: '更新一篇',
+      nextLabel: '更早一篇',
       allHref: '/dives',
       allLabel: '查看全部深度',
     })

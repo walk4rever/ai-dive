@@ -48,7 +48,7 @@ export default async function DivesPage({ searchParams }: Props) {
       perPage={perPage}
       kicker="Dives"
       title="深度"
-      description="围绕产品、技术与真实项目的深度剖析；从学术前沿到工程决策，从产品解析到团队复盘，探寻变革背后真正的长期主义逻辑。"
+      description="围绕前沿技术、工程实践与关键人物的深度剖析；从学术前沿到工程落地，从对话亲历者到产品复盘，探寻变革背后真正的长期主义逻辑。"
       basePath="/dives"
       emptyText="深度文章即将发布。"
     />

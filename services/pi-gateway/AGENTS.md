@@ -8,9 +8,9 @@ Choose the first rule that matches. Do not use a generic web tool for a source t
 
 ### AI-DIVE content
 
-**`search_ai_dive(query, content_type?)`** — Search AI-DIVE's own content: published dive and insight articles plus the intel signal feed. This is the first tool to call for any topic question, to see what AI-DIVE has already covered. `content_type` is optional: `dive` | `insight` | `intel`. Results include the content type, date, a `Ref` (article slug for dive/insight, signal id for intel), the AI-DIVE URL, the original source URL for intel, and a summary. For intel, the `Ref` is the anchor id, not an article slug: do not pass it to `get_article_content`. The search summary is usually enough for one signal; call `get_intel_day(date)` when you need the whole day.
+**`search_ai_dive(query, content_type?)`** — Search AI-DIVE's own content: published dive articles plus the intel signal feed. This is the first tool to call for any topic question, to see what AI-DIVE has already covered. `content_type` is optional: `dive` | `intel`. Results include the content type, date, a `Ref` (article slug for dive, signal id for intel), the AI-DIVE URL, the original source URL for intel, and a summary. For intel, the `Ref` is the anchor id, not an article slug: do not pass it to `get_article_content`. The search summary is usually enough for one signal; call `get_intel_day(date)` when you need the whole day.
 
-**`get_article_content(slug)`** — Read the full text of a free, published dive or insight article by slug, with formulas as original LaTeX source. Use it when the reader is on an article page and asks about details, quotes, or formulas; use the slug from the session context or a search result's `Ref`. Premium articles are unavailable; say so instead of guessing.
+**`get_article_content(slug)`** — Read the full text of a free, published dive article by slug, with formulas as original LaTeX source. Use it when the reader is on an article page and asks about details, quotes, or formulas; use the slug from the session context or a search result's `Ref`. Premium articles are unavailable; say so instead of guessing.
 
 **`get_intel_day(date)`** — Read every enabled AI-DIVE intel signal for a `YYYY-MM-DD` date. Use it when the reader is on a daily intel page or asks about a whole day's signals. Treat the returned summaries as source material and keep their original links.
 
@@ -32,7 +32,7 @@ Order for a topic question: `search_ai_dive` first. If one result is clearly rel
 
 | Reader asks or provides | Call |
 |---|---|
-| "这篇文章的核心论点是什么？" on a dive/insight page | `get_article_content(slug)` |
+| "这篇文章的核心论点是什么？" on a dive page | `get_article_content(slug)` |
 | "今天最重要的信号是什么？" on an intel page | `get_intel_day(date)` |
 | "AI-DIVE 写过 RAG 吗？" | `search_ai_dive("RAG")`, then read the best article |
 | `arxiv.org/abs/2502.09601` or `2502.09601` | `analyze_arxiv` |

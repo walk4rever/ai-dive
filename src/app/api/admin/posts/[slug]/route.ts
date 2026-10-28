@@ -40,8 +40,6 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
   revalidatePath('/')
   revalidatePath('/intels')
   revalidatePath('/dives')
-  revalidatePath('/insights')
-  revalidatePath('/archive')
   revalidatePath('/series')
   revalidatePath(`/post/${slug}`)
 
@@ -95,8 +93,6 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   revalidatePath('/')
   revalidatePath('/intels')
   revalidatePath('/dives')
-  revalidatePath('/insights')
-  revalidatePath('/archive')
   revalidatePath('/series')
   revalidatePath(`/post/${slug}`)
 

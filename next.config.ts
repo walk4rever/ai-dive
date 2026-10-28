@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactCompiler: true,
   async redirects() {
-    return [{ source: '/latest', destination: '/archive', permanent: true }]
+    return [{ source: '/latest', destination: '/dives', permanent: true }]
   },
   turbopack: {
     root: process.cwd(),

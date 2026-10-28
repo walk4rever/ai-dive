@@ -5,17 +5,18 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { loginHref } from '@/lib/auth/client'
 
-const NAV_ITEMS: ReadonlyArray<
-  | { type: 'link'; href: string; label: string; gated?: boolean }
-  | { type: 'divider' }
-> = [
-  { type: 'link', href: '/intels', label: '情报' },
-  { type: 'link', href: '/dives', label: '深度' },
-  { type: 'link', href: '/insights', label: '洞见' },
-  { type: 'divider' },
-  { type: 'link', href: '/series', label: '专题' },
-  { type: 'link', href: '/agent', label: '探索', gated: true },
-  { type: 'link', href: '/decks', label: '出品' },
+interface NavItem {
+  href: string
+  label: string
+  gated?: boolean
+}
+
+const NAV_ITEMS: ReadonlyArray<NavItem> = [
+  { href: '/intels', label: '情报' },
+  { href: '/dives', label: '深度' },
+  { href: '/series', label: '专题' },
+  { href: '/agent', label: '探索', gated: true },
+  { href: '/decks', label: '出品' },
 ]
 
 interface NavLinksProps {
@@ -33,19 +34,7 @@ export function NavLinks({ variant }: NavLinksProps) {
 
   return (
     <nav className={containerClass}>
-      {NAV_ITEMS.map((item, index) => {
-        if (item.type === 'divider') {
-          return (
-            <span
-              key={`divider-${index}`}
-              aria-hidden
-              className="text-sm text-[var(--muted)] select-none"
-            >
-              ｜
-            </span>
-          )
-        }
-
+      {NAV_ITEMS.map((item) => {
         const active = pathname === item.href || pathname?.startsWith(`${item.href}/`)
         const base =
           'text-sm font-medium transition-colors whitespace-nowrap relative pb-1'

@@ -15,7 +15,7 @@ export interface DigestPost {
   slug: string
   title: string
   excerpt: string
-  contentType: 'dive' | 'insight'
+  contentType: 'dive'
 }
 
 export interface DigestDeck {
@@ -88,7 +88,7 @@ export async function fetchWeeklyDigestData(supabase: SupabaseClient): Promise<W
       .from('ai_pulse_stories')
       .select('slug, title, excerpt, content_type')
       .eq('status', 'published')
-      .in('content_type', ['dive', 'insight'])
+      .eq('content_type', 'dive')
       .order('published_at', { ascending: false })
       .limit(3),
     supabase
@@ -116,7 +116,7 @@ export async function fetchWeeklyDigestData(supabase: SupabaseClient): Promise<W
       slug: p.slug as string,
       title: p.title as string,
       excerpt: p.excerpt as string,
-      contentType: p.content_type as 'dive' | 'insight',
+      contentType: p.content_type as 'dive',
     })),
     paidDecks: (decks ?? []).map((d) => ({
       title: d.title as string,
@@ -252,7 +252,7 @@ function signalCard(signal: DigestSignal, siteUrl: string): string {
   `
 }
 
-const TYPE_LABEL: Record<DigestPost['contentType'], string> = { dive: '深度', insight: '洞见' }
+const TYPE_LABEL: Record<DigestPost['contentType'], string> = { dive: '深度' }
 
 function postCard(post: DigestPost, siteUrl: string): string {
   const url = `${siteUrl}/post/${post.slug}`
@@ -297,7 +297,7 @@ export interface BuildDigestParams {
 /** DECKS_SUBTITLE mirrors the /decks page's own tagline verbatim (ListPageHeader's
  *  description prop in src/app/(site)/decks/page.tsx) rather than a paraphrase, per
  *  explicit request — short enough to read fine as an email subtitle unlike the
- *  /dives and /insights taglines, which run long. */
+ *  /dives tagline, which runs long. */
 const DECKS_SUBTITLE = '将深度思考浓缩为极具传播力的视觉产品——幻灯片、报告、交互式解读，加速前沿知识的流动。'
 
 export function buildWeeklyDigestHtml({ data, summary, siteUrl, unsubscribeUrl }: BuildDigestParams): string {

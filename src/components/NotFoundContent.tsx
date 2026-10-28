@@ -25,10 +25,10 @@ export function NotFoundContent() {
             返回首页
           </Link>
           <Link
-            href="/archive"
+            href="/dives"
             className="inline-flex items-center bg-[var(--surface-sand)] text-[var(--charcoal)] px-6 py-3 rounded-xl text-base font-medium hover:bg-[var(--border)] transition-colors shadow-[0_0_0_1px_var(--ring)]"
           >
-            浏览全部文章
+            浏览全部深度
           </Link>
         </div>
       </div>

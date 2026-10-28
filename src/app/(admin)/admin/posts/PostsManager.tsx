@@ -8,7 +8,7 @@ import type { AdminPost } from '@/lib/admin/posts'
 import { matchesPostListStatus, type PostListStatusFilter } from '@/lib/admin/post-list-filter'
 import { Card } from '@/components/ui/Card'
 
-type TypeFilter = 'all' | 'dive' | 'intel' | 'insight'
+type TypeFilter = 'all' | 'dive' | 'intel'
 /** 'all' shows everything the other filters allow; 'featured' and 'pending' are the
  *  quick filters the overview page's stat tiles link into (?filter=pending etc.) —
  *  mutually exclusive with each other, layered on top of the text/type/status filters. */
@@ -68,8 +68,8 @@ function PostsManagerInner({ initialPosts, sentStoryIds }: PostsManagerProps) {
   const featuredCount = useMemo(() => posts.filter((p) => p.featured).length, [posts])
 
   async function toggleFeatured(slug: string, current: boolean, contentType: string) {
-    if (!current && !['dive', 'insight'].includes(contentType)) {
-      alert('只有深度、洞见类型的文章可以设为精选。')
+    if (!current && contentType !== 'dive') {
+      alert('只有深度类型的文章可以设为精选。')
       return
     }
     if (!current && featuredCount >= 3) {
@@ -191,7 +191,6 @@ function PostsManagerInner({ initialPosts, sentStoryIds }: PostsManagerProps) {
           <option value="all">全部类型</option>
           <option value="dive">深度</option>
           <option value="intel">情报</option>
-          <option value="insight">洞见</option>
         </select>
         <select
           value={statusFilter}

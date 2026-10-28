@@ -10,7 +10,7 @@
 |------|------|------|------|
 | `slug` | string | ✅ | 全局唯一，见 Slug 规范 |
 | `title` | string | ✅ | 文章标题 |
-| `type` | string | ✅ | `intel` / `dive` / `insight` |
+| `type` | string | ✅ | `intel` / `dive` |
 | `content` | string | ✅ | Markdown 正文（服务端转 HTML 存储） |
 | `excerpt` | string | ✅ | 纯文本摘要 |
 | `date` | string | — | YYYY-MM-DD，缺省当天 |
@@ -27,7 +27,6 @@
 |------|------|------|
 | intel | `intel-YYYY-MM-DD` | `intel-2026-04-08` |
 | dive | `dive-YYYY-MM-DD-{topic}` | `dive-2026-04-08-reasoning-pricing` |
-| insight | `insight-YYYY-MM-DD-{guest}` | `insight-2026-04-08-sam-altman` |
 
 `{topic}` 取核心主题英文关键词，多词用连字符。Slug 是永久标识符，**发布后不要修改**。
 

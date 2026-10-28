@@ -9,7 +9,7 @@ import { toAuthorSlug } from '@/lib/author'
 
 export const runtime = 'nodejs'
 
-const VALID_TYPES = new Set<PostContentType>(['intel', 'dive', 'insight'])
+const VALID_TYPES = new Set<PostContentType>(['intel', 'dive'])
 const VALID_STATUS = new Set(['draft', 'published'])
 
 interface PostPayload {
@@ -118,7 +118,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { slug, title, content, type, date, excerpt, featured, status, is_premium, author: authorMode } = body
+  const { slug, title, content, type: rawType, date, excerpt, featured, status, is_premium, author: authorMode } = body
+  const type = (rawType as string) === 'insight' ? 'dive' : rawType
 
   if (!slug || typeof slug !== 'string' || !/^[a-z0-9-]+$/.test(slug)) {
     return NextResponse.json(
@@ -137,7 +138,7 @@ export async function POST(req: NextRequest) {
 
   if (!VALID_TYPES.has(type)) {
     return NextResponse.json(
-      { error: 'Field "type" must be one of: intel, dive, insight' },
+      { error: 'Field "type" must be one of: intel, dive' },
       { status: 422 }
     )
   }
@@ -169,7 +170,7 @@ export async function POST(req: NextRequest) {
   }
 
   let normalizedContent = content
-  if (type === 'insight' && author.agentId) {
+  if (type === 'dive' && author.agentId) {
     try {
       normalizedContent = await mirrorYouTubeCoverToR2(content, `posts/${author.agentId}`)
     } catch {
@@ -217,8 +218,6 @@ export async function POST(req: NextRequest) {
   revalidatePath('/')
   revalidatePath('/intels')
   revalidatePath('/dives')
-  revalidatePath('/insights')
-  revalidatePath('/archive')
   revalidatePath(`/post/${slug}`)
 
   return NextResponse.json({ ok: true, slug, author: resolvedAuthorSlug }, { status: 200 })

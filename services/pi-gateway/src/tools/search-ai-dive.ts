@@ -21,7 +21,7 @@ type SignalRow = {
 };
 
 type ResultItem = {
-  kind: "dive" | "insight" | "intel";
+  kind: "dive" | "intel";
   ref: string;
   title: string;
   excerpt: string;
@@ -135,7 +135,7 @@ async function recentSignals(limit: number): Promise<SignalRow[]> {
 
 function storyToResultItem(r: StoryRow): ResultItem {
   return {
-    kind: r.content_type === "insight" ? "insight" : "dive",
+    kind: "dive",
     ref: r.slug,
     title: r.title,
     excerpt: r.excerpt,
@@ -178,19 +178,20 @@ export const searchAiDiveTool = defineTool({
   name: "search_ai_dive",
   label: "Search AI-DIVE Content",
   description:
-    "Search AI-DIVE's own content: published free dive and insight articles, plus the intel signal feed. Returns each result's type, date, ref (article slug or intel signal id), AI-DIVE URL, original source URL for intel, and summary. Use this first for any topic question to find what AI-DIVE has covered. Do not use it for public web search.",
+    "Search AI-DIVE's own content: published free dive articles, plus the intel signal feed. Returns each result's type, date, ref (article slug or intel signal id), AI-DIVE URL, original source URL for intel, and summary. Use this first for any topic question to find what AI-DIVE has covered. Do not use it for public web search.",
   promptSnippet:
-    "search_ai_dive(query, content_type?) → matching dive/insight/intel items with type, ref, AI-DIVE URL, summary",
+    "search_ai_dive(query, content_type?) → matching dive/intel items with type, ref, AI-DIVE URL, summary",
   parameters: Type.Object({
     query: Type.String({ description: "Search query — keywords or a natural language question" }),
     content_type: Type.Optional(
       Type.String({
-        description: "Filter by type: intel | dive | insight. Omit to search all types.",
+        description: "Filter by type: intel | dive. Omit to search all types.",
       }),
     ),
   }),
   async execute(_id, params, signal) {
-    const { query, content_type } = params;
+    const { query } = params;
+    const content_type = params.content_type === "insight" ? "dive" : params.content_type;
     const limit = 6;
 
     if (signal?.aborted) {

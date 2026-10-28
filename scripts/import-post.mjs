@@ -10,7 +10,7 @@ import { markdownToHtml as renderMarkdown } from '../src/lib/markdown-pipeline.m
 // Trusted, locally-authored content (Vault CLI import) — no sanitization.
 const markdownToHtml = (markdown) => renderMarkdown(markdown, { sanitize: false })
 
-const VALID_CONTENT_TYPES = new Set(['intel', 'dive', 'insight'])
+const VALID_CONTENT_TYPES = new Set(['intel', 'dive'])
 const VALID_STATUS = new Set(['draft', 'published'])
 
 async function main() {
@@ -163,9 +163,12 @@ function normalizePost({ filePath, data, body }) {
     throw new Error('Frontmatter field "title" is required.')
   }
 
-  const contentType = asNonEmptyString(data.type)
+  let contentType = asNonEmptyString(data.type)
+  if (contentType === 'insight') {
+    contentType = 'dive'
+  }
   if (!VALID_CONTENT_TYPES.has(contentType)) {
-    throw new Error('Frontmatter field "type" must be intel, dive, or insight.')
+    throw new Error('Frontmatter field "type" must be intel or dive.')
   }
 
   const status = asNonEmptyString(data.status) || 'draft'

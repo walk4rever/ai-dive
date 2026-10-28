@@ -6,7 +6,7 @@ import { resolveAuthor } from '@/lib/api-auth'
 import type { PostContentType } from '@/types'
 import { toAuthorSlug } from '@/lib/author'
 
-const VALID_TYPES = new Set<PostContentType>(['intel', 'dive', 'insight'])
+const VALID_TYPES = new Set<PostContentType>(['intel', 'dive'])
 const VALID_STATUS = new Set(['draft', 'published'])
 
 interface RouteParams {
@@ -60,11 +60,12 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { title, content, excerpt, type, date, featured, status, is_premium, author: authorMode } = body
+  const { title, content, excerpt, type: rawType, date, featured, status, is_premium, author: authorMode } = body
+  const type = (rawType as string) === 'insight' ? 'dive' : rawType
 
   if (type !== undefined && !VALID_TYPES.has(type)) {
     return NextResponse.json(
-      { error: 'Field "type" must be one of: intel, dive, insight' },
+      { error: 'Field "type" must be one of: intel, dive' },
       { status: 422 }
     )
   }
@@ -122,8 +123,6 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   revalidatePath('/')
   revalidatePath('/intels')
   revalidatePath('/dives')
-  revalidatePath('/insights')
-  revalidatePath('/archive')
   revalidatePath(`/post/${slug}`)
 
   return NextResponse.json({ ok: true, slug })

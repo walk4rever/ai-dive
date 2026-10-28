@@ -232,7 +232,15 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
       {/* Recent */}
       <section className="border-t border-[var(--border)] pt-14">
-        <p className="kicker mb-2">最新</p>
+        <div className="flex items-baseline justify-between mb-6">
+          <p className="kicker">最新</p>
+          <Link
+            href="/dives"
+            className="kicker text-[var(--muted)] hover:text-[var(--accent)] transition-colors"
+          >
+            全部深度 →
+          </Link>
+        </div>
         <div className="divide-y divide-[var(--border-subtle)]">
           {recent.map((post) => (
             <ArticleListItem key={post.id} post={post} />
@@ -241,11 +249,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         {recent.length === 0 && (
           <p className="py-8 text-sm text-[var(--muted)]">暂无文章。</p>
         )}
-        <div className="mt-8">
-          <Link href="/archive" className="kicker hover:text-[var(--accent)] transition-colors">
-            全部文章 →
-          </Link>
-        </div>
       </section>
     </div>
   )

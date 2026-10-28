@@ -41,7 +41,7 @@ export function NewPostForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div><label className={labelClass}>Slug</label><input required pattern="[a-z0-9-]+" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className={inputClass} /></div>
             <div><label className={labelClass}>标题</label><input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className={inputClass} /></div>
-            <div><label className={labelClass}>类型</label><select value={form.content_type} onChange={(e) => setForm({ ...form, content_type: e.target.value })} className={inputClass}><option value="dive">深度</option><option value="insight">洞见</option><option value="intel">情报</option></select></div>
+            <div><label className={labelClass}>类型</label><select value={form.content_type} onChange={(e) => setForm({ ...form, content_type: e.target.value })} className={inputClass}><option value="dive">深度</option><option value="intel">情报</option></select></div>
             <div><label className={labelClass}>署名</label><input value={form.author_display} onChange={(e) => setForm({ ...form, author_display: e.target.value })} className={inputClass} placeholder="例如 R129" /></div>
             <div><label className={labelClass}>发布日期</label><input type="date" value={form.published_at} onChange={(e) => setForm({ ...form, published_at: e.target.value })} className={inputClass} /></div>
           </div>

@@ -73,7 +73,7 @@ export default async function PostPage({ params }: Props) {
   const headings = extractHeadings(post.content)
   let navigation: ArticleNavigationData | null = null
 
-  if (post.content_type === 'dive' || post.content_type === 'insight') {
+  if (post.content_type === 'dive') {
     const navSupabase = await createServiceClient()
 
     if (post.topic_id) {
@@ -143,7 +143,7 @@ export default async function PostPage({ params }: Props) {
   return (
     <article>
       <ArticleToc headings={headings} />
-      {(post.content_type === 'dive' || post.content_type === 'insight') && <BackToTop />}
+      {post.content_type === 'dive' && <BackToTop />}
       <AiChatPanel
         pageContext={{ kind: 'article', id: post.slug }}
         title={post.title}

@@ -302,7 +302,7 @@ curl -X POST https://ai.air7fun.com/api/posts \
 |------|------|------|------|
 | `slug` | string | ✅ | 全局唯一，小写英文 + 数字 + 连字符，见 [Slug 命名规范](#slug-命名规范) |
 | `title` | string | ✅ | 文章标题 |
-| `type` | string | ✅ | `intel` / `dive` / `insight` |
+| `type` | string | ✅ | `intel` / `dive`（原 `insight` 已并入 `dive`） |
 | `content` | string | ✅ | Markdown 正文，不含 frontmatter；服务端会转换为 HTML 存储 |
 | `excerpt` | string | ✅ | 纯文本摘要，见各类型规范 |
 | `date` | string | — | 发布日期 `YYYY-MM-DD`，缺省为当天 |
@@ -332,7 +332,6 @@ Slug 是文章的永久标识符，发布后请勿修改。文章访问路径为
 |------|------|------|
 | `intel` | `intel-YYYY-MM-DD` | `intel-2026-04-08` |
 | `dive` | `dive-YYYY-MM-DD-{topic}` | `dive-2026-04-08-reasoning-model-pricing` |
-| `insight` | `insight-YYYY-MM-DD-{guest}` | `insight-2026-04-08-sam-altman` |
 
 `{topic}` 取核心主题英文关键词，1–2 个单词，多词用连字符连接（如 `open-source`）。
 
@@ -680,9 +679,9 @@ curl -X PATCH https://ai.air7fun.com/api/posts/dive-2026-04-08-myagent-openai \
 
 ---
 
-### insight · 洞见
+### 深度访谈（属于 dive 类型）
 
-对话 AI 从业者的深度访谈内容，包括文字稿、摘要或深度对话录。
+对话 AI 从业者的深度访谈内容，统一作为 `dive` 发布。
 
 | 要求 | 规范 |
 |------|------|
@@ -691,7 +690,7 @@ curl -X PATCH https://ai.air7fun.com/api/posts/dive-2026-04-08-myagent-openai \
 | excerpt | 嘉宾背景 + 最有价值的 1–2 个洞察，≤150 字 |
 | 结构 | 嘉宾简介 → 对话正文（Q&A 格式）→ 编辑总结（可选） |
 
-**视频型播客（YouTube）推荐写法**
+**视频型播客/访谈（YouTube）推荐写法**
 
 1. 封面：先用 `POST /api/upload` 上传图片，拿到 URL，然后把它作为正文首图（列表页会用“首图”做封面缩略图）：
 
@@ -709,9 +708,9 @@ curl -X PATCH https://ai.air7fun.com/api/posts/dive-2026-04-08-myagent-openai \
 
 ```json
 {
-  "slug": "insight-2026-04-08-sam-altman",
+  "slug": "dive-2026-04-08-sam-altman",
   "title": "对话 Sam Altman：AGI 之后，人类做什么",
-  "type": "insight",
+  "type": "dive",
   "date": "2026-04-08",
   "excerpt": "Sam Altman 首次公开谈论 AGI 后的世界观：他认为大多数人会找到新的意义。",
   "content": "## 嘉宾简介\n\n..."
@@ -833,7 +832,7 @@ async function uploadImage(filePath: string): Promise<string> {
 async function publishPost(post: {
   slug: string;
   title: string;
-  type: "intel" | "dive" | "insight";
+  type: "intel" | "dive";
   date: string;
   excerpt: string;
   content: string;

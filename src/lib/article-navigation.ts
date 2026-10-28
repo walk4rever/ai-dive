@@ -65,7 +65,7 @@ export function buildTopicNavigation(
 export function buildColumnNavigation(
   items: ArticleNavigationItem[],
   currentId: string,
-  contentType: 'dive' | 'insight',
+  contentType: 'dive',
   label: string
 ): ArticleNavigationData | null {
   const ordered = [...items].sort((a, b) => {
@@ -85,12 +85,14 @@ export function buildColumnNavigation(
     kind: 'column',
     heading: `继续阅读 · ${label}`,
     position: null,
-    // Newest-first list: the next array item is older, the previous one is newer.
-    previous: index < ordered.length - 1 ? toLink(ordered[index + 1]) : null,
-    next: index > 0 ? toLink(ordered[index - 1]) : null,
-    allHref: contentType === 'dive' ? '/dives' : '/insights',
+    // Newest-first list:
+    // Left (previous): newer article (index - 1)
+    // Right (next): older article (index + 1)
+    previous: index > 0 ? toLink(ordered[index - 1]) : null,
+    next: index < ordered.length - 1 ? toLink(ordered[index + 1]) : null,
+    allHref: '/dives',
     allLabel: `查看全部${label}`,
-    previousLabel: '更早一篇',
-    nextLabel: '更新一篇',
+    previousLabel: '更新一篇',
+    nextLabel: '更早一篇',
   }
 }

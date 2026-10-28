@@ -60,7 +60,7 @@ export const getArticleContentTool = defineTool<
   name: "get_article_content",
   label: "Get AI-DIVE Article Content",
   description:
-    "Fetch the full text of a published free AI-DIVE dive or insight article by slug, including original formula source (LaTeX) rather than rendered markup. Use this when the reader's question needs exact quotes, section detail, or formula specifics beyond the title/excerpt already known from the session context. Premium articles are not available.",
+    "Fetch the full text of a published free AI-DIVE dive article by slug, including original formula source (LaTeX) rather than rendered markup. Use this when the reader's question needs exact quotes, section detail, or formula specifics beyond the title/excerpt already known from the session context. Premium articles are not available.",
   promptSnippet: "get_article_content(slug) → full article text with formulas as LaTeX source",
   parameters: getArticleContentParameters,
   async execute(_id, params, signal) {

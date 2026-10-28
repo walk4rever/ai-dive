@@ -39,7 +39,7 @@
 
 整体原则是：
 
-> 情报负责每日信号，深度负责产品/技术/案例的认知升级，洞见负责人与公司的商业判断，投资与播客拓展内容维度。
+> 情报负责每日信号，深度负责产品/技术/案例与人物访谈的认知升级，专题与出品拓展内容维度。
 
 ### 3.1 周刊
 
@@ -81,12 +81,11 @@
 | 类型 | 路由 | 说明 |
 |------|------|------|
 | `intel` | `/intels/YYYY-MM-DD` | 每日 AI 信号精选，日历导航，支持单条锚点 |
-| `dive` | `/dives` | 深度分析（产品/技术/案例），认知升级 |
-| `insight` | `/insights` | 围绕人 / 公司的洞见，商业模式与外部播客 |
+| `dive` | `/dives` | 深度剖析（技术/产品/工程/人物访谈），认知升级 |
 
-当前应用的文章内容类型只有 `intel`、`dive`、`insight`。投资和播客仍属于产品方向描述，尚未对应独立路由或内容类型。
+当前应用的文章内容类型只有 `intel`、`dive`。原 `insight`（洞见）已于 2026-10 完全并入 `dive`。
 
-出品 `/decks` 与文章类型分开管理，且**只放 AI-DIVE 原创内容**（2026-10-16 用户明确决策）。第三方书籍、播客等翻译/整理内容按主题进入 `dive` / `insight` 与专题，不进入出品。
+出品 `/decks` 与文章类型分开管理，且**只放 AI-DIVE 原创内容**（2026-10-16 用户明确决策）。第三方书籍、播客等翻译/整理内容按主题进入 `dive` 与专题，不进入出品。
 
 ---
 
@@ -142,7 +141,7 @@ is_premium: false
 - `title`：文章标题
 - `slug`：URL 标识，推荐显式填写
 - `date`：发布日期
-- `content_type`：内容类型，固定为 `intel` / `dive` / `insight` / `invest` / `podcast`
+- `content_type`：内容类型，固定为 `intel` / `dive`（原 `insight` 已收敛并入 `dive`）
 - `author`：作者展示名称；导入时生成稳定的 `author_slug`，同时写入 `author_display`
 - `source_type`：内容来源，当前默认 `editorial`
 - `status`：发布状态，使用 `draft` 或 `published`
@@ -151,7 +150,7 @@ is_premium: false
 - `excerpt`：用于首页、订阅和摘要展示的手写摘要
 - `tags`：文章标签
 - `source_url`：原始来源链接，适合周刊或评述类文章
-- `is_premium`：历史字段，创建接口仍接受，但文章详情页已不再读取——情报/深度/洞见发布即全文可读，不做付费墙
+- `is_premium`：历史字段，创建接口仍接受，但文章详情页已不再读取——情报/深度发布即全文可读，不做付费墙
 
 ### 4.3 Slug 与元数据规则
 
@@ -283,11 +282,11 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - 通过 `/series` 进入专题编排和阅读
 
 #### 精选
-- 最多展示三篇标记为精选的 `dive` / `insight` 内容
+- 最多展示三篇标记为精选的 `dive` 内容
 
 #### 最新
-- 展示最近发布的文章
-- 通过 `/archive` 查看完整归档
+- 展示最近发布的深度文章
+- 通过 `/dives` 查看全部深度文章
 
 ### 5.2 内容类型优先于系列/作者
 
@@ -295,7 +294,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 
 也就是说：
 
-- 首页先让用户理解 `intel / dive / insight / invest / podcast`
+- 首页先让用户理解 `intel / dive`
 - 系列和作者作为第二层信息补充
 - 不把首页做成“作者墙”或“系列目录”
 
@@ -333,7 +332,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 ### 7.1 已实现能力
 
 - 首页展示已发布文章
-- 文章详情页：情报/深度/洞见发布即全文可读，不做付费墙；文章目录导航（H2/H3 数量 ≥3 时左上角悬浮按钮，点开面板跳转章节）；`dive`/`insight` 文章滚动超过一屏后左下角显示"回到顶部"悬浮按钮
+- 文章详情页：情报/深度发布即全文可读，不做付费墙；文章目录导航（H2/H3 数量 ≥3 时左上角悬浮按钮，点开面板跳转章节）；`dive` 文章滚动超过一屏后左下角显示"回到顶部"悬浮按钮
 - 邮件订阅页
 - 双重确认订阅
 - 独立的订阅确认结果页
@@ -349,7 +348,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - 出品管理（`/admin/decks`、`/admin/decks/[slug]`，2026-08-31 新增）：只能改元数据（标题/类型/描述/元信息/发布日期/状态）和价格，正文永远不出现在表单里——正文托管在 R2，改正文走 `scripts/import-deck.mjs`，`PATCH /api/admin/decks/[slug]` 也在服务端硬性拒绝 `href`/`slug` 这两个字段。价格输入是整数元（如 `19.9`），新写的 `parsePriceYuanToCents()`（`src/lib/decks/access.ts`）把空白和显式填 `0` 都统一转成 `price_cents = NULL`（免费/未定价），不会存成字面意义的"¥0"——这是刻意的：现有付费墙判断只认 `price_cents === null` 才算免费，真存一个 0 会走到"要有 paid 订单"这条路，但支付宝/易支付这些通道对 0 元订单没有正常语义。`formatPrice()` 同一次改动里从"整数元省略小数点"改成了固定两位小数（`¥29` → `¥29.00`），这个函数是 `/decks`、`/dashboard` 订单列表、`/admin/decks` 共用的，所以三处展示一起变了
 - 用户管理（`/admin/users`，2026-08-31 新增）：列表（邮箱/用户名/角色/邮箱验证状态/注册时间/本月 AI 额度余额/出品订单数，额度和订单数都是一次性批量查询后在 JS 里按 `user_id` 归并，不是逐用户单独查）+ 管理员角色切换（图标按钮，盾牌图标 filled=管理员）+ 删除账号（垃圾桶图标，`ConfirmDeleteDialog` 要求手动输入目标邮箱才能点亮确认删除，比 `window.confirm()` 更难误触）。删除是硬删除：`ai_pulse_agents`/`orders`/`credit_ledger`/`user_sessions`/`chat_turns` 全部 `ON DELETE CASCADE` 跟着永久消失；`ai_pulse_stories.user_id` 没有级联，所以删除一个以自己身份发过文章的用户会被数据库外键挡住，API 把这种情况识别成 409 而不是甩一个裸 500。两条安全线全部在服务端：不能取消自己的管理员权限、不能删除自己的账号，前端也直接不渲染这两个按钮给自己那一行，不是只在点击后才报错。**角色变更不会让已登录会话立即失效**——`role` 写在登录时签发的 JWT 里，不逐请求查库校验，对方要等下次登录才会应用新角色，页面上有说明
 - 订阅管理（`/admin/subscribers`，2026-08-31 新增）：纯只读，看 `ai_pulse_subscribers` 的已确认/待确认/已退订状态和层级，没有任何操作按钮——发单篇文章的邮件仍然走 `/admin/posts` 编辑页原有的发送接口。`ai_pulse_subscribers` 和 `ai_pulse_users` 是两张完全独立的表，没有外键关联：前者是邮件订阅名单（只需要邮箱，不需要注册），后者是站内登录账号，同一个人的邮箱可能在两边各存一份互不知道对方的记录
-- 周刊发送（`/admin/newsletter`，2026-08-31 新增）：三段式邮件——信号解读（上一周最近入库的 3 条信号，加一段管理员手写的解读摘要，目前没接 LLM 自动生成）、深度阅读（「深度」+「洞见」栏目最新 3 篇）、热门出品（当前全部已定价且已发布的出品）。信号标题链接到站内每日情报条目，原文链接独立放在卡片底部。三段内容全部实时查库拼出来，不缓存、不预先冻结——预览按钮点开看到的就是这一刻会发出去的东西。视觉上是站点暖色调色板的邮件安全子集：table 布局 + 全内联样式（邮件客户端不认 flexbox/grid），字体栈换成系统字体（网页字体在邮件里不可靠），680px 内容宽度、两侧 40px 留白，类型标签用描边胶囊而不是纯文字，跟后台其它模块的状态徽标是同一套视觉语言。落地页 `NewsletterManager` 提供「刷新预览」（iframe 内联渲染真实 HTML）、「发送测试」（任意邮箱，不落库、不计入发送记录）、「发送给全部订阅者」（真实群发，二次确认弹窗）。去重靠新表 `ai_pulse_newsletter_issues`（`supabase/migrations/20260831_create_newsletter_issues.sql`，**需要手动在 Supabase SQL Editor 执行**）：按当次计算出的 7 天窗口 `period_start` 查找或新建一期，复用既有的 `ai_pulse_email_sends` 表做逐订阅者发送记录（`story_id` 留空、新增的 `newsletter_issue_id` 列指向本期）——同一天内因为重试或手滑再点一次发送，只会补发还没收到的人，不会让已收到的订阅者收到第二封；隔天再发因为窗口右移会开一期新的，这是有意的行为，不是 bug。取消订阅链接是真实可点的：复用 `src/lib/subscription/links.ts` 的 `buildUnsubscribeUrl`，跟单篇文章的发送邮件用同一套签名（`EMAIL_CONFIRMATION_SECRET`）
+- 周刊发送（`/admin/newsletter`，2026-08-31 新增）：三段式邮件——信号解读（上一周最近入库的 3 条信号，加一段管理员手写的解读摘要，目前没接 LLM 自动生成）、深度阅读（「深度」栏目最新 3 篇）、热门出品（当前全部已定价且已发布的出品）。信号标题链接到站内每日情报条目，原文链接独立放在卡片底部。三段内容全部实时查库拼出来，不缓存、不预先冻结——预览按钮点开看到的就是这一刻会发出去的东西。视觉上是站点暖色调色板的邮件安全子集：table 布局 + 全内联样式（邮件客户端不认 flexbox/grid），字体栈换成系统字体（网页字体在邮件里不可靠），680px 内容宽度、两侧 40px 留白，类型标签用描边胶囊而不是纯文字，跟后台其它模块的状态徽标是同一套视觉语言。落地页 `NewsletterManager` 提供「刷新预览」（iframe 内联渲染真实 HTML）、「发送测试」（任意邮箱，不落库、不计入发送记录）、「发送给全部订阅者」（真实群发，二次确认弹窗）。去重靠新表 `ai_pulse_newsletter_issues`（`supabase/migrations/20260831_create_newsletter_issues.sql`，**需要手动在 Supabase SQL Editor 执行**）：按当次计算出的 7 天窗口 `period_start` 查找或新建一期，复用既有的 `ai_pulse_email_sends` 表做逐订阅者发送记录（`story_id` 留空、新增的 `newsletter_issue_id` 列指向本期）——同一天内因为重试或手滑再点一次发送，只会补发还没收到的人，不会让已收到的订阅者收到第二封；隔天再发因为窗口右移会开一期新的，这是有意的行为，不是 bug。取消订阅链接是真实可点的：复用 `src/lib/subscription/links.ts` 的 `buildUnsubscribeUrl`，跟单篇文章的发送邮件用同一套签名（`EMAIL_CONFIRMATION_SECRET`）
 - Agent 发布接口（`/api/posts`、`/api/signals`）
 - R2 文件上传接口（`/api/upload`、`/api/upload/presign`）
 - 系列页（`/series`）
@@ -364,7 +363,7 @@ Signal Pipeline 是内容生产的上游层，负责从外部聚合器摄取原�
 - Agent 会话持久化（`/agent`、文章/每日情报 AI解读 面板）：登录用户的每一轮对话写入 `ai_pulse_chat_turns`（按 `user_id` + `context_key` 归属，`context_key` 是文章 slug、`intel-day:YYYY-MM-DD` 或字面量 `global`），刷新页面/换设备会重新加载最近 10 轮；图片附件上传到 R2（`users/<userId>/chat/...`），`imageUrls` 随历史一起落库；`pi-gateway` 冷启动（同一 tab-scoped 匿名 session 30 分钟 TTL 过期后的下一次请求）时会用 `SessionManager.appendMessage()` 把这份历史原样灌回 `AgentSession`，让模型"记得"之前聊过什么——历史里的纯图片轮次回放时替换成文字占位符，不重新下载图片
 - 每日情报页 AI解读：页面使用 `pageContext={ kind: "intel_day", id: "YYYY-MM-DD" }`，会话按 `intel-day:YYYY-MM-DD` 分区；gateway 收到该 context 后先调用 `get_intel_day(date)` 读取当天全部 enabled 信号，再进行归纳、比较和选题建议
 - AI解读工具边界（2026-10-18）：gateway 用显式白名单只暴露 `analyze_arxiv`、`analyze_github`、`search_ai_dive`、`get_article_content`、`get_intel_day`、`web_search`、`fetch_web_page` 七个工具；session 使用独立 resource loader（禁用用户级 extensions/skills/全局 CLAUDE.md），只注入 gateway persona 和当前页面上下文。公共网页检索/抓取走 DeepSeek `/v1/tools/search`、`/v1/tools/fetch`，默认只取摘要，按需抓正文
-- `/insights` 来源胶囊过滤（`InsightsList.tsx`，客户端组件）：按 `author_display` 分组统计后渲染一排胶囊（含"全部"），点选后仅客户端过滤当前已加载的列表，不发起新请求；胶囊嵌在 `ListPageHeader` 的 `filters` 插槽里，渲染在标题分隔线之上
+- `/dives` 来源胶囊过滤（`SourceFilterList.tsx`，客户端组件）：按 `author_display` 分组统计后渲染一排胶囊（含"全部"），点选后仅客户端过滤当前已加载的列表，不发起新请求；胶囊嵌在 `ListPageHeader` 的 `filters` 插槽里，渲染在标题分隔线之上
 - Agent 停止按钮真取消（`/agent`、文章/每日情报 AI解读 面板）：点击停止时，除了 abort 掉浏览器自己的 fetch，还会调用 `POST /api/agent/cancel` 直接告诉 `pi-gateway` 中止那个 session 的生成——不依赖 HTTP 连接断开检测，因为 `/api/agent` 跑在 Vercel 的 Node.js Serverless 运行时上，浏览器断连这件事根本不会传导到正在执行的函数实例，纯连接层面的 abort 会导致 gateway session 卡在"busy"直到原生成自然跑完（`pi-gateway` 自身也在 `server.ts` 把断连检测从 `req.on("close")` 修成了 `res.on("close")`，但这只覆盖常驻进程场景，Vercel 场景仍需这个显式 cancel 端点）
 - 文章/每日情报 AI解读 面板最大化/还原（2026-08-27，从姊妹项目 buffett-tribe 迁移过来的设计）：header 上加了展开/还原图标按钮，点击后 `maximized` state 把面板从停靠/浮层布局切到 `fixed inset-0` 撑满视口，再点还原——纯 CSS/state 切换，不卸载 `AgentChat`，对话内容和输入框草稿不丢；刻意不做"跳转到 `/agent` 页面"这条路，因为 `/agent` 是 `deriveContextKey(undefined)` 的无上下文全局对话页，跳过去会丢文章 slug 对应的 context。同时把面板 header 标题从两行（"AI解读" 标签 + 文章标题）收敛成单行 `AI解读 · {标题}`；`fixed inset-0` 一开始让消息列表和输入框撑满整个视口宽度，行距过长看着不对，随后补了一版让这两处内容改成 `mx-auto max-w-[860px]`，与 `/agent` 探索页的内容列宽对齐（docked/侧栏窄面板下 max-width 本来就大于面板宽度，不生效，行为不变）
 - `/agent` 与文章/每日情报 AI解读 面板对话文字放大（2026-08-27）：正文字号从 `0.83–0.84rem` 统一调到 `0.95rem`，行高从 `1.8/1.85` 收到 `1.7`（字号变大后行距不需要那么松），覆盖用户气泡、AI 回复、流式打字光标、输入框，以及两个对话框共用的 `.agent-md`（渲染 markdown 正文的全局样式）；空状态的建议问题按钮字号保持原样未动

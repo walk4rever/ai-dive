@@ -9,12 +9,12 @@ Powered by [Air7.fun](https://air7.fun)
 ## 当前能力
 
 - 极简首页：每日 Signals、最多 6 个专题入口、3 篇精选文章和最新文章；专题区采用紧凑的浅色响应式卡片网格
-- 文章详情页：适合中文长文阅读的 editorial 排版；情报/深度/洞见发布即全文可读，不再有付费墙；深度/洞见页底提供专题内上一篇/下一篇，非专题文章回退到同栏目前后篇
+- 文章详情页：适合中文长文阅读的 editorial 排版；情报/深度发布即全文可读，不再有付费墙；深度页底提供专题内上一篇/下一篇，非专题文章回退到同栏目前后篇
 - 文章目录导航：H2/H3 数量 ≥3 篇的文章左上角显示悬浮目录按钮，点开面板可跳转到对应章节
-- 回到顶部：`dive`/`insight` 文章滚动超过一屏后左下角出现悬浮按钮，点击回到文章顶部
+- 回到顶部：`dive` 文章滚动超过一屏后左下角出现悬浮按钮，点击回到文章顶部
 - `/wiki`：Quartz 静态知识库子站，挂在 `ai.air7fun.com/wiki/`
 - 情报栏目：首页日历旁展示全站最近入库的 3 条情报；每日情报页 `/intels/YYYY-MM-DD` 按日聚合信号，右上角日历按钮切换日期，页底可跳转前一天/后一天。列表卡片先进入站内日期页并定位到对应条目，原文链接独立放在条目底部。`/intels` 跳转到当天日期页，旧 `?d=` 链接保持兼容
-- `/dives`、`/insights`、`/archive`：深度、洞见和归档列表页，均已支持分页（每页 30 篇）
+- `/dives`：深度列表页，支持分页（每页 30 篇）
 - 邮件订阅页
 - 双重确认订阅流程
 - 登录、注册和用户文章管理
@@ -23,7 +23,7 @@ Powered by [Air7.fun](https://air7.fun)
 - `/agent`、文章/每日情报 AI解读 面板支持粘贴图片提问（DeepSeek vision，client 端降采样为 1280px JPEG，单条消息最多 4 张，点击缩略图可查看大图）
 - `/agent`、文章/每日情报 AI解读 面板的会话持久化：登录用户对话写入 `ai_pulse_chat_turns`，刷新/换设备可续接最近 10 轮；文章按 slug、每日情报按 `intel-day:YYYY-MM-DD` 分区；图片存 R2；pi-gateway 冷启动时把历史回放进 `AgentSession`，模型能记住之前聊过什么
 - 每日情报页 AI解读：整页助手可读取当天全部 enabled 信号，回答重点归纳、主题聚类、信号关联和深度选题建议；gateway 通过 `get_intel_day(YYYY-MM-DD)` 按需加载当天情报
-- AI解读工具集：站内 `search_ai_dive`（覆盖 dive/insight/intel）+ 文章全文 + 当日情报；arXiv 和 GitHub 使用专用工具；公共网页通过 DeepSeek `web_search` / `fetch_web_page` 检索和抓取。gateway 只暴露显式白名单里的 7 个工具，用户级 pi 扩展、skills 和全局 CLAUDE.md 不会进入会话
+- AI解读工具集：站内 `search_ai_dive`（覆盖 dive/intel）+ 文章全文 + 当日情报；arXiv 和 GitHub 使用专用工具；公共网页通过 DeepSeek `web_search` / `fetch_web_page` 检索和抓取。gateway 只暴露显式白名单里的 7 个工具，用户级 pi 扩展、skills 和全局 CLAUDE.md 不会进入会话
 - 文章/每日情报 AI解读 面板支持最大化/还原（header 图标按钮，原地撑满视口，不丢对话状态），标题统一为单行 `AI解读 · {页面标题}`
 - 高光分享：选中文章或每日情报页文字后弹出工具栏（AI解读 + 高光分享），点击「高光分享」复制分享文案（引用段落 + 标题引用 + 页面链接 + 品牌 slogan）
 - Agent 对话超时优化：后端超时从 90s 提升到 300s，支持多工具调用复杂场景；前端追踪流完整性，超时切断时显示 incomplete 提示并保留已回答内容
@@ -173,9 +173,7 @@ npm run import:deck -- "/path/to/deck.html" --slug=... --title=... --kicker=<KEY
 - `/post/[slug]`：文章详情
 - `/intels`：跳转到当天情报页
 - `/intels/[date]`：每日情报页（日历浮层 + 当日完整信号列表 + 相邻日期导航 + 整页 AI解读，支持 `#signal-[id]` 条目锚点）
-- `/dives`：深度列表
-- `/insights`：洞见列表，按来源（`author_display`）胶囊过滤
-- `/archive`：内容归档（全部文章，分页；旧 `/latest` 已 308 重定向至此）
+- `/dives`：深度列表，按来源（`author_display`）胶囊过滤
 - `/series`：专题列表
 - `/decks`：出品（幻灯片 / 报告 / 交互式解读，元数据存于 `ai_pulse_decks` 表，导入见上文 4c；列表页公开，正文按定价走鉴权，管理员免付费，见"当前能力"）
 - `/admin`：管理员总览（可点统计卡 + 近 7 日新增注册/订阅/成交订单趋势，对比上一个 7 天窗口）

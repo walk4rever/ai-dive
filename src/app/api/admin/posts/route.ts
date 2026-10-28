@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   }
   if (typeof title !== 'string' || !title.trim()) return NextResponse.json({ error: 'Title is required' }, { status: 422 })
   if (typeof content !== 'string' || !content.trim()) return NextResponse.json({ error: 'Content is required' }, { status: 422 })
-  if (!['intel', 'dive', 'insight'].includes(content_type)) return NextResponse.json({ error: 'Invalid content type' }, { status: 422 })
+  if (!['intel', 'dive'].includes(content_type)) return NextResponse.json({ error: 'Invalid content type' }, { status: 422 })
   if (!['draft', 'published'].includes(status)) return NextResponse.json({ error: 'Invalid status' }, { status: 422 })
 
   const supabase = await createServiceClient()
@@ -75,7 +75,5 @@ function revalidatePostPaths(slug: string) {
   revalidatePath('/')
   revalidatePath('/intels')
   revalidatePath('/dives')
-  revalidatePath('/insights')
-  revalidatePath('/archive')
   revalidatePath(`/post/${slug}`)
 }

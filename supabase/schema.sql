@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS ai_pulse_stories (
   excerpt TEXT NOT NULL DEFAULT '',
   is_premium BOOLEAN NOT NULL DEFAULT false,
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
-  content_type TEXT NOT NULL DEFAULT 'intel' CHECK (content_type IN ('intel', 'dive', 'insight')),
+  content_type TEXT NOT NULL DEFAULT 'intel' CHECK (content_type IN ('intel', 'dive')),
   featured BOOLEAN NOT NULL DEFAULT false,
   topic_id UUID,
   topic_order INTEGER,
