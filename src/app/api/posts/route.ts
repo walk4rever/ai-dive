@@ -5,7 +5,6 @@ import { markdownToHtml } from '@/lib/markdown'
 import { resolveAuthor } from '@/lib/api-auth'
 import { uploadToR2 } from '@/lib/r2'
 import type { PostContentType } from '@/types'
-import { toAuthorSlug } from '@/lib/author'
 
 export const runtime = 'nodejs'
 
@@ -22,7 +21,10 @@ interface PostPayload {
   featured?: boolean
   status?: string
   is_premium?: boolean
-  author?: string
+  author?: string // 署名模式：'agent' | 'user'（历史字段，非作者名）
+  source?: string // 来源名（2026-10-30 规范）；缺省取 API key 署名
+  source_url?: string
+  byline?: string // 真实署名作者（写 DB author 列；author 字段已被署名模式占用）
 }
 
 function extractFirstMarkdownImageUrl(markdown: string): string | null {
@@ -90,7 +92,7 @@ export async function GET(req: NextRequest) {
   const supabase = await createServiceClient()
   let query = supabase
     .from('ai_pulse_stories')
-    .select('id, slug, title, excerpt, content_type, author_slug, author_display, agent_id, published_at, featured, is_premium, content')
+    .select('id, slug, title, excerpt, content_type, source, author, source_url, agent_id, published_at, featured, is_premium, content')
     .eq('status', 'published')
     .order('published_at', { ascending: false })
     .range(offset, offset + limit - 1)
@@ -118,7 +120,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { slug, title, content, type: rawType, date, excerpt, featured, status, is_premium, author: authorMode } = body
+  const { slug, title, content, type: rawType, date, excerpt, featured, status, is_premium, author: authorMode, source: sourceField, source_url: sourceUrl, byline } = body
   const type = (rawType as string) === 'insight' ? 'dive' : rawType
 
   if (!slug || typeof slug !== 'string' || !/^[a-z0-9-]+$/.test(slug)) {
@@ -187,8 +189,9 @@ export async function POST(req: NextRequest) {
 
   const resolvedStatus = VALID_STATUS.has(status ?? '') ? status! : 'published'
   const publishedAt = date ? new Date(date).toISOString() : new Date().toISOString()
-  const resolvedAuthorSlug = authorMode === 'user' ? toAuthorSlug(author.username) : author.authorSlug
-  const resolvedAuthorDisplay = authorMode === 'user' ? author.username! : author.authorDisplay
+  // 2026-10-30 规范：source 存来源名（缺省取 API key/用户署名），真实作者走 byline → author 列
+  const resolvedSource = sourceField?.trim()
+    || (authorMode === 'user' ? author.username! : author.authorDisplay)
 
   const supabase = await createServiceClient()
   const { error } = await supabase.from('ai_pulse_stories').upsert(
@@ -198,8 +201,9 @@ export async function POST(req: NextRequest) {
       content: html,
       excerpt: excerpt.trim(),
       content_type: type,
-      author_slug: resolvedAuthorSlug,
-      author_display: resolvedAuthorDisplay,
+      source: resolvedSource,
+      author: byline?.trim() || null,
+      source_url: sourceUrl?.trim() || null,
       agent_id: author.agentId ?? null,
       user_id: author.userId ?? null,
       featured: Boolean(featured),
@@ -220,7 +224,7 @@ export async function POST(req: NextRequest) {
   revalidatePath('/dives')
   revalidatePath(`/post/${slug}`)
 
-  return NextResponse.json({ ok: true, slug, author: resolvedAuthorSlug }, { status: 200 })
+  return NextResponse.json({ ok: true, slug, source: resolvedSource }, { status: 200 })
 }
 
 function extractBearer(req: NextRequest): string | null {

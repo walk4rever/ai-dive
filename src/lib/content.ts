@@ -1,5 +1,4 @@
 import type { PostContentType } from '@/types'
-import { toAuthorDisplay } from '@/lib/author'
 
 export function getTypeLabel(type: PostContentType | string | null): string {
   switch (type) {
@@ -9,6 +8,7 @@ export function getTypeLabel(type: PostContentType | string | null): string {
   }
 }
 
-export function getSourceLabel(authorSlug: string | null): string | null {
-  return toAuthorDisplay(authorSlug)
+// 2026-10-30 规范：source 列直接存来源名（20VC / Baseten / X.com…），无需再做显示名转换
+export function getSourceLabel(source: string | null): string | null {
+  return source?.trim() || null
 }

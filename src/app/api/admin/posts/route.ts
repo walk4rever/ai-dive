@@ -3,7 +3,6 @@ import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { markdownToHtml } from '@/lib/markdown'
-import { toAuthorDisplay, toAuthorSlug } from '@/lib/author'
 
 export async function GET() {
   if (!await requireAdminSession()) {
@@ -13,7 +12,7 @@ export async function GET() {
   const supabase = await createServiceClient()
   const { data: posts, error } = await supabase
     .from('ai_pulse_stories')
-    .select('id, slug, title, content_type, author_slug, author_display, status, featured, published_at, topic_id, topic_order')
+    .select('id, slug, title, content_type, source, author, source_url, status, featured, published_at, topic_id, topic_order')
     .order('published_at', { ascending: false })
     .order('created_at', { ascending: false })
 
@@ -30,7 +29,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null)
   if (!body) return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
 
-  const { slug, title, content, excerpt = '', content_type = 'dive', status = 'draft', published_at, is_premium = false, featured = false, author_slug, author_display } = body
+  const { slug, title, content, excerpt = '', content_type = 'dive', status = 'draft', published_at, is_premium = false, featured = false, source, author, source_url } = body
   if (typeof slug !== 'string' || !/^[a-z0-9-]+$/.test(slug)) {
     return NextResponse.json({ error: 'Slug must be lowercase alphanumeric with hyphens' }, { status: 422 })
   }
@@ -50,7 +49,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to render markdown content' }, { status: 422 })
   }
 
-  const display = toAuthorDisplay(author_display ?? author_slug)
   const { data: post, error } = await supabase.from('ai_pulse_stories').insert({
     slug,
     title: title.trim(),
@@ -62,8 +60,9 @@ export async function POST(req: NextRequest) {
     published_at: status === 'published' ? (published_at || new Date().toISOString()) : null,
     is_premium: Boolean(is_premium),
     featured: Boolean(featured),
-    author_slug: toAuthorSlug(author_slug ?? author_display),
-    author_display: display,
+    source: typeof source === 'string' && source.trim() ? source.trim() : null,
+    author: typeof author === 'string' && author.trim() ? author.trim() : null,
+    source_url: typeof source_url === 'string' && source_url.trim() ? source_url.trim() : null,
   }).select('slug').single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

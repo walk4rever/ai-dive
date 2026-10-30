@@ -4,14 +4,13 @@ import { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Post } from '@/types'
 import { getSourceLabel } from '@/lib/content'
-import { toAuthorDisplay } from '@/lib/author'
 import { ArticleListItem } from '@/components/ArticleListItem'
 import { ListPageHeader } from '@/components/ListPageHeader'
 import { Pagination } from '@/components/Pagination'
 
 type ListPost = Pick<
   Post,
-  'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type' | 'author_slug' | 'author_display' | 'agent_id'
+  'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type' | 'source' | 'agent_id'
 >
 
 interface SourceFilterListProps {
@@ -29,7 +28,7 @@ interface SourceFilterListProps {
 const ALL = '__all__'
 
 function sourceOf(post: ListPost): string {
-  return toAuthorDisplay(post.author_display) ?? getSourceLabel(post.author_slug) ?? '未知'
+  return getSourceLabel(post.source) ?? '未知'
 }
 
 export function SourceFilterList({

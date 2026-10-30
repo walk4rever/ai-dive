@@ -4,7 +4,6 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { markdownToHtml } from '@/lib/markdown'
 import { resolveAuthor } from '@/lib/api-auth'
 import type { PostContentType } from '@/types'
-import { toAuthorSlug } from '@/lib/author'
 
 const VALID_TYPES = new Set<PostContentType>(['intel', 'dive'])
 const VALID_STATUS = new Set(['draft', 'published'])
@@ -22,7 +21,10 @@ interface PatchPayload {
   featured?: boolean
   status?: string
   is_premium?: boolean
-  author?: string
+  author?: string // 署名模式：'agent' | 'user'
+  source?: string
+  source_url?: string
+  byline?: string
 }
 
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
@@ -60,7 +62,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { title, content, excerpt, type: rawType, date, featured, status, is_premium, author: authorMode } = body
+  const { title, content, excerpt, type: rawType, date, featured, status, is_premium, author: authorMode, source: sourceField, source_url: sourceUrl, byline } = body
   const type = (rawType as string) === 'insight' ? 'dive' : rawType
 
   if (type !== undefined && !VALID_TYPES.has(type)) {
@@ -95,9 +97,11 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   if (status !== undefined && VALID_STATUS.has(status)) updates.status = status
   if (is_premium !== undefined) updates.is_premium = Boolean(is_premium)
   if (authorMode !== undefined) {
-    updates.author_slug = authorMode === 'user' ? toAuthorSlug(author.username) : author.authorSlug
-    updates.author_display = authorMode === 'user' ? author.username! : author.authorDisplay
+    updates.source = authorMode === 'user' ? author.username! : author.authorDisplay
   }
+  if (sourceField !== undefined) updates.source = sourceField.trim() || null
+  if (sourceUrl !== undefined) updates.source_url = sourceUrl.trim() || null
+  if (byline !== undefined) updates.author = byline.trim() || null
 
   if (content !== undefined) {
     try {

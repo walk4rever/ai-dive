@@ -11,7 +11,7 @@ export default async function EditPage({ params }: PageParams) {
   const supabase = await createServiceClient()
   const { data: post } = await supabase
     .from('ai_pulse_stories')
-    .select('slug, title, content, body_markdown, excerpt, featured, status, published_at, is_premium, content_type, author_slug, author_display')
+    .select('slug, title, content, body_markdown, excerpt, featured, status, published_at, is_premium, content_type, source, author, source_url')
     .eq('slug', slug)
     .single()
 

@@ -1,6 +1,6 @@
 /**
- * Assigns stories to agents by matching author_display (case-insensitive) to agent name.
- * Unmatched author_slugs are reported but not updated.
+ * Assigns stories to agents by matching source (case-insensitive) to agent name.
+ * Unmatched sources are reported but not updated.
  * Usage: node scripts/assign-posts-to-agent.mjs <email>
  */
 
@@ -52,12 +52,11 @@ async function main() {
   const nameToId = Object.fromEntries(agents.map((a) => [a.name.toLowerCase(), a.id]))
 
   // 3. Get all stories with author identity fields
-  const posts = await db(`ai_pulse_stories?select=id,slug,author_slug,author_display,agent_id&limit=1000`)
+  const posts = await db(`ai_pulse_stories?select=id,slug,source,agent_id&limit=1000`)
 
-  // Group by display name, with slug as a legacy fallback
   const groups = {}
   for (const p of posts) {
-    const key = (p.author_display ?? p.author_slug ?? '').toLowerCase()
+    const key = (p.source ?? '').toLowerCase()
     if (!groups[key]) groups[key] = []
     groups[key].push(p)
   }
@@ -66,7 +65,7 @@ async function main() {
   for (const [slug, group] of Object.entries(groups)) {
     const agentId = nameToId[slug]
     if (!agentId) {
-      console.log(`⚠️  author_slug "${slug || '(empty)'}" has no matching agent — skipping ${group.length} post(s)`)
+      console.log(`⚠️  source "${slug || '(empty)'}" has no matching agent — skipping ${group.length} post(s)`)
       continue
     }
 
@@ -79,7 +78,7 @@ async function main() {
 
     const ids = wrong.map((p) => `"${p.id}"`).join(',')
     const updated = await db(
-      `ai_pulse_posts?id=in.(${ids})`,
+      `ai_pulse_stories?id=in.(${ids})`,
       { method: 'PATCH', body: JSON.stringify({ agent_id: agentId }) }
     )
     console.log(`✓  "${slug}" → ${agents.find(a => a.id === agentId).name} (updated ${updated.length}/${group.length} posts)`)

@@ -248,7 +248,7 @@ function PostsManagerInner({ initialPosts, sentStoryIds }: PostsManagerProps) {
                   >
                     {post.title}
                   </a>
-                  <p className="text-xs text-[var(--muted)] mt-1">{post.author_slug || '—'}</p>
+                  <p className="text-xs text-[var(--muted)] mt-1">{post.source || '—'}</p>
                 </div>
                 <p className="kicker mt-2 md:mt-0">
                   {post.status === 'draft' ? '草稿' : '发布'}

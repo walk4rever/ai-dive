@@ -1,6 +1,5 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { getTypeLabel } from '@/lib/content'
-import { toAuthorDisplay } from '@/lib/author'
+import { getTypeLabel, getSourceLabel } from '@/lib/content'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { BackButton } from '@/components/BackButton'
@@ -69,7 +68,8 @@ export default async function PostPage({ params }: Props) {
   if (!post) notFound()
 
   const contentTypeLabel = getTypeLabel(post.content_type)
-  const authorLabel = toAuthorDisplay(post.author_display) ?? toAuthorDisplay(post.author_slug) ?? '编辑部'
+  const sourceLabel = getSourceLabel(post.source) ?? '编辑部'
+  const authorLabel = post.author?.trim() || null
   const headings = extractHeadings(post.content)
   let navigation: ArticleNavigationData | null = null
 
@@ -126,9 +126,28 @@ export default async function PostPage({ params }: Props) {
         <div className="flex flex-wrap items-center gap-4 mb-8">
           <span className="kicker" style={{ color: 'var(--accent)' }}>{contentTypeLabel}</span>
           <span className="kicker text-[var(--subtle)]">·</span>
-          <span className="kicker">{authorLabel}</span>
+          <span className="kicker">{sourceLabel}</span>
+          {authorLabel && (
+            <>
+              <span className="kicker text-[var(--subtle)]">·</span>
+              <span className="kicker">{authorLabel}</span>
+            </>
+          )}
           <span className="kicker text-[var(--subtle)]">·</span>
           <span className="kicker">{formatPublishedAt(post.published_at)}</span>
+          {post.source_url && (
+            <>
+              <span className="kicker text-[var(--subtle)]">·</span>
+              <a
+                href={post.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="kicker text-[var(--muted)] hover:text-[var(--accent)] transition-colors"
+              >
+                阅读原文 ↗
+              </a>
+            </>
+          )}
         </div>
         <h1 className="font-serif text-4xl md:text-5xl lg:text-[3.5rem] font-bold leading-[1.15] tracking-tight text-[var(--foreground)]">
           {post.title}
@@ -147,7 +166,7 @@ export default async function PostPage({ params }: Props) {
       <AiChatPanel
         pageContext={{ kind: 'article', id: post.slug }}
         title={post.title}
-        author={authorLabel}
+        author={sourceLabel}
       >
         {header}
         <MermaidContent className="prose" html={post.content} />

@@ -6,7 +6,7 @@ import { MarkdownEditor } from '@/components/MarkdownEditor'
 
 export function NewPostForm() {
   const router = useRouter()
-  const [form, setForm] = useState({ slug: '', title: '', content: '', excerpt: '', content_type: 'dive', status: 'draft', published_at: '', author_display: '' })
+  const [form, setForm] = useState({ slug: '', title: '', content: '', excerpt: '', content_type: 'dive', status: 'draft', published_at: '', source: '', author: '', source_url: '' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -42,8 +42,10 @@ export function NewPostForm() {
             <div><label className={labelClass}>Slug</label><input required pattern="[a-z0-9-]+" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className={inputClass} /></div>
             <div><label className={labelClass}>标题</label><input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className={inputClass} /></div>
             <div><label className={labelClass}>类型</label><select value={form.content_type} onChange={(e) => setForm({ ...form, content_type: e.target.value })} className={inputClass}><option value="dive">深度</option><option value="intel">情报</option></select></div>
-            <div><label className={labelClass}>署名</label><input value={form.author_display} onChange={(e) => setForm({ ...form, author_display: e.target.value })} className={inputClass} placeholder="例如 R129" /></div>
+            <div><label className={labelClass}>来源（source）</label><input value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} className={inputClass} placeholder="例如 R129 / 20VC / Baseten" /></div>
             <div><label className={labelClass}>发布日期</label><input type="date" value={form.published_at} onChange={(e) => setForm({ ...form, published_at: e.target.value })} className={inputClass} /></div>
+            <div><label className={labelClass}>署名作者（可空）</label><input value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} className={inputClass} placeholder="例如 Elizabeth Goodman" /></div>
+            <div><label className={labelClass}>原文地址（可空）</label><input type="url" value={form.source_url} onChange={(e) => setForm({ ...form, source_url: e.target.value })} className={inputClass} placeholder="https://…" /></div>
           </div>
           <div><label className={labelClass}>摘要</label><textarea rows={3} value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} className={inputClass} /></div>
           <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.status === 'published'} onChange={(e) => setForm({ ...form, status: e.target.checked ? 'published' : 'draft' })} /><span className="kicker">立即发布</span></label>

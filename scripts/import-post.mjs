@@ -43,8 +43,9 @@ async function main() {
     status: normalized.status,
     content_type: normalized.contentType,
     featured: normalized.featured,
-    author_slug: normalized.authorSlug,
-    author_display: normalized.authorDisplay,
+    source: normalized.source,
+    author: normalized.postAuthor,
+    source_url: normalized.sourceUrl,
     published_at: normalized.publishedAt,
   }
 
@@ -56,8 +57,9 @@ async function main() {
       content_type: payload.content_type,
       status: payload.status,
       featured: payload.featured,
-      author_slug: payload.author_slug,
-      author_display: payload.author_display,
+      source: payload.source,
+      author: payload.author,
+      source_url: payload.source_url,
       published_at: payload.published_at,
       excerpt: payload.excerpt,
     }, null, 2))
@@ -88,7 +90,7 @@ async function main() {
   console.log(`- type: ${normalized.contentType}`)
   console.log(`- status: ${normalized.status}`)
   console.log(`- featured: ${normalized.featured}`)
-  console.log(`- author: ${normalized.authorSlug}`)
+  console.log(`- source: ${normalized.source}`)
 
 }
 
@@ -184,6 +186,16 @@ function normalizePost({ filePath, data, body }) {
   const publishedAt = normalizeDate(data.date)
   const excerpt = asNonEmptyString(data.excerpt) || deriveExcerpt(body)
 
+  // 2026-10-30 规范（Vault/FRONTMATTER.md）：source=来源名、author=真实署名作者、
+  // source_url=原文地址。旧格式构建文件兼容：source 是 URL 时，来源名取 author 字段。
+  const rawSource = asNonEmptyString(data.source)
+  const legacySourceIsUrl = /^https?:\/\//.test(rawSource)
+  const source = legacySourceIsUrl
+    ? toAuthorDisplay(data.author) || 'R129'
+    : rawSource || toAuthorDisplay(data.author) || 'R129'
+  const postAuthor = legacySourceIsUrl ? null : asNonEmptyString(data.author) || null
+  const sourceUrl = asNonEmptyString(data.source_url) || (legacySourceIsUrl ? rawSource : '') || null
+
   return {
     title,
     slug,
@@ -193,8 +205,9 @@ function normalizePost({ filePath, data, body }) {
     status,
     contentType,
     featured: Boolean(data.featured),
-    authorSlug: toAuthorSlug(data.author) || 'r129',
-    authorDisplay: toAuthorDisplay(data.author) || 'R129',
+    source,
+    postAuthor,
+    sourceUrl,
     publishedAt,
     filePath,
   }
@@ -236,12 +249,6 @@ function stripWikilinks(value) {
     .replace(/\[\[(?:[^\]|]+\|)?([^\]]+)\]\]/g, '$1')
     .replace(/[\[\]]/g, '')
     .trim()
-}
-
-function toAuthorSlug(value) {
-  const raw = stripWikilinks(value)
-  if (!raw) return null
-  return raw.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, '-').replace(/^-+|-+$/g, '') || null
 }
 
 function toAuthorDisplay(value) {

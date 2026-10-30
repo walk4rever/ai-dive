@@ -1,14 +1,13 @@
 import Link from 'next/link'
 import type { Post } from '@/types'
 import { getTypeLabel, getSourceLabel } from '@/lib/content'
-import { toAuthorDisplay } from '@/lib/author'
 import { intelDatePath } from '@/lib/intel-links'
 
 type ListPost = Pick<
   Post,
   'id' | 'slug' | 'title' | 'excerpt' | 'published_at' | 'content_type'
 > &
-  Partial<Pick<Post, 'author_slug' | 'author_display' | 'agent_id'>>
+  Partial<Pick<Post, 'source' | 'agent_id'>>
 
 interface ArticleListItemProps {
   post: ListPost
@@ -29,8 +28,7 @@ function postHref(post: ListPost): string {
 
 export function getPostSourceLabel(post: ListPost): string {
   return (
-    toAuthorDisplay(post.author_display) ??
-    getSourceLabel(post.author_slug ?? null) ??
+    getSourceLabel(post.source ?? null) ??
     getTypeLabel(post.content_type)
   )
 }

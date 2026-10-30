@@ -92,6 +92,8 @@ cp .env.example .env.local
 
 首次初始化时，在 Supabase SQL Editor 中执行 `supabase/schema.sql`。已有环境按文件名中的时间顺序执行 `supabase/migrations/` 下尚未执行的迁移，不要反复执行整份 schema。部署本版本前必须执行 `20260804_add_author_display.sql`、`20261017_single_topic_with_order.sql` 和 `20261018_orders_lifecycle.sql`。
 
+**2026-10-30 frontmatter 规范化（author → source/author/source_url 三列）的执行顺序**：① SQL Editor 执行 `20261030_add_source_author_source_url.sql`（加列+值迁移）→ ② 部署本版本代码 → ③ 线上验证无误后执行 `20261030_drop_legacy_author_columns.sql`（删旧列 author_slug/author_display）。
+
 当前 schema 会创建以下表：
 
 - `ai_pulse_stories`（原 `ai_pulse_posts`）

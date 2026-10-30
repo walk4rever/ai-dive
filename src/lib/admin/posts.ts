@@ -5,7 +5,7 @@ export interface AdminPost {
   slug: string
   title: string
   content_type: string
-  author_slug: string | null
+  source: string | null
   status: string
   featured: boolean
   published_at: string | null
@@ -27,7 +27,7 @@ export async function fetchAdminPostsData(supabase: SupabaseClient): Promise<Adm
   const [{ data: posts }, { data: sends }] = await Promise.all([
     supabase
       .from('ai_pulse_stories')
-      .select('id, slug, title, content_type, author_slug, author_display, status, featured, published_at')
+      .select('id, slug, title, content_type, source, status, featured, published_at')
       .order('published_at', { ascending: false })
       .order('created_at', { ascending: false }),
     supabase.from('ai_pulse_email_sends').select('story_id'),

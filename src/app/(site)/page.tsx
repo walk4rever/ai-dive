@@ -18,7 +18,7 @@ interface HomePageProps {
 
 type HomePost = Pick<
   Post,
-  'id' | 'slug' | 'title' | 'excerpt' | 'is_premium' | 'published_at' | 'content_type' | 'featured' | 'author_slug' | 'author_display'
+  'id' | 'slug' | 'title' | 'excerpt' | 'is_premium' | 'published_at' | 'content_type' | 'featured' | 'source'
 >
 
 interface SeriesItem {
@@ -125,7 +125,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const [{ data: posts }, { data: topicsData }, { data: storiesWithTopics }, { data: signalData }, intelDays] = await Promise.all([
     supabase
       .from('ai_pulse_stories')
-      .select('id, slug, title, excerpt, is_premium, published_at, content_type, featured, author_slug, author_display')
+      .select('id, slug, title, excerpt, is_premium, published_at, content_type, featured, source')
       .eq('status', 'published')
       .order('published_at', { ascending: false }).order('created_at', { ascending: false })
       .limit(100),

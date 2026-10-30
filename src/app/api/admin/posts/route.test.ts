@@ -44,7 +44,9 @@ describe('admin posts API', () => {
         content: '# Hello',
         content_type: 'dive',
         status: 'draft',
-        author_display: 'Latent Space',
+        source: 'Latent Space',
+        author: 'Patrick',
+        source_url: 'https://example.com/ep1',
       }),
     })
 
@@ -53,8 +55,9 @@ describe('admin posts API', () => {
     expect(res.status).toBe(201)
     expect(builder.insert).toHaveBeenCalledWith(expect.objectContaining({
       body_markdown: '# Hello',
-      author_slug: 'latent-space',
-      author_display: 'Latent Space',
+      source: 'Latent Space',
+      author: 'Patrick',
+      source_url: 'https://example.com/ep1',
       status: 'draft',
       published_at: null,
     }))

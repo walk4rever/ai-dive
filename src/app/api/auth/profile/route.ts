@@ -60,13 +60,14 @@ export async function PATCH(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Sync author identity on posts that were signed with the old username
+  // Sync source identity on posts that were signed with the old username
+  // （2026-10-30 规范：用户署名落在 source 列，旧 author_slug/author_display 已删除）
   if (current?.username) {
     await supabase
       .from('ai_pulse_stories')
-      .update({ author_slug: username.toLowerCase(), author_display: username })
+      .update({ source: username })
       .eq('user_id', user.id)
-      .or(`author_slug.eq.${current.username.toLowerCase()},author_display.eq.${current.username}`)
+      .eq('source', current.username)
   }
 
   return NextResponse.json({ ok: true, username })

@@ -17,8 +17,9 @@ export interface Post {
   topic_id: string | null
   topic_order: number | null
   signal_ids: string[]
-  author_slug: string | null
-  author_display: string | null
+  source: string | null
+  author: string | null
+  source_url: string | null
   agent_id: string | null
   published_at: string | null
   created_at: string

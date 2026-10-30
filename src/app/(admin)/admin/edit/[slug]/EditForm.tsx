@@ -14,8 +14,9 @@ interface Post {
   status: string
   published_at: string | null
   content_type: string
-  author_slug: string | null
-  author_display: string | null
+  source: string | null
+  author: string | null
+  source_url: string | null
 }
 
 export function EditForm({ post }: { post: Post }) {
@@ -27,6 +28,9 @@ export function EditForm({ post }: { post: Post }) {
     featured: post.featured,
     status: post.status,
     published_at: post.published_at ? post.published_at.slice(0, 10) : '',
+    source: post.source ?? '',
+    author: post.author ?? '',
+    source_url: post.source_url ?? '',
   })
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -75,7 +79,7 @@ export function EditForm({ post }: { post: Post }) {
       {/* Metadata — all together, above the content editor */}
       <div className="space-y-6">
         <p className="text-xs text-[var(--muted)]">
-          {post.content_type} · {post.author_slug} · {post.slug}
+          {post.content_type} · {post.source ?? '—'} · {post.slug}
         </p>
 
         <div>
@@ -85,6 +89,40 @@ export function EditForm({ post }: { post: Post }) {
             value={form.title}
             onChange={(e) => update('title', e.target.value)}
             required
+            className={inputClass}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className={labelClass}>来源（source）</label>
+            <input
+              type="text"
+              value={form.source}
+              onChange={(e) => update('source', e.target.value)}
+              placeholder="例如 20VC / Baseten / X.com"
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>署名作者（可空）</label>
+            <input
+              type="text"
+              value={form.author}
+              onChange={(e) => update('author', e.target.value)}
+              placeholder="例如 Elizabeth Goodman"
+              className={inputClass}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className={labelClass}>原文地址（可空）</label>
+          <input
+            type="url"
+            value={form.source_url}
+            onChange={(e) => update('source_url', e.target.value)}
+            placeholder="https://…"
             className={inputClass}
           />
         </div>
