@@ -332,6 +332,70 @@ export function rehypeMuxEmbeds() {
   }
 }
 
+function isVideoFileUrl(href) {
+  try {
+    return /\.(mp4|webm|mov)$/i.test(new URL(href).pathname)
+  } catch {
+    return false
+  }
+}
+
+function videoFilePlayer(src) {
+  return {
+    type: 'element',
+    tagName: 'video',
+    properties: {
+      src,
+      controls: true,
+      preload: 'none',
+      playsinline: true,
+      style: 'width:100%;height:auto;display:block;background:#000',
+    },
+    children: [],
+  }
+}
+
+// Turns a lone self-hosted video file URL (.mp4/.webm/.mov, e.g.
+// static.simonwillison.net) on its own line into an inline <video> player —
+// same auto-embed contract as rehypeMuxEmbeds: bare text URL, or an anchor
+// whose visible text IS the URL. Hotlinking a video file is the same trust
+// tier as hotlinked images, which the pipeline already allows.
+export function rehypeMp4Embeds() {
+  return (tree) => {
+    const visit = (node) => {
+      if (!node || !Array.isArray(node.children)) return
+
+      node.children = node.children.map((child) => {
+        if (child?.type !== 'element') {
+          visit(child)
+          return child
+        }
+
+        if ((child.tagName === 'p' || child.tagName === 'li') && Array.isArray(child.children)) {
+          if (child.children.length === 1 && child.children[0]?.type === 'text') {
+            const href = extractText(child).trim()
+            if (isVideoFileUrl(href)) return videoFilePlayer(href)
+          }
+
+          const anchors = child.children.filter((n) => n?.type === 'element' && n.tagName === 'a')
+          if (anchors.length === 1) {
+            const href = String(anchors[0].properties?.href ?? '')
+            if (isVideoFileUrl(href)) {
+              const text = extractText(child).trim().replace(/\s+/g, ' ')
+              if (text === href) return videoFilePlayer(href)
+            }
+          }
+        }
+
+        visit(child)
+        return child
+      })
+    }
+
+    visit(tree)
+  }
+}
+
 function allowedEmbedHosts() {
   const hosts = new Set()
   if (process.env.CLOUDFLARE_R2_PUBLIC_URL) {
@@ -450,6 +514,7 @@ export async function markdownToHtml(markdown, { sanitize } = { sanitize: true }
     .use(rehypeCallouts)
     .use(rehypeYouTubeEmbeds)
     .use(rehypeMuxEmbeds)
+    .use(rehypeMp4Embeds)
 
   if (sanitize) {
     processor = processor.use(rehypeSanitize, sanitizeSchema)

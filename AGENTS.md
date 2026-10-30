@@ -21,6 +21,8 @@ The main application is a Next.js 16 App Router project. Pages, layouts, and API
 
 Before handing off changes, run `npm run lint`, `npm test`, and `npm run build`. For gateway changes, also run the gateway test command above.
 
+Content import pipeline (markdown → stored HTML) evolves independently of DB/pages; the contract between them is the HTML vocabulary in `docs/content-pipeline-contract.md` — consult its extension checklist before adding new media types to `src/lib/markdown-pipeline.mjs`.
+
 ## Coding Style & Naming Conventions
 
 Use strict TypeScript and the `@/*` alias for imports from `src/`. Follow nearby formatting: two-space indentation, single quotes, and omitted semicolons in most TS/TSX files. Name React components and their files in PascalCase (`ArticleListItem.tsx`), hooks with a `use` prefix, and utilities in kebab-case. Keep route handlers in App Router `route.ts` files. Prefer small, typed helpers and avoid duplicating content-type or author normalization logic already available in `src/lib/`.
